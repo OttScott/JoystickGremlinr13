@@ -626,7 +626,6 @@ class VJoyConditionWidget(AbstractConditionWidget):
         self.condition_data.input_type = data["input_type"]
         self.condition_data.input_id = data["input_id"]
 
-        syslog.debug("VJoyConditionWidget - _modify_vjoy - device_id: {}, input_type: {}, input_id: {}".format(data["device_id"], data["input_type"], data["input_id"]))
         if (self.condition_data.comparison==""):
             if data["input_type"] == InputType.JoystickAxis:
                 self.condition_data.comparison = "inside"
