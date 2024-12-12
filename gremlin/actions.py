@@ -17,7 +17,7 @@
 
 from abc import abstractmethod, ABCMeta
 from functools import partial
-import logging
+import logging, time
 
 import dill
 
@@ -247,6 +247,7 @@ class VJoyCondition(AbstractCondition):
 
         :param condition the condition to check against
         """
+        syslog = logging.getLogger("system")
         super().__init__(condition.comparison)
         self.vjoy_id = condition.vjoy_id
         self.device_guid = None
@@ -257,7 +258,7 @@ class VJoyCondition(AbstractCondition):
         self.input_type = condition.input_type
         self.input_id = condition.input_id
         self.condition = condition
-
+        
     def __call__(self, event, value):
         """Evaluates the condition using the condition and provided data.
 
@@ -284,8 +285,12 @@ class VJoyCondition(AbstractCondition):
         elif self.input_type == common.InputType.JoystickButton:
             if self.comparison == "pressed":
                 return joy.button(self.input_id).is_pressed
-            else:
-                return not joy.button(self.input_id).is_pressed
+            elif self.comparison == "released":
+                if joy.button(self.input_id).is_pressed:
+
+                    time.sleep(0.025)
+                    if not joy.button(self.input_id).is_pressed:
+                        return True
         elif self.input_type == common.InputType.JoystickHat:
             return joy.hat(self.input_id).direction == \
                    util.hat_direction_to_tuple(self.comparison)

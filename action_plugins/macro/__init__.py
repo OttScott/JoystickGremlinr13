@@ -915,7 +915,7 @@ class CountRepeatMacroWidget(AbstractRepeatMacroWidget):
         self.delay.setValue(0.1)
 
         self.count = QtWidgets.QSpinBox()
-        self.count.setMaximum(1e9)
+        self.count.setMaximum(19)
         self.count.setSingleStep(1)
         self.count.setValue(1)
 

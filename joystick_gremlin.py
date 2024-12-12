@@ -939,6 +939,8 @@ class GremlinUi(QtWidgets.QMainWindow):
             new_profile = gremlin.profile.Profile()
             profile_updated = new_profile.from_xml(fname)
 
+            syslog.debug("Loading profile from {}".format(fname))
+
             profile_folder = os.path.dirname(fname)
             if profile_folder not in sys.path:
                 sys.path = list(self._base_path)
@@ -951,6 +953,9 @@ class GremlinUi(QtWidgets.QMainWindow):
             gremlin.shared_state.current_profile = self._profile
 
             self._current_mode = sorted(self._profile.get_root_modes())[0]
+            syslog.debug("Current mode is {}".format(self._current_mode))
+
+            # Create device tabs
             self._create_tabs()
 
             # Make the first root node the default active mode
@@ -1247,7 +1252,7 @@ if __name__ == "__main__":
     })
 
     syslog = logging.getLogger("system")
-
+    userlog = logging.getLogger("user")
     # Show unhandled exceptions to the user when running a compiled version
     # of Joystick Gremlin
     executable_name = os.path.split(sys.executable)[-1]

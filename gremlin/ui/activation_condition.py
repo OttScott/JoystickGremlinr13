@@ -24,6 +24,7 @@ from gremlin import base_classes, hints, input_devices, macro, util
 from gremlin.common import InputType
 from . import common
 
+syslog = logging.getLogger("system")
 
 class ActivationConditionWidget(QtWidgets.QWidget):
 
@@ -243,8 +244,8 @@ class KeyboardConditionWidget(AbstractConditionWidget):
         geom = root.geometry()
 
         self.button_press_dialog.setGeometry(
-            geom.x() + geom.width() / 2 - 150,
-            geom.y() + geom.height() / 2 - 75,
+            int(geom.x() + geom.width() / 2 - 150),
+            int(geom.y() + geom.height() / 2 - 75),
             300,
             150
         )
@@ -398,12 +399,13 @@ class JoystickConditionWidget(AbstractConditionWidget):
         self.condition_data.input_id = event.identifier
         self.condition_data.device_name = \
             input_devices.JoystickProxy()[event.device_guid].name
-        if event.event_type == InputType.JoystickAxis:
-            self.condition_data.comparison = "inside"
-        elif event.event_type == InputType.JoystickButton:
-            self.condition_data.comparison = "pressed"
-        elif event.event_type == InputType.JoystickHat:
-            self.condition_data.comparison = \
+        if (self.condition_data.comparison==""):
+            if self.condition_data.input_type == InputType.JoystickAxis:
+                self.condition_data.comparison = "inside"
+            elif self.condition_data.input_type == InputType.JoystickButton:
+                self.condition_data.comparison = "pressed"
+            elif self.condition_data.input_type == InputType.JoystickHat:
+                self.condition_data.comparison = \
                 util.hat_tuple_to_direction(event.value)
         self._create_ui()
 
@@ -427,8 +429,8 @@ class JoystickConditionWidget(AbstractConditionWidget):
         geom = root.geometry()
 
         self.input_dialog.setGeometry(
-            geom.x() + geom.width() / 2 - 150,
-            geom.y() + geom.height() / 2 - 75,
+            int(geom.x() + geom.width() / 2 - 150),
+            int(geom.y() + geom.height() / 2 - 75),
             300,
             150
         )
@@ -625,13 +627,15 @@ class VJoyConditionWidget(AbstractConditionWidget):
         self.condition_data.input_type = data["input_type"]
         self.condition_data.input_id = data["input_id"]
 
-        if data["input_type"] == InputType.JoystickAxis:
-            self.condition_data.comparison = "inside"
-        elif data["input_type"] == InputType.JoystickButton:
-            self.condition_data.comparison = "pressed"
-        elif data["input_type"] == InputType.JoystickHat:
-            self.condition_data.comparison = \
-                util.hat_tuple_to_direction((0, 0))
+        syslog.debug("VJoyConditionWidget - _modify_vjoy - device_id: {}, input_type: {}, input_id: {}".format(data["device_id"], data["input_type"], data["input_id"]))
+        if (self.condition_data.comparison==""):
+            if data["input_type"] == InputType.JoystickAxis:
+                self.condition_data.comparison = "inside"
+            elif data["input_type"] == InputType.JoystickButton:
+                self.condition_data.comparison = "pressed"
+            elif data["input_type"] == InputType.JoystickHat:
+                self.condition_data.comparison = \
+                    util.hat_tuple_to_direction((0, 0))
         self._create_ui()
 
     def _range_lower_changed_cb(self, value):

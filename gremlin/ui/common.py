@@ -543,7 +543,7 @@ class AbstractInputSelector(QtWidgets.QWidget):
 
         self.main_layout = QtWidgets.QVBoxLayout(self)
 
-        self.chage_cb = change_cb
+        self.change_cb = change_cb
         self.valid_types = valid_types
         self.device_list = []
 
@@ -677,7 +677,7 @@ class AbstractInputSelector(QtWidgets.QWidget):
             self.input_item_dropdowns[0].setVisible(True)
 
     def _execute_callback(self):
-        self.chage_cb(self.get_selection())
+        self.change_cb(self.get_selection())
 
 
 class JoystickSelector(AbstractInputSelector):
