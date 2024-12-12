@@ -24,7 +24,6 @@ from gremlin import base_classes, hints, input_devices, macro, util
 from gremlin.common import InputType
 from . import common
 
-syslog = logging.getLogger("system")
 
 class ActivationConditionWidget(QtWidgets.QWidget):
 

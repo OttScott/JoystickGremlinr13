@@ -199,9 +199,6 @@ class AbstractExecutionGraph(metaclass=ABCMeta):
             used in order to generate executable nodes
         """
         conditions = []
-
-        syslog = logging.getLogger("system")
-
         for condition in activation_condition.conditions:
             if isinstance(condition, base_classes.KeyboardCondition):
                 conditions.append(

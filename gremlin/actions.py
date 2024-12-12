@@ -247,7 +247,6 @@ class VJoyCondition(AbstractCondition):
 
         :param condition the condition to check against
         """
-        syslog = logging.getLogger("system")
         super().__init__(condition.comparison)
         self.vjoy_id = condition.vjoy_id
         self.device_guid = None
@@ -285,12 +284,8 @@ class VJoyCondition(AbstractCondition):
         elif self.input_type == common.InputType.JoystickButton:
             if self.comparison == "pressed":
                 return joy.button(self.input_id).is_pressed
-            elif self.comparison == "released":
-                if joy.button(self.input_id).is_pressed:
-
-                    time.sleep(0.025)
-                    if not joy.button(self.input_id).is_pressed:
-                        return True
+            else:
+                return not joy.button(self.input_id).is_pressed
         elif self.input_type == common.InputType.JoystickHat:
             return joy.hat(self.input_id).direction == \
                    util.hat_direction_to_tuple(self.comparison)

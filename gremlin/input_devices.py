@@ -574,6 +574,7 @@ class ButtonReleaseActions(QtCore.QObject):
     def __init__(self):
         """Initializes the instance."""
         QtCore.QObject.__init__(self)
+
         self._registry = {}
         el = event_handler.EventListener()
         el.joystick_event.connect(self._input_event_cb)

@@ -218,7 +218,6 @@ class EventListener(QtCore.QObject):
                 raw_value=event.value
             ))
         elif event.input_type == dill.InputType.Button:
-#            logging.getLogger("system").debug("Joystick Button Event: GUID={}, ID={}, Value={}".format(event.device_guid, event.input_index, event.value))
             self.joystick_event.emit(Event(
                 event_type=common.InputType.JoystickButton,
                 device_guid=event.device_guid,
