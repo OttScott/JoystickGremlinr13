@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2024 Lionel Ott
+// Copyright (C) 2015 - 2025 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -40,6 +40,8 @@ Item {
     property ResponseCurveModel action
     property Deadzone deadzone: action.deadzone
     property alias widgetSize : _vis.size
+    property int currentIndex : 0
+    readonly property int handleOffset: 5
 
     implicitHeight: _content.height
 
@@ -81,13 +83,90 @@ Item {
         _sliderHigh.second.value = value
     }
 
+    function map2u(x) {
+        return RH.x2u(x, _curve.x, _vis.size, handleOffset)
+    }
+
+    function map2v(y) {
+        return RH.y2v(y, _curve.x, _vis.size, handleOffset)
+    }
+
+    function map2x(u, du) {
+        return RH.u2x(
+            du === null ? u : u + du - handleOffset,
+            handleOffset,
+            _vis.size
+        )
+    }
+    function map2y(v, dv) {
+        return RH.v2y(
+            dv === null ? v : v + dv - handleOffset,
+            handleOffset,
+            _vis.size
+        )
+    }
+
+    function updateControlPoint(cp_handle, evt, index) {
+        let new_x = RH.clamp(map2x(cp_handle.x, evt.x), -1.0, 1.0)
+        let new_y = RH.clamp(map2y(cp_handle.y, evt.y ), -1.0, 1.0)
+
+        // Ensure the points at either end cannot be moved away from the edge
+        if (index === 0) {
+            new_x = -1.0
+        }
+        if (index === action.controlPoints.length - 1) {
+            new_x = 1.0
+        }
+
+        // In symmetry mode moving the center point, if there is one is
+        // not allowed
+        if (_root.action.isSymmetric && _repeater.count % 2 !== 0 &&
+            index * 2 + 1 === _repeater.count)
+        {
+            return null
+        }
+
+        // Prevent moving control point past neighoring ones
+        let new_u = RH.clamp(map2u(new_x), -handleOffset, _vis.size + handleOffset)
+        let new_v = RH.clamp(map2v(new_y), -handleOffset, _vis.size + handleOffset)
+
+        let left = _repeater.itemAt(index - 1)
+        let right = _repeater.itemAt(index + 1)
+        if (left && left.item.x > new_u) {
+            new_u = cp_handle.x
+            new_x = map2x(cp_handle.x, null)
+        }
+        if (right && right.item.x < new_u) {
+            new_u = cp_handle.x
+            new_x = map2x(cp_handle.x, null)
+        }
+
+        // Move the actual marker
+        cp_handle.x = new_u
+        cp_handle.y = new_v
+
+        // Handle symmetry mode, no need to update model as
+        // the code does this behind the scenes with the
+        // model update below
+        if (_root.action.isSymmetric) {
+            let mirror = _repeater.itemAt(_repeater.count - index - 1).item
+            mirror.x = map2u(-new_x, null)
+            mirror.y = map2v(-new_y, null)
+
+        }
+
+        // Return the computed new [x, y] coordinates in [-1, 1] to use on the
+        // model side of things
+        return [new_x, new_y]
+    }
+
     ColumnLayout {
         id: _content
 
         anchors.left: parent.left
         anchors.right: parent.right
 
-
+        // Various controls to configure curve editing
         RowLayout {
             Layout.fillWidth: true
 
@@ -145,7 +224,7 @@ Item {
                 source: "grid.svg"
             }
 
-            // Render the response curve itself not the interactive elemntgs
+            // Render the response curve itself not the interactive elements
             Shape {
                 id: _curve
 
@@ -178,6 +257,7 @@ Item {
                 }
             }
 
+            // Render the individual control elements
             Repeater {
                 id: _repeater
 
@@ -203,84 +283,84 @@ Item {
         }
 
         GridLayout {
-                Layout.fillWidth: true
+            Layout.fillWidth: true
 
-                columns: 4
+            columns: 4
 
-                RangeSlider {
-                    id: _sliderLow
+            RangeSlider {
+                id: _sliderLow
 
-                    Layout.columnSpan: 2
-                    Layout.alignment: Qt.AlignRight
+                Layout.columnSpan: 2
+                Layout.alignment: Qt.AlignRight
 
-                    from: -1.0
-                    to: 0.0
+                from: -1.0
+                to: 0.0
 
-                    first {
-                        onMoved: {
-                            deadzone.low = first.value
-                        }
-                    }
-                    second {
-                        onMoved: {
-                            deadzone.centerLow = second.value
-                        }
+                first {
+                    onMoved: {
+                        deadzone.low = first.value
                     }
                 }
-
-                RangeSlider {
-                    id: _sliderHigh
-
-                    Layout.columnSpan: 2
-                    Layout.alignment: Qt.AlignLeft
-
-                    from: 0.0
-                    to: 1.0
-
-                    first {
-                        onMoved: {
-                            deadzone.centerHigh = first.value
-                        }
+                second {
+                    onMoved: {
+                        deadzone.centerLow = second.value
                     }
-                    second {
-                        onMoved: {
-                            deadzone.high = second.value
-                        }
-                    }
-                }
-
-                FloatSpinBox {
-                    id: _spinLow
-
-                    realValue: -1.0
-                    minValue: -1.0
-                    maxValue: _spinCenterLow.realValue
-
-                    onRealValueModified: {
-                        deadzone.low = realValue
-                    }
-                }
-                FloatSpinBox {
-                    id: _spinCenterLow
-
-                    realValue: 0.0
-                    minValue: _spinLow.realValue
-                    maxValue: 0.0
-                }
-                FloatSpinBox {
-                    id: _spinCenterHigh
-
-                    realValue: 0.0
-                    minValue: 0.0
-                    maxValue: _spinHigh.realValue
-                }
-                FloatSpinBox {
-                    id: _spinHigh
-
-                    realValue: 1.0
-                    minValue: _spinCenterHigh.realValue
-                    maxValue: 1.0
                 }
             }
+
+            RangeSlider {
+                id: _sliderHigh
+
+                Layout.columnSpan: 2
+                Layout.alignment: Qt.AlignLeft
+
+                from: 0.0
+                to: 1.0
+
+                first {
+                    onMoved: {
+                        deadzone.centerHigh = first.value
+                    }
+                }
+                second {
+                    onMoved: {
+                        deadzone.high = second.value
+                    }
+                }
+            }
+
+            FloatSpinBox {
+                id: _spinLow
+
+                realValue: -1.0
+                minValue: -1.0
+                maxValue: _spinCenterLow.realValue
+
+                onRealValueModified: {
+                    deadzone.low = realValue
+                }
+            }
+            FloatSpinBox {
+                id: _spinCenterLow
+
+                realValue: 0.0
+                minValue: _spinLow.realValue
+                maxValue: 0.0
+            }
+            FloatSpinBox {
+                id: _spinCenterHigh
+
+                realValue: 0.0
+                minValue: 0.0
+                maxValue: _spinHigh.realValue
+            }
+            FloatSpinBox {
+                id: _spinHigh
+
+                realValue: 1.0
+                minValue: _spinCenterHigh.realValue
+                maxValue: 1.0
+            }
+        }
     }
 }

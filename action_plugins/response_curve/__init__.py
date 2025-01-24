@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 - 2025 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -154,6 +154,14 @@ class ControlPoint(QtCore.QObject):
     def hasHandles(self) -> bool:
         return self._handle_left is not None or self._handle_right is not None
 
+    @Property(bool, notify=changed)
+    def hasLeft(self) -> bool:
+        return self._handle_left is not None
+
+    @Property(bool, notify=changed)
+    def hasRight(self) -> bool:
+        return self._handle_right is not None
+
 
 class ResponseCurveModel(ActionModel):
 
@@ -210,12 +218,28 @@ class ResponseCurveModel(ActionModel):
     def setControlHandle(self, x: float, y: float, idx: int, handle: str) -> None:
         points = self._data.curve.control_points()
         control = points[idx]
-        if handle == "left":
-            control.handle_left.x = x
-            control.handle_left.y = y
-        elif handle == "right":
-            control.handle_right.x = x
-            control.handle_right.y = y
+        if handle == "center":
+            dx = x - control.center.x
+            dy = y - control.center.y
+            self._move_control_center(control, dx, dy)
+            if self._data.curve.is_symmetric:
+                self._move_control_center(points[len(points)-idx-1], -dx, -dy)
+        if handle == "left" and control.handle_left:
+            dx = x - control.handle_left.x
+            dy = y - control.handle_left.y
+            self._move_control_handle(control.handle_left, dx, dy)
+            if self._data.curve.is_symmetric:
+                self._move_control_handle(
+                    points[len(points) - idx - 1].handle_right, -dx, -dy
+                )
+        elif handle == "right" and control.handle_right:
+            dx = x - control.handle_right.x
+            dy = y - control.handle_right.y
+            self._move_control_handle(control.handle_right, dx, dy)
+            if self._data.curve.is_symmetric:
+                self._move_control_handle(
+                    points[len(points)-idx-1].handle_left, -dx, -dy
+                )
         self._data.curve.fit()
         self.curveChanged.emit()
 
@@ -230,6 +254,46 @@ class ResponseCurveModel(ActionModel):
         self._data.curve.invert()
         self.curveChanged.emit()
         self.controlPointChanged.emit()
+
+    def _move_control_center(
+            self,
+            control: ControlPoint,
+            dx: float,
+            dy: float
+    ) -> None:
+        """Modifies a control point and it's handles based on a delta movement.
+
+        Args:
+            control: the control point to modify
+            dx: change in x direction
+            dy: change in y direction
+        """
+        # Move the handles such that they retain their relative position to
+        # the center control
+        if control.handle_left:
+            control.handle_left.x += dx
+            control.handle_left.y += dy
+        if control.handle_right:
+            control.handle_right.x += dx
+            control.handle_right.y += dy
+        control.center.x += dx
+        control.center.y += dy
+
+    def _move_control_handle(
+            self,
+            handle: QtCore.QPointF,
+            dx: float,
+            dy: float
+    ) -> None:
+        """Modifies a control handle based on a delta movement.
+
+        Args:
+            handle: point representing the control handle
+            dx: change in x direction
+            dy: change in y direction
+        """
+        handle.x += dx
+        handle.y += dy
 
     def _get_line_points(self) -> List[QtCore.QPointF]:
         points = []
