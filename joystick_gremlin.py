@@ -32,12 +32,20 @@ import traceback
 import PyQt5
 from PyQt5 import QtCore, QtGui, QtMultimedia, QtWidgets
 
+dill_directory = os.path.join('dill\\dill.dll')
 import dill
 
 # Figure out the location of the code / executable and change the working
 # directory accordingly
 install_path = os.path.normcase(os.path.dirname(os.path.abspath(sys.argv[0])))
 os.chdir(install_path)
+
+# Force PyQt5 to load from the correct folder
+if getattr(sys, 'frozen', False):
+    base_path = os.path.dirname(sys.executable)
+    pyqt_path = os.path.join(base_path, "PyQt5")
+    os.environ["QT_PLUGIN_PATH"] = pyqt_path
+    sys.path.append(pyqt_path)
 
 import gremlin.ui.axis_calibration
 import gremlin.ui.common

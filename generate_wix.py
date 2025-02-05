@@ -395,7 +395,7 @@ def create_shortcuts(doc, root):
     product = doc.find("Product")
     product.append(create_node(
         "Icon",
-        {"Id": "icon.ico", "SourceFile": "joystick_gremlin\gfx\icon.ico"}
+        {"Id": "icon.ico", "SourceFile": "F:\src\Repos\joystick_gremlin\gfx\icon.ico"}
     ))
 
 

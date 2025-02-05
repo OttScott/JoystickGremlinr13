@@ -1,0 +1,111 @@
+INFO:root:Application started
+DEBUG:system:--------------------------------------------------------------------------------
+DEBUG:system:2025-02-04 17:41
+DEBUG:system:Starting Joystick Gremlin R13.3
+DEBUG:system:--------------------------------------------------------------------------------
+DEBUG:user:--------------------------------------------------------------------------------
+DEBUG:user:2025-02-04 17:41
+DEBUG:user:Starting Joystick Gremlin R13.3
+DEBUG:user:--------------------------------------------------------------------------------
+INFO:system:Initializing joystick devices
+DEBUG:system:11 joysticks detected
+DEBUG:system:Added: name=vJoy Device guid={C5C744A0-C825-11EE-800F-444553540000}
+DEBUG:system:Added: name=Arduino Micro guid={37C0D480-FE5A-11EE-8004-444553540000}
+DEBUG:system:Added: name=LEFT VPC Rotor TCS PLUS AH-64 guid={52A46380-AF34-11EF-8003-444553540000}
+DEBUG:system:Added: name=MFG Crosswind V2/3 guid={088934F0-C82C-11EE-8017-444553540000}
+DEBUG:system:Added: name=Throttle - HOTAS Warthog guid={071113E0-C82C-11EE-8013-444553540000}
+DEBUG:system:Added: name=FSSB R3L MJF SGRH guid={9CEF8DA0-FC12-11EE-8003-444553540000}
+DEBUG:system:Added: name=HOTAS Cougar Joystick guid={D17F5B30-CA90-11EE-8009-444553540000}
+DEBUG:system:Added: name=TC Apache MPD Right guid={D7BDC5D0-C83E-11EE-8001-444553540000}
+DEBUG:system:Added: name=WINWING Orion Throttle Base II + TGRIP-F16 guid={B4540720-C168-11EF-8001-444553540000}
+DEBUG:system:Added: name=2 axis 34 button joystick guid={3231BA20-C82C-11EE-8018-444553540000}
+DEBUG:system:Added: name=vJoy Device guid={04B428C0-FBCC-11EE-8003-444553540000}
+DEBUG:system:vJoy guid={C5C744A0-C825-11EE-800F-444553540000}: (8, 64, 2)
+DEBUG:system:vJoy guid={04B428C0-FBCC-11EE-8003-444553540000}: (8, 120, 2)
+DEBUG:system:vjoy id 1: (8, 120, 2) - MATCH
+DEBUG:system:vjoy id 2: (8, 64, 2) - MATCH
+INFO:system:Initializing joystick devices
+DEBUG:system:11 joysticks detected
+DEBUG:system:Added: name=vJoy Device guid={C5C744A0-C825-11EE-800F-444553540000}
+DEBUG:system:Added: name=Arduino Micro guid={37C0D480-FE5A-11EE-8004-444553540000}
+DEBUG:system:Added: name=LEFT VPC Rotor TCS PLUS AH-64 guid={52A46380-AF34-11EF-8003-444553540000}
+DEBUG:system:Added: name=MFG Crosswind V2/3 guid={088934F0-C82C-11EE-8017-444553540000}
+DEBUG:system:Added: name=Throttle - HOTAS Warthog guid={071113E0-C82C-11EE-8013-444553540000}
+DEBUG:system:Added: name=FSSB R3L MJF SGRH guid={9CEF8DA0-FC12-11EE-8003-444553540000}
+DEBUG:system:Added: name=HOTAS Cougar Joystick guid={D17F5B30-CA90-11EE-8009-444553540000}
+DEBUG:system:Added: name=TC Apache MPD Right guid={D7BDC5D0-C83E-11EE-8001-444553540000}
+DEBUG:system:Added: name=WINWING Orion Throttle Base II + TGRIP-F16 guid={B4540720-C168-11EF-8001-444553540000}
+DEBUG:system:Added: name=2 axis 34 button joystick guid={3231BA20-C82C-11EE-8018-444553540000}
+DEBUG:system:Added: name=vJoy Device guid={04B428C0-FBCC-11EE-8003-444553540000}
+DEBUG:system:Removed: name=vJoy Device guid={C5C744A0-C825-11EE-800F-444553540000}
+DEBUG:system:Removed: name=Arduino Micro guid={37C0D480-FE5A-11EE-8004-444553540000}
+DEBUG:system:Removed: name=LEFT VPC Rotor TCS PLUS AH-64 guid={52A46380-AF34-11EF-8003-444553540000}
+DEBUG:system:Removed: name=MFG Crosswind V2/3 guid={088934F0-C82C-11EE-8017-444553540000}
+DEBUG:system:Removed: name=Throttle - HOTAS Warthog guid={071113E0-C82C-11EE-8013-444553540000}
+DEBUG:system:Removed: name=FSSB R3L MJF SGRH guid={9CEF8DA0-FC12-11EE-8003-444553540000}
+DEBUG:system:Removed: name=HOTAS Cougar Joystick guid={D17F5B30-CA90-11EE-8009-444553540000}
+DEBUG:system:Removed: name=TC Apache MPD Right guid={D7BDC5D0-C83E-11EE-8001-444553540000}
+DEBUG:system:Removed: name=WINWING Orion Throttle Base II + TGRIP-F16 guid={B4540720-C168-11EF-8001-444553540000}
+DEBUG:system:Removed: name=2 axis 34 button joystick guid={3231BA20-C82C-11EE-8018-444553540000}
+DEBUG:system:Removed: name=vJoy Device guid={04B428C0-FBCC-11EE-8003-444553540000}
+DEBUG:system:vJoy guid={C5C744A0-C825-11EE-800F-444553540000}: (8, 64, 2)
+DEBUG:system:vJoy guid={04B428C0-FBCC-11EE-8003-444553540000}: (8, 120, 2)
+DEBUG:system:vjoy id 1: (8, 120, 2) - MATCH
+DEBUG:system:vjoy id 2: (8, 64, 2) - MATCH
+INFO:system:Checking vJoy installation
+INFO:system:Initializing plugins
+DEBUG:system:Loaded: cycle-modes
+DEBUG:system:Loaded: description
+DEBUG:system:Loaded: macro
+DEBUG:system:Loaded: map-to-keyboard
+DEBUG:system:Loaded: map-to-mouse
+DEBUG:system:Loaded: noop
+DEBUG:system:Loaded: pause
+DEBUG:system:Loaded: play-sound
+DEBUG:system:Loaded: previous-mode
+DEBUG:system:Loaded: remap
+DEBUG:system:Loaded: response-curve
+DEBUG:system:Loaded: resume
+DEBUG:system:Loaded: split-axis
+DEBUG:system:Loaded: switch-mode
+DEBUG:system:Loaded: temporary-mode-switch
+DEBUG:system:Loaded: text-to-speech
+DEBUG:system:Loaded: toggle-pause
+DEBUG:system:Loaded: basic
+DEBUG:system:Loaded: chain
+DEBUG:system:Loaded: double_tap
+DEBUG:system:Loaded: hat_buttons
+DEBUG:system:Loaded: smart_toggle
+DEBUG:system:Loaded: tempo
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+WARNING:system:Unknown node present: activation-condition
+DEBUG:system:Loading profile from F:/OneDrive/Documents/joystick gremlin/vJoy 120-button FSSB F-16.xml
+DEBUG:system:Current mode is Default
+INFO:system:Gremlin UI created
+INFO:system:Gremlin UI launching
+INFO:system:Gremlin UI terminated
+INFO:system:Terminating Gremlin

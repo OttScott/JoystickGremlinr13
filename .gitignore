@@ -10,3 +10,6 @@ __pycache__
 /dist
 /releases
 /venv
+
+joystick_gremlin.wix*
+wix_data.p
