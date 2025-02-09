@@ -67,7 +67,7 @@ class JoystickWrapper:
             # FIXME: This bypasses calibration and any other possible
             #        mappings we might do in the future
             # return DILL.get_axis(self._joystick_guid, self._index) / float(32768)
-            return self._value
+            return self._value if self._value else 0.0
 
     class Button(Input):
 

@@ -397,11 +397,10 @@ class MergeAxisData(AbstractActionData):
             "actions",
             [child.id for child in self.children]
         ))
-
         return node
 
     def is_valid(self) -> bool:
-        return super().is_valid()
+        return True
 
     @classmethod
     def _do_create(
