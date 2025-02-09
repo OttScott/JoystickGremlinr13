@@ -27,11 +27,10 @@ from PySide6 import QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot
 
 import gremlin.profile
-from gremlin.base_classes import DataInsertionMode
 from gremlin.error import GremlinError
 from gremlin.plugin_manager import PluginManager
 from gremlin.signal import signal
-from gremlin.types import AxisButtonDirection, HatDirection, InputType
+from gremlin.types import AxisButtonDirection, HatDirection, InputType, DataInsertionMode
 from gremlin.util import clamp
 
 from gremlin.ui.action_model import ActionModel, SequenceIndex

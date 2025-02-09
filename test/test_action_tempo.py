@@ -22,7 +22,7 @@ import pytest
 import uuid
 from xml.etree import ElementTree
 
-from gremlin.base_classes import DataInsertionMode
+from gremlin.types import DataInsertionMode
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
 import gremlin.types as types

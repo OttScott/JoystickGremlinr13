@@ -28,13 +28,13 @@ from dill import GUID_Keyboard
 
 from gremlin import error, event_handler, plugin_manager, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    DataCreationMode, Value
+    Value
 from gremlin.input_devices import format_input
 from gremlin.keyboard import key_from_code
 from gremlin.profile import Library
 from gremlin.tree import TreeNode
 from gremlin.types import ActionProperty, ConditionType, InputType, \
-    LogicalOperator, PropertyType
+    LogicalOperator, PropertyType, DataCreationMode
 
 from gremlin.ui.action_model import ActionModel
 import gremlin.ui.util

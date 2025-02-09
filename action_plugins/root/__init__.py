@@ -30,11 +30,11 @@ from PySide6.QtCore import Property, Signal, Slot
 
 from gremlin import event_handler, plugin_manager, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    DataInsertionMode, Value, DataCreationMode
+    Value
 from gremlin.error import GremlinError
 from gremlin.config import Configuration
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType
+from gremlin.types import ActionProperty, InputType, PropertyType, DataInsertionMode, DataCreationMode
 
 from gremlin.ui.action_model import ActionModel
 

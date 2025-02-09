@@ -30,12 +30,12 @@ from action_plugins import common
 
 from gremlin import event_handler, input_devices, keyboard, macro, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    DataCreationMode, Value
+    Value
 from gremlin.error import GremlinError, MissingImplementationError, ProfileError
 from gremlin.macro import KeyAction
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, InputType, PropertyType, \
-    MouseButton, HatDirection
+    MouseButton, HatDirection, DataCreationMode
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 

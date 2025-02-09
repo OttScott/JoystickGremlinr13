@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 - 2025Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 from __future__ import annotations
 
 import enum
+from enum import Enum
 from typing import Tuple, Union
 
 import gremlin.error
@@ -644,3 +645,19 @@ class ActionActivationMode(enum.Enum):
                 f"Invalid action activation mode: {str(string)}"
             )
         return value
+
+
+class DataInsertionMode(Enum):
+
+    """Specifies to insertion type to be performed."""
+
+    Append = 0
+    Prepend = 1
+
+
+class DataCreationMode(Enum):
+
+    """Specifies how a new AbstractActionData instance is created."""
+
+    Create = 0
+    Reuse = 1

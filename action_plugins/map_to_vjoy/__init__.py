@@ -28,9 +28,9 @@ from PySide6.QtCore import Property, Signal
 
 from gremlin import error, event_handler, input_devices, joystick_handling, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    DataCreationMode, Value
+    Value
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType
+from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, DataCreationMode
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 

@@ -24,10 +24,9 @@ import pytest
 import uuid
 from xml.etree import ElementTree
 
-from gremlin.base_classes import DataInsertionMode
 from gremlin.error import GremlinError
 from gremlin.event_handler import Event
-from gremlin.types import HatDirection, InputType
+from gremlin.types import HatDirection, InputType, DataInsertionMode
 
 from gremlin.profile import Library, InputItem, InputItemBinding, Profile
 from action_plugins.condition import ConditionData, ConditionModel

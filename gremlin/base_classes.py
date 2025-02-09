@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 - 2025 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,35 +17,21 @@
 
 from __future__ import annotations
 
+import typing
 from abc import abstractmethod, ABC
 import copy
-from enum import Enum
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, List, Tuple, Optional
 import uuid
 from xml.etree import ElementTree
 
 from gremlin import util
 from gremlin.error import GremlinError
-from gremlin.event_handler import Event
 from gremlin.profile import Library
 from gremlin.types import ActionActivationMode, ActionProperty, InputType, \
-    PropertyType
+    PropertyType, DataInsertionMode, DataCreationMode
 
-
-class DataInsertionMode(Enum):
-
-    """Specifies to insertion type to be performed."""
-
-    Append = 0
-    Prepend = 1
-
-
-class DataCreationMode(Enum):
-
-    """Specifies how a new AbstractActionData instance is created."""
-
-    Create = 0
-    Reuse = 1
+if typing.TYPE_CHECKING:
+    from gremlin.event_handler import Event
 
 
 class Value:
@@ -303,7 +289,7 @@ class AbstractActionData(ABC):
             self,
             action: AbstractActionData,
             selector: str,
-            mode: DataInsertionMode=DataInsertionMode.Append,
+            mode: DataInsertionMode = DataInsertionMode.Append,
             anchor: Optional[int]=None
     ) -> None:
         """Inserts an action as a child of the current object.

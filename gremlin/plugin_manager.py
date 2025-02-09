@@ -28,8 +28,7 @@ from typing import TYPE_CHECKING
 from PySide6 import QtQml
 
 from gremlin import common, config, error, shared_state
-from gremlin.base_classes import DataCreationMode
-from gremlin.types import ActionProperty, InputType
+from gremlin.types import ActionProperty, InputType, DataCreationMode
 
 if TYPE_CHECKING:
     from gremlin.base_classes import AbstractActionData

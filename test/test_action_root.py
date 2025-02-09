@@ -22,10 +22,9 @@ import pytest
 import uuid
 from xml.etree import ElementTree
 
-from gremlin.base_classes import DataInsertionMode
 from gremlin.error import GremlinError
 from gremlin.profile import Library, Profile
-from gremlin.types import InputType
+from gremlin.types import InputType, DataInsertionMode
 
 from action_plugins.description import DescriptionData
 from action_plugins.root import RootData, RootModel

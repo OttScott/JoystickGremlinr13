@@ -30,14 +30,14 @@ import dill
 
 from gremlin import shared_state, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    DataCreationMode, Value
+    Value
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.event_handler import Event
 from gremlin.input_cache import Joystick
 from gremlin.plugin_manager import PluginManager
 from gremlin.profile import InputItemBinding, Library
-from gremlin.types import ActionProperty, InputType, PropertyType
+from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationMode
 
 from gremlin.ui.action_model import ActionModel, SequenceIndex
 from gremlin.ui.device import InputIdentifier
