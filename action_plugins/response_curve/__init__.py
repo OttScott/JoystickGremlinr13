@@ -23,16 +23,14 @@ from xml.etree import ElementTree
 from PySide6 import QtCore, QtGui, QtQml
 from PySide6.QtCore import Property, Signal, Slot, QCborTag
 
-from action_plugins.description import DescriptionData
-from gremlin import event_handler, spline, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin import event_handler, input_devices, spline, util
+from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.error import GremlinError
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationMode
+from gremlin.types import ActionProperty, InputType, PropertyType
+from gremlin.util import clamp
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
-from gremlin.util import clamp
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
@@ -46,7 +44,7 @@ class ResponseCurveFunctor(AbstractFunctor):
 
     """Implements the function executed of the Description action at runtime."""
 
-    def __init__(self, action: DescriptionData):
+    def __init__(self, action: ResponseCurveData):
         super().__init__(action)
 
     def __call__(
@@ -60,7 +58,14 @@ class ResponseCurveFunctor(AbstractFunctor):
             event: the input event to process
             value: the potentially modified input value
         """
-        pass
+        dz_value = input_devices.deadzone(
+            value.current,
+            self.data.deadzone[0],
+            self.data.deadzone[1],
+            self.data.deadzone[2],
+            self.data.deadzone[3]
+        )
+        value.current = self.data.curve(dz_value)
 
 
 
@@ -419,7 +424,6 @@ class ResponseCurveData(AbstractActionData):
         # Model variables
         self.deadzone = [-1.0, 0.0, 0.0, 1.0]
         self.curve = spline.PiecewiseLinear()
-        # self.curve = spline.CubicSpline([(-1.0, -1.0), (-0.4, -0.2), (0.2, 0.7), (1.0, 1.0)])
 
     def _from_xml(self, node: ElementTree.Element, library: Library) -> None:
         self._id = util.read_action_id(node)
