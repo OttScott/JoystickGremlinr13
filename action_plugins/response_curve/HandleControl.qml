@@ -77,11 +77,11 @@ Rectangle {
     x: map2u(modelData.center.x)
     y: map2v(modelData.center.y)
 
-
-    // Rendering of the control point and its handles
+    // Rendering of the control point handles and their connection line
     Shape {
         preferredRendererType: Shape.CurveRenderer
 
+        // Left control handle line
         ShapePath {
             strokeColor: modelData.hasLeft ? "#808080" : "transparent"
 
@@ -94,6 +94,7 @@ Rectangle {
             }
         }
 
+        // Right control handle line
         ShapePath {
             strokeColor: modelData.hasRight ? "#808080" : "transparent"
 
@@ -106,6 +107,7 @@ Rectangle {
             }
         }
 
+        // Left control handle
         Rectangle {
             id: _handleLeft
 
@@ -124,9 +126,11 @@ Rectangle {
                 preventStealing: true
 
                 onPositionChanged: (evt) => updateHandle(parent, evt, "left")
+                onReleased: () => action.redrawElements()
             }
         }
 
+        // Right control handle
         Rectangle {
             id: _handleRight
 
@@ -145,11 +149,12 @@ Rectangle {
                 preventStealing: true
 
                 onPositionChanged: (evt) => updateHandle(parent, evt, "right")
+                onReleased: () => action.redrawElements()
             }
         }
-
     }
 
+    // Rendering of the control point itself
     MouseArea {
         anchors.fill: parent
         preventStealing: true
@@ -160,5 +165,6 @@ Rectangle {
                 action.setControlHandle(coord[0], coord[1], index, "center")
             }
         }
+        onReleased: () => action.redrawElements()
     }
 }

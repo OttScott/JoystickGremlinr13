@@ -44,17 +44,12 @@ Rectangle {
         anchors.fill: parent
         preventStealing: true
 
-        onReleased: (evt) => {
-            let new_x = RH.clamp(map2x(parent.x, null), -1.0, 1.0)
-            let new_y = RH.clamp(map2y(parent.y, null), -1.0, 1.0)
-            action.setControlPoint(new_x, new_y, index)
-        }
-
         onPositionChanged: (evt) => {
             let coord = updateControlPoint(parent, evt, index)
             if(coord !== null) {
                 action.setControlPoint(coord[0], coord[1], index)
             }
         }
+        onReleased: () => action.redrawElements()
     }
 }

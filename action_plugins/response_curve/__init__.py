@@ -255,6 +255,12 @@ class ResponseCurveModel(ActionModel):
         self.curveChanged.emit()
         self.controlPointChanged.emit()
 
+    @Slot()
+    def redrawElements(self):
+        self.changed.emit()
+        self.curveChanged.emit()
+        self.controlPointChanged.emit()
+
     def _move_control_center(
             self,
             control: ControlPoint,
