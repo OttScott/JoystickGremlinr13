@@ -347,8 +347,12 @@ class CubicBezierSpline(AbstractCurve):
         self.fit()
 
     def invert(self) -> None:
-        for pt in self.points:
-            pt.y *= -1
+        for cp in self._control_points:
+            cp.center.y *= -1
+            if cp.handle_left is not None:
+                cp.handle_left.y *= -1
+            if cp.handle_right is not None:
+                cp.handle_right.y *= -1
         self.fit()
 
     def fit(self):
@@ -387,27 +391,22 @@ class CubicBezierSpline(AbstractCurve):
     def _default_points(self) -> CoordinateList:
         return [(-1.0, -1.0), (-0.95, -0.95), (0.95, 0.95), (1.0, 1.0)]
 
-    def _process_points(self, points: CoordinateList) -> None:
-        self.points = [Point2D(pt[0], pt[1]) for pt in points]
-        self.knots = [pt for pt in self.points[::3]]
+    def _process_points(self, coords: CoordinateList) -> None:
+        points = [Point2D(pt[0], pt[1]) for pt in coords]
 
         # Generate list of control point structures
         self._control_points = []
         self._control_points.append(
-            CubicBezierSpline.ControlPoint(
-                self.points[0], handle_right=self.points[1]
-            )
+            CubicBezierSpline.ControlPoint(points[0], handle_right=points[1])
         )
-        for i in range(2, len(self.points) - 2, 3):
+        for i in range(2, len(points) - 2, 3):
             self._control_points.append(CubicBezierSpline.ControlPoint(
-                self.points[i - 1],
-                self.points[i],
-                self.points[i + 1]
+                points[i - 1],
+                points[i],
+                points[i + 1]
             ))
         self._control_points.append(
-            CubicBezierSpline.ControlPoint(
-                self.points[-1], handle_left=self.points[-2]
-            )
+            CubicBezierSpline.ControlPoint(points[-1], handle_left=points[-2])
         )
 
     def _generate_lookup(self) -> None:
@@ -426,12 +425,12 @@ class CubicBezierSpline(AbstractCurve):
             # Compute the t -> coordinate mappings
             step_size = 0.01
             self._lookup.append([])
-            for j in range(0, 101):
-                t = j * step_size
+            for i in range(0, 101):
+                t = i * step_size
                 self._lookup[-1].append((t, self._value_at_t(points, t)))
 
     def _value_at_t(self, points: List[Point2D], t: float) -> Point2D:
-        """Returns the  Point2D for the spline at time t.
+        """Returns the Point2D for the spline at time t.
 
         Args:
             points: the control points defining the spline
@@ -444,7 +443,7 @@ class CubicBezierSpline(AbstractCurve):
         t3 = t ** 3
         mt = 1 - t
         mt2 = mt ** 2
-        mt3 = mt2 ** 3
+        mt3 = mt ** 3
 
         return Point2D(
             points[0].x * mt3
