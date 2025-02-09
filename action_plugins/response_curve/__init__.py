@@ -25,7 +25,8 @@ from PySide6.QtCore import Property, Signal, Slot, QCborTag
 
 from gremlin import event_handler, input_devices, spline, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
-from gremlin.error import GremlinError
+from gremlin.error import GremlinError, ProfileError
+from gremlin.joystick_handling import select_first_valid_vjoy_input
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, InputType, PropertyType
 from gremlin.util import clamp
@@ -68,7 +69,6 @@ class ResponseCurveFunctor(AbstractFunctor):
         value.current = self.data.curve(dz_value)
 
 
-
 @QtQml.QmlElement
 class Deadzone(QtCore.QObject):
 
@@ -95,7 +95,6 @@ class Deadzone(QtCore.QObject):
         }
         if value != self._data.deadzone[index]:
             self._data.deadzone[index] = value
-            print(self._data.deadzone)
             lookup[index].emit(value)
 
     low = Property(
@@ -426,10 +425,70 @@ class ResponseCurveData(AbstractActionData):
         self.curve = spline.PiecewiseLinear()
 
     def _from_xml(self, node: ElementTree.Element, library: Library) -> None:
+        lookup = {
+            "PiecewiseLinear": spline.PiecewiseLinear,
+            "CubicSpline": spline.CubicSpline,
+            "CubicBezierSpline": spline.CubicBezierSpline
+        }
+
         self._id = util.read_action_id(node)
+        # Read deadzone values
+        dz_node = node.find("deadzone")
+        if dz_node is None:
+            raise ProfileError("Missing deadzone node")
+        self.deadzone = [
+            util.read_property(dz_node, "low", PropertyType.Float),
+            util.read_property(dz_node, "center-low", PropertyType.Float),
+            util.read_property(dz_node, "center-high", PropertyType.Float),
+            util.read_property(dz_node, "high", PropertyType.Float)
+        ]
+        # Create curve using XML values
+        cp_node = node.find("control-points")
+        if cp_node is None:
+            raise ProfileError("Missing control-points node")
+        points = util.read_properties(cp_node, "point", PropertyType.Point2D)
+        self.curve = lookup[util.read_property(
+            node, "curve-type", PropertyType.String
+        )]([[p.x, p.y] for p in points])
 
     def _to_xml(self) -> ElementTree.Element:
+        lookup = {
+            spline.PiecewiseLinear: "PiecewiseLinear",
+            spline.CubicSpline: "CubicSpline",
+            spline.CubicBezierSpline: "CubicBezierSpline"
+        }
+
         node = util.create_action_node(ResponseCurveData.tag, self._id)
+        node.append(util.create_node_from_data(
+            "deadzone",
+            [
+                ("low", self.deadzone[0], PropertyType.Float),
+                ("center-low", self.deadzone[1], PropertyType.Float),
+                ("center-high", self.deadzone[2], PropertyType.Float),
+                ("high", self.deadzone[3], PropertyType.Float),
+            ]
+        ))
+        points = []
+        match type(self.curve):
+            case spline.PiecewiseLinear | spline.CubicSpline:
+                points = self.curve.control_points()
+            case spline.CubicBezierSpline:
+                for cp in self.curve.control_points():
+                    if cp.handle_left:
+                        points.append(cp.handle_left)
+                    points.append(cp.center)
+                    if cp.handle_right:
+                        points.append(cp.handle_right)
+
+        node.append(util.create_node_from_data(
+            "control-points",
+            [("point", cp, PropertyType.Point2D) for cp in points]
+        ))
+        node.append(util.create_property_node(
+            "curve-type",
+            lookup[type(self.curve)],
+            PropertyType.String
+        ))
 
         return node
 

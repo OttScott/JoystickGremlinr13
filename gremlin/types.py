@@ -331,7 +331,8 @@ class PropertyType(enum.Enum):
     HatDirection = 14
     List = 15
     Selection = 16
-    ActionActivationMode = 17
+    ActionActivationMode = 17,
+    Point2D = 18,
 
     @staticmethod
     def to_string(value: PropertyType) -> str:
@@ -365,6 +366,7 @@ _PropertyType_to_string_lookup = {
     PropertyType.List: "list",
     PropertyType.Selection: "selection",
     PropertyType.ActionActivationMode: "activation-mode",
+    PropertyType.Point2D: "point2d",
 }
 _PropertyType_to_enum_lookup = {
     "string": PropertyType.String,
@@ -384,6 +386,7 @@ _PropertyType_to_enum_lookup = {
     "list": PropertyType.List,
     "selection": PropertyType.Selection,
     "activation-mode": PropertyType.ActionActivationMode,
+    "point2d": PropertyType.Point2D,
 }
 
 
@@ -661,3 +664,61 @@ class DataCreationMode(Enum):
 
     Create = 0
     Reuse = 1
+
+
+class Point2D:
+
+    """Represents a simple 2D point."""
+
+    def __init__(self, x: float, y: float) -> None:
+        """Creates a new point instance.
+
+        Args:
+            x: x coordinate of the point
+            y: y coordinate of the point
+        """
+        self.x = x
+        self.y = y
+
+    @classmethod
+    def from_string(self, val: str) -> Point2D:
+        """Creates a new Point2D instance from the given string.
+
+        Args:
+            val: The string representation of the point
+
+        Returns:
+            New Point2D instance representing the given string
+        """
+        x, y = [float(v) for v in val.split(",")]
+        return Point2D(x, y)
+
+    def to_string(self) -> str:
+        """Returns a string representation of the point.
+
+        Returns:
+            String representation of the point
+        """
+        return f"{self.x},{self.y}"
+
+    def __add__(self, other: float) -> Point2D:
+        """Adds another point to this one, returning the resulting sum.
+
+        Args:
+            other: point instance to add to this one
+
+        Returns:
+            New Point2D instance representing the sum
+        """
+        return Point2D(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        """Subtracts another point from this one, returning the result.
+
+        Args:
+            other: point instance to subtract from this one
+
+        Returns:
+            New Point2D instance representing the subtraction result
+        """
+        return Point2D(self.x - other.x, self.y - other.y)

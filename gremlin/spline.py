@@ -16,29 +16,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import annotations
+
 import abc
 import collections
 import math
 from typing import List, Tuple, Optional
 
 from gremlin import error, util
+from gremlin.types import Point2D
 
 
 # Typing alias
 type CoordinateList = List[Tuple[float, float]]
-
-
-class Point2D:
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def __add__(self, other):
-        return Point2D(self.x + other.x, self.y + other.y)
-
-    def __sub__(self, other):
-        return Point2D(self.x - other.x, self.y - other.y)
 
 
 class AbstractCurve(abc.ABC):
@@ -65,7 +55,7 @@ class AbstractCurve(abc.ABC):
             self.fit()
 
     @abc.abstractmethod
-    def control_points(self) -> List[Point2D]:
+    def control_points(self) -> List[Point2D | CubicBezierSpline.ControlPoint]:
         """Returns the list of all control points.
 
         Returns:
@@ -399,11 +389,11 @@ class CubicBezierSpline(AbstractCurve):
         self._control_points.append(
             CubicBezierSpline.ControlPoint(points[0], handle_right=points[1])
         )
-        for i in range(2, len(points) - 2, 3):
+        for i in range(3, len(points) - 2, 3):
             self._control_points.append(CubicBezierSpline.ControlPoint(
-                points[i - 1],
-                points[i],
-                points[i + 1]
+                center=points[i],
+                handle_left=points[i - 1],
+                handle_right=points[i + 1]
             ))
         self._control_points.append(
             CubicBezierSpline.ControlPoint(points[-1], handle_left=points[-2])

@@ -27,6 +27,7 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 import uuid
 from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
 
 from PySide6 import QtCore, QtWidgets
 
@@ -35,7 +36,7 @@ from dill import GUID
 
 from gremlin import error
 from gremlin.types import AxisButtonDirection, AxisMode, HatDirection, \
-    InputType, PropertyType, ActionActivationMode
+    InputType, Point2D, PropertyType, ActionActivationMode
 
 # Table storing which modules have been imported already
 g_loaded_modules = {}
@@ -235,6 +236,7 @@ _property_from_string = {
     PropertyType.UUID: lambda x: uuid.UUID(x),
     PropertyType.Selection: str,
     PropertyType.ActionActivationMode: lambda x: ActionActivationMode.to_enum(x),
+    PropertyType.Point2D: lambda x: Point2D.from_string(x),
 }
 
 def property_from_string(data_type: PropertyType, value: str) -> Any:
@@ -265,7 +267,8 @@ _property_to_string = {
     PropertyType.List: lambda x: "|".join([str(v) for v in x]),
     PropertyType.UUID: str,
     PropertyType.Selection: str,
-    PropertyType.ActionActivationMode: lambda x: ActionActivationMode.to_string(x)
+    PropertyType.ActionActivationMode: lambda x: ActionActivationMode.to_string(x),
+    PropertyType.Point2D: lambda x: x.to_string(),
 }
 
 def property_to_string(data_type: PropertyType, value: Any) -> str:
@@ -303,6 +306,7 @@ _type_lookup = {
     PropertyType.HatDirection: HatDirection,
     PropertyType.Selection: str,
     PropertyType.ActionActivationMode: ActionActivationMode,
+    PropertyType.Point2D: Point2D,
 }
 
 _element_parsers = {
@@ -375,9 +379,9 @@ def create_subelement_node(
 
 
 def create_node_from_data(
-    node_name: str,
-    properties: List[TypeVar("PropertyData", str, Any, PropertyType)]
-):
+        node_name: str,
+        properties: List[Tuple[str, Any, PropertyType]]
+) -> Element:
     """Returns an XML node with the given name and property elements.
 
     Args:
