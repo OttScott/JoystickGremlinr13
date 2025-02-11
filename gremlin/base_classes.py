@@ -495,6 +495,22 @@ class AbstractFunctor(ABC):
         """
         pass
 
+    def _process_event(
+        self,
+        actions: List[AbstractFunctor],
+        event: event_handler.Event,
+        value: Value
+    ):
+        """Processes the provided event data with every provided action.
+
+        Args:
+            actions: List of actions to process the event with
+            event: event to process
+            value: value of the event
+        """
+        for action in actions:
+            action(event, value)
+
     def _should_execute(self, value: Value) -> bool:
         """Checks if the action should execute based on the value and
         internal activation behavior.
