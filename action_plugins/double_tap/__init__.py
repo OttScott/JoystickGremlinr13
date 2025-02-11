@@ -227,7 +227,7 @@ class DoubleTapData(AbstractActionData):
 
     version = 1
     name = "Double Tap"
-    tag = "double-ap"
+    tag = "double-tap"
     icon = "\uF26F"
 
     functor = DoubleTapFunctor
