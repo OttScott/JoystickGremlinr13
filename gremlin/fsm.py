@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 - 2025 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,21 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 """Implementation of a very simple finite state machine."""
 
+
+from collections.abc import Callable
 import logging
+from typing import Any, Dict, List, Tuple
 
 
 class Transition:
 
     """Represents a single transition in the finite state machine."""
 
-    def __init__(self, callback, new_state):
+    def __init__(self, callback: Callable[[], Any], new_state: str):
         """Creates a new Transition object.
 
-        :param callback the function to call when this transition occurs
-        :param new_state the state the state machine is in after
-            executing this transition
+        Args:
+            callback: function to call when executing the transition
+            new_state: resulting state of the transition after executing the
+                callback
         """
         self.callback = callback
         self.new_state = new_state
@@ -39,14 +44,24 @@ class FiniteStateMachine:
 
     """Simple finite state machine."""
 
-    def __init__(self, start_state, states, actions, transitions, debug=False):
+    def __init__(
+            self,
+            start_state: str,
+            states: List[str],
+            actions: List[str],
+            transitions: Dict[Tuple[str, str], Callable[[], Any]],
+            debug: bool=False,
+            identifier: str="FSM"
+    ):
         """Creates a new finite state machine object.
 
-        :param start_state the state in which the FSM starts in
-        :param states the set of states
-        :param actions the possible actions of the FSM
-        :param transitions the states x actions transition matrix
-        :param debug log debug messages if True
+        Args:
+            start_state: the state in which the FSM starts in
+            states: list of valid states for the FSM
+            actions: the possible actions of the FSM
+            transitions: dictionary encoding the state x action transitions
+            debug: logs debug messages if True
+            identifier: name used to identify the FSM instance
         """
         assert(start_state in states)
 
@@ -55,23 +70,29 @@ class FiniteStateMachine:
         self.transitions = transitions
         self.current_state = start_state
         self.debug = debug
+        self.identifier = identifier
 
-    def perform(self, action):
+    def perform(self, action: str) -> Any:
         """Performs a state transition on the FSM.
 
-        :param action the action to perform
-        :return returns the state transition function's return value
+        Args:
+            action: name of the action to execute
+
+        Returns:
+            Result of executing the state transition callback
         """
         key = (self.current_state, action)
+
+        # Ensure the validity of the transition
         assert(action in self.actions)
         assert(key in self.transitions)
         assert(self.transitions[key].new_state in self.states)
+
         value = self.transitions[key].callback()
         if self.debug:
-            logging.getLogger("system").debug("FSM: {} -> {} ({})".format(
-                self.current_state,
-                self.transitions[key].new_state,
-                action
-            ))
+            logging.getLogger("system").debug(
+                f"FSM ({self.identifier}): {self.current_state} -> " +
+                f"{self.transitions[key].new_state} ({action})"
+            )
         self.current_state = self.transitions[key].new_state
         return value
