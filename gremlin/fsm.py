@@ -28,7 +28,11 @@ class Transition:
 
     """Represents a single transition in the finite state machine."""
 
-    def __init__(self, callback: Callable[[], Any], new_state: str):
+    def __init__(
+            self,
+            callbacks: List[Callable[[*Tuple[Any, ...]], Any]],
+            new_state: str
+    ):
         """Creates a new Transition object.
 
         Args:
@@ -36,7 +40,7 @@ class Transition:
             new_state: resulting state of the transition after executing the
                 callback
         """
-        self.callback = callback
+        self.callbacks = callbacks
         self.new_state = new_state
 
 
@@ -49,7 +53,7 @@ class FiniteStateMachine:
             start_state: str,
             states: List[str],
             actions: List[str],
-            transitions: Dict[Tuple[str, str], Callable[[], Any]],
+            transitions: Dict[Tuple[str, str], Transition],
             debug: bool=False,
             identifier: str="FSM"
     ):
@@ -59,7 +63,7 @@ class FiniteStateMachine:
             start_state: the state in which the FSM starts in
             states: list of valid states for the FSM
             actions: the possible actions of the FSM
-            transitions: dictionary encoding the state x action transitions
+            transitions: dictionary mapping state x action keys to transitions
             debug: logs debug messages if True
             identifier: name used to identify the FSM instance
         """
@@ -72,7 +76,7 @@ class FiniteStateMachine:
         self.debug = debug
         self.identifier = identifier
 
-    def perform(self, action: str) -> Any:
+    def perform(self, action: str, *args) -> List[Any]:
         """Performs a state transition on the FSM.
 
         Args:
@@ -88,11 +92,11 @@ class FiniteStateMachine:
         assert(key in self.transitions)
         assert(self.transitions[key].new_state in self.states)
 
-        value = self.transitions[key].callback()
+        values = [cb(*args) for cb in self.transitions[key].callbacks]
         if self.debug:
             logging.getLogger("system").debug(
                 f"FSM ({self.identifier}): {self.current_state} -> " +
                 f"{self.transitions[key].new_state} ({action})"
             )
         self.current_state = self.transitions[key].new_state
-        return value
+        return values
