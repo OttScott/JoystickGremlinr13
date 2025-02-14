@@ -38,6 +38,7 @@ from gremlin.types import InputType
 
 if TYPE_CHECKING:
     from gremlin.base_classes import Value
+    from gremlin.code_runner import CallbackObject
 
 
 class Event:
@@ -429,7 +430,7 @@ class EventHandler(QtCore.QObject):
             device_guid: uuid.UUID,
             mode: str,
             event: Event,
-            callback: Callable[[Event, Value], None]
+            callback: CallbackObject|Callable[[Event, Value], None]
     ) -> None:
         """Installs the provided callback for the given event.
 
@@ -540,7 +541,7 @@ class EventHandler(QtCore.QObject):
 
     def _install_plugins(
             self,
-            callback: Callable[[Event, Value], None]
+            callback: CallbackObject|Callable[[Event, Value], None]
     ) -> Callable[[Event, Value], None]:
         """Installs the current plugins into the given callback.
 

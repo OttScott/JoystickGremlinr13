@@ -48,7 +48,7 @@ Item {
 
     function loadDynamicItem()
     {
-        var component = Qt.createComponent(
+        let component = Qt.createComponent(
             Qt.resolvedUrl(_root.action.qmlPath)
         )
 
@@ -82,7 +82,7 @@ Item {
                 // layout itself.
                 _action.dynamicItem.Layout.fillWidth = true
             }
-            else if(component.status == Component.Error)
+            else if(component.status === Component.Error)
             {
                 console.log(
                     "Error loading component: ", component.errorString()
@@ -289,7 +289,7 @@ Item {
 
     // Drop area below every non-root action
     Loader {
-        active: _root.action.name != "Root"
+        active: _root.action.name !== "Root"
 
         sourceComponent: DragDropArea {
             y: (_action.visible ? _action.y + _action.height : _header.y +
@@ -297,8 +297,8 @@ Item {
 
             target: _header
             validationCallback: function(drag) {
-                return drag.getDataAsString("type") == "action" &&
-                    drag.getDataAsString("root") == _root.action.rootActionId
+                return drag.getDataAsString("type") === "action" &&
+                    drag.getDataAsString("root") === _root.action.rootActionId
             }
             dropCallback: function(drop) {
                 modelData.dropAction(drop.text, modelData.sequenceIndex, "append");

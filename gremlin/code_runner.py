@@ -119,8 +119,8 @@ class VirtualAxisButton(VirtualButton):
 
         self._last_value = event.value
 
-        # If the input moved across the activation the activation will be
-        # forced by returning a pulse signal.
+        # If the input moved across the activation an activation will be
+        # emitted as a single pulse.
         states = []
         if forced_activation:
             self._fsm.perform("press")
@@ -206,8 +206,7 @@ class CallbackObject:
         """
         actions = self._binding.root_action.get_actions()[0]
         values = [
-            ActionProperty.AlwaysExecute in a.properties for
-            a in actions
+            ActionProperty.AlwaysExecute in a.properties for a in actions
         ]
         return any(values)
 
@@ -358,18 +357,18 @@ class CodeRunner:
             # Create callbacks fom the user code
             # FIXME: This seems like it's no longer actively used and should
             #        be removed in its entirety
-            callback_count = 0
-            for dev_id, modes in input_devices.callback_registry.registry.items():
-                for mode, events in modes.items():
-                    for event, callback_list in events.items():
-                        for callback in callback_list.values():
-                            self.event_handler.add_callback(
-                                dev_id,
-                                mode,
-                                event,
-                                callback,
-                            )
-                            callback_count += 1
+            # callback_count = 0
+            # for dev_id, modes in input_devices.callback_registry.registry.items():
+            #     for mode, events in modes.items():
+            #         for event, callback_list in events.items():
+            #             for callback in callback_list.values():
+            #                 self.event_handler.add_callback(
+            #                     dev_id,
+            #                     mode,
+            #                     event,
+            #                     callback,
+            #                 )
+            #                 callback_count += 1
 
             # Add a fake keyboard action which does nothing to the callbacks
             # in every mode in order to have empty modes be "present"

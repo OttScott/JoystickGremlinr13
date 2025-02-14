@@ -68,7 +68,7 @@ class DeviceMapping:
         """
         input_name_display_mode = Configuration().value(
             "global", "input-names", "input-name-display-mode"
-            )
+        )
 
         if (
             input_name_display_mode == "Numerical" or

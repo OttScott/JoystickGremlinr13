@@ -69,6 +69,9 @@ class SequenceIndex:
     def container_name(self) -> str:
         return self._container_name
 
+    def __str__(self) -> str:
+        return f"SID: c={self.container_name}: p={self.parent_index} i={self.index}"
+
 
 @QtQml.QmlElement
 class ActionModel(QtCore.QObject):
