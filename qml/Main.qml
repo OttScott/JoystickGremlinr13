@@ -197,6 +197,12 @@ ApplicationWindow {
             ToolButton {
                 icon.source: "qrc:///icons/profile_new"
 
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Create new profile")
+                    delay: 500
+                }
+
                 onClicked: {
                     backend.newProfile()
                 }
@@ -204,9 +210,15 @@ ApplicationWindow {
             ToolButton {
                 icon.source: "qrc:///icons/profile_save"
 
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Save current profile")
+                    delay: 500
+                }
+
                 onClicked: {
                     var fpath = backend.profilePath()
-                    if(fpath == "")
+                    if(fpath === "")
                     {
                         idSaveProfileFileDialog.open()
                     }
@@ -219,6 +231,12 @@ ApplicationWindow {
             ToolButton {
                 icon.source: "qrc:///icons/profile_open"
 
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Load profile")
+                    delay: 500
+                }
+
                 onClicked: {
                     idLoadProfileFileDialog.open()
                 }
@@ -227,12 +245,25 @@ ApplicationWindow {
                 icon.source: "qrc:///icons/activate"
                 icon.color: backend.gremlinActive ? "green" : "black"
 
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Toggle Gremlin")
+                    delay: 500
+                }
+
                 onClicked: {
                     backend.toggleActiveState()
                 }
             }
             ToolButton {
-                icon.source: "qrc:///icons/activate"
+                id: bla
+                icon.source: "qrc:///icons/options"
+
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Open options dialog")
+                    delay: 500
+                }
 
                 onClicked: {
                     Helpers.createComponent("DialogOptions.qml")
@@ -246,6 +277,12 @@ ApplicationWindow {
             Switch {
                 text: "Dark Mode"
 
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Toggle dark mode")
+                    delay: 500
+                }
+
                 onToggled: function() {
                     _root.Universal.theme = position ? Universal.Dark : Universal.Light;
                 }
@@ -255,6 +292,12 @@ ApplicationWindow {
                 id: _modeSelector
                 model: _toolbar.modes.modeList
                 textRole: "name"
+
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Select mode to edit")
+                    delay: 500
+                }
 
                 // TODO: Complete this to have modes show hierarchy information
                 // delegate: ItemDelegate {
