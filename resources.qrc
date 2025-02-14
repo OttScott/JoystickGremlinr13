@@ -10,6 +10,7 @@
         <file alias="profile_open">gfx/profile_open.svg</file>
         <file alias="profile_save">gfx/profile_save.svg</file>
         <file alias="profile_save_as">gfx/profile_save_as.svg</file>
+        <file alias="options">gfx/options.svg</file>
     </qresource>
     <qresource prefix="/">
         <file alias="BootstrapIcons">gfx/bootstrap-icons.otf</file>

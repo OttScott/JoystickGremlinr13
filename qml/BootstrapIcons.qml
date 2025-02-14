@@ -5,7 +5,6 @@ import QtQuick
 
 Item {
     property alias icons: _icon_names
-    // property alias loaded: loader.loaded
     property alias resource: _loader.resource
 
     readonly property string family: "bootstrap-icons"
