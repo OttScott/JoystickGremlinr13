@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2022 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,15 +32,21 @@ Item {
     property string deviceGuid
     property string title
 
+    function computeButtonHeight()
+    {
+        let columns =  Math.floor(
+            Math.max(_button_grid.width, _button_grid.Layout.minimumWidth) /
+            _button_grid.cellWidth
+        )
+        let rows = Math.ceil(_button_grid.count / columns)
+        return rows * _button_grid.cellHeight
+    }
+
     function compute_height(available_width)
     {
-        var button_rows = Math.ceil(
-            _button_grid.count / Math.floor(available_width / _button_grid.cellWidth)
-        )
-        var hat_rows = Math.ceil(_hat_grid.count / 2)
-
+        let hat_rows = Math.ceil(_hat_grid.count / 2)
         return Math.max(
-            button_rows * _button_grid.cellHeight,
+            computeButtonHeight(),
             hat_rows * _hat_grid.cellHeight
          ) + _header.height
     }
@@ -83,12 +89,14 @@ Item {
                 id: _button_grid
 
                 Layout.fillWidth: true
+                Layout.minimumWidth: 400
                 Layout.preferredWidth: 600
-                Layout.preferredHeight: _root.implicitHeight
+                Layout.minimumHeight: computeButtonHeight(_root.width)
                 Layout.alignment: Qt.AlignTop
 
                 boundsMovement: Flickable.StopAtBounds
                 boundsBehavior: Flickable.StopAtBounds
+                interactive: false
 
                 cellWidth: 50
                 cellHeight: 50

@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2022 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ Item {
 
     function compute_height(available_width)
     {
-        return _list.height + _header.height
+        return _list.height + _header.height + 10
     }
 
     function format_percentage(value)
@@ -76,6 +76,10 @@ Item {
 
             orientation: Qt.Horizontal
             spacing: 10
+
+            boundsMovement: Flickable.StopAtBounds
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: false
 
             model: _axis_state
             delegate: Component {

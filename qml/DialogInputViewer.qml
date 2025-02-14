@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2023 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -42,15 +42,15 @@ Window {
     {
         for(let i=0; i<_stateDisplay.children.length; ++i)
         {
-            var elem = _stateDisplay.children[i]
+            let elem = _stateDisplay.children[i]
             elem.implicitHeight = elem.compute_height(_stateDisplay.width)
         }
     }
 
     function create_widget(qml_path, guid, name)
     {
-        var component = Qt.createComponent(Qt.resolvedUrl(qml_path))
-        var widget = component.createObject(
+        let component = Qt.createComponent(Qt.resolvedUrl(qml_path))
+        let widget = component.createObject(
             _stateDisplay,
             {
                 deviceGuid: guid,
@@ -84,10 +84,21 @@ Window {
             }
         }
 
-        // Some dynamic scrollable thing that has UI widgets generated dynamically
+        // Dynamic scrollview that contains dynamically generated widgets
         ScrollView  {
+            id: _dynamic_scroll
+
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            // boundsMovement: Flickable.StopAtBounds
+            // boundsBehavior: Flickable.StopAtBounds
+            // interactive: false
+
+            Component.onCompleted: {
+                _dynamic_scroll.contentItem.boundsMovement = Flickable.StopAtBounds
+                _dynamic_scroll.contentItem.boundsBehavior = Flickable.StopAtBounds
+            }
 
             ColumnLayout {
                 id: _stateDisplay
