@@ -78,8 +78,10 @@ class PlaySoundModel(ActionModel):
             "core_plugins:play_sound/PlaySoundAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return PlaySoundData.icon
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     def _get_sound_filename(self) -> str:
         return self._data.sound_filename

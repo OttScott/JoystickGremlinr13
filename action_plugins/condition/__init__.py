@@ -474,6 +474,11 @@ class ConditionModel(ActionModel):
             "core_plugins:condition/ConditionAction.qml"
         ).fileName()
 
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
+
     @Slot(int)
     def addCondition(self, condition: int) -> None:
         """Adds a new condition.

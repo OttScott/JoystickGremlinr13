@@ -148,6 +148,14 @@ class ActionModel(QtCore.QObject):
     def canChangeActivation(self) -> bool:
         return self._data.activation_mode != ActionActivationMode.Disallowed
 
+    @Property(type=str, notify=actionChanged)
+    def actionBehavior(self) -> str:
+        return self._action_behavior()
+
+    @Property(type=list, notify=actionChanged)
+    def compatibleActions(self) -> List[str]:
+        return self._compatible_actions()
+
     @Slot(str, result=list)
     def getActions(self, selector: str) -> List[ActionModel]:
         """Returns the collection of actions corresponding to the selector.
@@ -221,6 +229,11 @@ class ActionModel(QtCore.QObject):
     @property
     def parent_sequence_index(self) -> SequenceIndex:
         return self._parent_sequence_index
+
+    def _action_behavior(self) -> str:
+        raise MissingImplementationError(
+            "ActionModel._qml_path_impl not implemented in subclass"
+        )
 
     def _get_action_label(self) -> str:
         return self._data.action_label
@@ -301,8 +314,7 @@ class ActionModel(QtCore.QObject):
         except GremlinError:
             signal.reloadUi.emit()
 
-    @Property(type=list, notify=actionChanged)
-    def compatibleActions(self) -> List[str]:
+    def _compatible_actions(self) -> List[str]:
         action_list = PluginManager().type_action_map[
             self._binding_model.behavior_type
         ]

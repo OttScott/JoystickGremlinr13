@@ -77,8 +77,10 @@ class DescriptionModel(ActionModel):
             "core_plugins:description/DescriptionAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return DescriptionData.icon
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     def _get_description(self) -> str:
         return self._data.description

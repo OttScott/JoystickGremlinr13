@@ -99,8 +99,10 @@ class PauseResumeModel(ActionModel):
             "core_plugins:pause_resume/PauseResumeAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return PauseResumeData.icon
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     def _get_operation(self) -> str:
         return self._data.operation.name

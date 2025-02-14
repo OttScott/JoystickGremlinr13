@@ -193,7 +193,7 @@ Item {
             }
 
             TriggerMode {
-                visible: inputBinding.behavior === "button" &&
+                visible: _root.action.actionBehavior === "button" &&
                     _root.action.canChangeActivation
 
                 Layout.alignment: Qt.AlignVCenter

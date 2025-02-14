@@ -91,9 +91,6 @@ class ChainModel(ActionModel):
             "core_plugins:chain/ChainAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return ChainData.icon
-
     @Property(int, notify=changed)
     def chainCount(self) -> int:
         return len(self._data.chain_sequences)
@@ -111,6 +108,11 @@ class ChainModel(ActionModel):
         del self._data.chain_sequences[index]
         self.changed.emit()
         self._binding_model.sync_data()
+
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     def _get_timeout(self) -> float:
         return self._data.timeout

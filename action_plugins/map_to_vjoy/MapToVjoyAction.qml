@@ -40,10 +40,10 @@ Item {
         anchors.right: parent.right
 
         VJoySelector {
-            vjoyInputType: inputBinding.behavior
+            vjoyInputType: _root.action.actionBehavior
             vjoyInputId: _root.action.vjoyInputId
             vjoyDeviceId: _root.action.vjoyDeviceId
-            validTypes: [inputBinding.behavior]
+            validTypes: [_root.action.actionBehavior]
 
             onVjoyInputIdChanged: { _root.action.vjoyInputId = vjoyInputId }
             onVjoyDeviceIdChanged: { _root.action.vjoyDeviceId = vjoyDeviceId }

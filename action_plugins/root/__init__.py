@@ -73,6 +73,9 @@ class RootModel(ActionModel):
             "core_plugins:root/RootAction.qml"
         ).fileName()
 
+    def _action_behavior(self) -> str:
+        return self._binding_model.behavior
+
 
 class RootData(AbstractActionData):
 

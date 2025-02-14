@@ -87,8 +87,10 @@ class MapToKeyboardModel(ActionModel):
             "core_plugins:map_to_keyboard/MapToKeyboardAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return MapToKeyboard.icon
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     @Property(str, notify=changed)
     def keyCombination(self) -> str:

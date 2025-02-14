@@ -161,6 +161,19 @@ class MergeAxisModel(ActionModel):
     ):
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
+    def _qml_path_impl(self) -> str:
+        return "file:///" + QtCore.QFile(
+            "core_plugins:merge_axis/MergeAxisAction.qml"
+        ).fileName()
+
+    def _action_behavior(self) -> str:
+        return self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
+
+    def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
+        self._data.insert_action(action, options)
+
     @Property(LabelValueSelectionModel, notify=modelChanged)
     def operationList(self) -> LabelValueSelectionModel:
         """Returns the list of all valid operation names.
@@ -281,15 +294,6 @@ class MergeAxisModel(ActionModel):
         if self._data.label != name:
             self._data.label = name
             self.modelChanged.emit()
-
-
-    def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
-        self._data.insert_action(action, options)
-
-    def _qml_path_impl(self) -> str:
-        return "file:///" + QtCore.QFile(
-            "core_plugins:merge_axis/MergeAxisAction.qml"
-        ).fileName()
 
     label = Property(
         str,

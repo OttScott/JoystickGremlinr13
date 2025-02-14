@@ -191,8 +191,10 @@ class ResponseCurveModel(ActionModel):
             "core_plugins:response_curve/ResponseCurveAction.qml"
         ).fileName()
 
-    def _icon_string_impl(self) -> str:
-        return ResponseCurve.icon
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
 
     @Property(Deadzone, notify=deadzoneChanged)
     def deadzone(self) -> Deadzone:

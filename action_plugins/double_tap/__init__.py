@@ -172,6 +172,11 @@ class DoubleTapModel(ActionModel):
             "core_plugins:double_Tap/DoubleTapAction.qml"
         ).fileName()
 
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
+
     def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
         """Adds a new action to one of the two condition branches.
 

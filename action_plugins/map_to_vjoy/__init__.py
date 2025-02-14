@@ -172,6 +172,11 @@ class MapToVjoyModel(ActionModel):
             "core_plugins:map_to_vjoy/MapToVjoyAction.qml"
         ).fileName()
 
+    def _action_behavior(self) -> str:
+        return  self._binding_model.get_action_model_by_sidx(
+            self._parent_sequence_index.index
+        ).actionBehavior
+
     def _get_vjoy_device_id(self) -> int:
         return self._data.vjoy_device_id
 
