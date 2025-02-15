@@ -69,86 +69,72 @@ class DoubleTapFunctor(AbstractFunctor):
         self.fsm.perform("press" if value.current else "release", event, value)
 
     def _create_fsm(self):
+        # Define lambda functions for the needed actions
+        noop = lambda e, v: None
+        single_pulse = lambda e, v: self._pulse_event(
+            self.functors["single"],
+            self.event_press,
+            self.value_press,
+        )
+        single_press = long_press = lambda e, v: self._process_event(
+            self.functors["single"],
+            self.event_press,
+            self.value_press,
+        )
+        single_release = lambda e, v: self._process_event(
+            self.functors["single"], e, v
+        )
+        double_press = lambda e, v: self._process_event(
+            self.functors["double"],
+            self.event_press,
+            self.value_press,
+        )
+        double_release = lambda e, v: self._process_event(
+            self.functors["double"], e, v
+        )
+
         states = ["neutral", "p1", "p1+t", "p2+t", "t"]
         actions = ["press", "release", "timeout"]
         if self.data.activate_on == "exclusive":
             transitions = {
-                ("neutral", "press"): fsm.Transition(
-                    [self._timer_start], "p1+t"
-                ),
-                ("neutral", "timeout"): fsm.Transition([self._noop], "neutral"),
-                ("p1+t", "release"): fsm.Transition([self._noop], "t"),
-                ("p1+t", "timeout"): fsm.Transition([self._single_press], "p1"),
-                ("p1", "release"): fsm.Transition(
-                    [self._single_release], "neutral"
-                ),
-                ("t", "press"): fsm.Transition([self._double_press], "p2+t"),
-                ("t", "timeout"): fsm.Transition(
-                    [self._single_pulse], "neutral"
-                ),
-                ("p2+t", "release"): fsm.Transition(
-                    [self._double_release], "neutral"
-                ),
-                ("p2+t", "timeout"): fsm.Transition([self._noop], "p2+t")
+                ("neutral", "press"): fsm.Transition([self._start_timer], "p1+t"),
+                ("neutral", "timeout"): fsm.Transition([noop], "neutral"),
+                ("p1+t", "release"): fsm.Transition([noop], "t"),
+                ("p1+t", "timeout"): fsm.Transition([single_press], "p1"),
+                ("p1", "release"): fsm.Transition([single_release], "neutral"),
+                ("t", "press"): fsm.Transition([double_press], "p2+t"),
+                ("t", "timeout"): fsm.Transition([single_pulse], "neutral"),
+                ("p2+t", "release"): fsm.Transition([double_release], "neutral"),
+                ("p2+t", "timeout"): fsm.Transition([noop], "p2+t")
             }
         elif self.data.activate_on == "combined":
             transitions = {
                 ("neutral", "press"): fsm.Transition(
-                    [self._single_press, self._timer_start], "p1+t"
+                    [single_press, self._start_timer], "p1+t"
                 ),
-                ("neutral", "timeout"): fsm.Transition([self._noop], "neutral"),
-                ("p1+t", "release"): fsm.Transition([self._single_release], "t"),
-                ("p1+t", "timeout"): fsm.Transition([self._noop], "p1"),
-                ("p1", "release"): fsm.Transition(
-                    [self._single_release], "neutral"
-                ),
+                ("neutral", "timeout"): fsm.Transition([noop], "neutral"),
+                ("p1+t", "release"): fsm.Transition([single_release], "t"),
+                ("p1+t", "timeout"): fsm.Transition([noop], "p1"),
+                ("p1", "release"): fsm.Transition([single_release], "neutral"),
                 ("t", "press"): fsm.Transition(
-                    [self._single_press, self._double_press], "p2+t"
+                    [single_press, double_press], "p2+t"
                 ),
-                ("t", "timeout"): fsm.Transition([self._noop], "neutral"),
+                ("t", "timeout"): fsm.Transition([noop], "neutral"),
                 ("p2+t", "release"): fsm.Transition(
-                    [self._single_release, self._double_release], "neutral"
+                    [single_release, double_release], "neutral"
                 ),
-                ("p2+t", "timeout"): fsm.Transition([self._noop], "p2+t")
+                ("p2+t", "timeout"): fsm.Transition([noop], "p2+t")
             }
         return fsm.FiniteStateMachine("neutral", states, actions, transitions)
 
     def _timeout(self) -> None:
         self.fsm.perform("timeout", self.event_press, self.value_press)
 
-    def _single_press(self, event: event_handler.Event, value: Value) -> None:
-        self._process_event(
-            self.functors["single"], self.event_press, self.value_press
-        )
-
-    def _single_release(self, event: event_handler.Event, value: Value) -> None:
-        self._process_event(self.functors["single"], event, value)
-
-    def _single_pulse(self, event: event_handler.Event, value: Value) -> None:
-        self._process_event(
-            self.functors["single"], self.event_press, self.value_press
-        )
-        time.sleep(0.05)
-        value_release = Value(False)
-        event_release = event.clone()
-        event_release.is_pressed = False
-        event_release.raw_value = False
-        self._process_event(self.functors["single"], event_release, value_release)
-
-    def _double_press(self, event: event_handler.Event, value: Value) -> None:
-        self._process_event(self.functors["double"], event, value)
-
-    def _double_release(self, event: event_handler.Event, value: Value) -> None:
-        self._process_event(self.functors["double"], event, value)
-
-    def _timer_start(self, event: event_handler.Event, value: Value) -> None:
+    def _start_timer(self, event: event_handler.Event, value: Value) -> None:
         if self.timer:
             self.timer.cancel()
         self.timer = threading.Timer(self.data.threshold, self._timeout)
         self.timer.start()
-
-    def _noop(self, event: event_handler.Event, value: Value) -> None:
-        pass
 
 
 class DoubleTapModel(ActionModel):
