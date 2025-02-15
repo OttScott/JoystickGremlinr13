@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2020 Lionel Ott
+// Copyright (C) 2020 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import QtQuick.Controls
 
 
 Item {
-    id: root
+    id: _root
 
     property real from
     property real to
@@ -30,17 +30,17 @@ Item {
     property real stepSize
     property int decimals
 
-    height: Math.max(idSlider.height, idFirstValue.height, idSecondValue.height)
-    width: idSlider.width + idFirstValue.width + idSecondValue.width
+    height: Math.max(_slider.height, _firstValue.height, _secondValue.height)
+    width: _slider.width + _firstValue.width + _secondValue.width
 
 
     property var validator: DoubleValidator {
-        bottom: Math.min(root.from, root.to)
-        top:  Math.max(root.from, root.to)
+        bottom: Math.min(_root.from, _root.to)
+        top:  Math.max(_root.from, _root.to)
     }
 
     function textFromValue(value) {
-        return Number(value).toLocaleString(Qt.locale(), "f", root.decimals)
+        return Number(value).toLocaleString(Qt.locale(), "f", _root.decimals)
     }
 
     function valueFromText(text) {
@@ -49,94 +49,92 @@ Item {
 
 
     Rectangle {
-        id: idFirstValue
+        id: _firstValue
 
-        anchors.verticalCenter: idSlider.verticalCenter
+        anchors.verticalCenter: _slider.verticalCenter
 
         border.color: "#bdbebf"
         border.width: 2
-        width: idFirstValueInput.width
-        height: idFirstValueInput.height
+        width: _firstValueInput.width
+        height: _firstValueInput.height
 
         TextField {
-            id: idFirstValueInput
+            id: _firstValueInput
 
             padding: 5
-            text: root.textFromValue(root.firstValue)
+            text: _root.textFromValue(_root.firstValue)
 
-            font: idSlider.font
+            font: _slider.font
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
 
             readOnly: false
             selectByMouse: true
-            validator: root.validator
+            validator: _root.validator
             inputMethodHints: Qt.ImhFormattedNumbersOnly
 
             onTextEdited: {
-                var value = valueFromText(text)
-                if(value >= root.secondValue)
+                let value = valueFromText(text)
+                if(value >= _root.secondValue)
                 {
-                    value = root.secondValue
+                    value = _root.secondValue
                 }
-                root.firstValue = value
+                _root.firstValue = value
             }
         }
     }
 
 
     RangeSlider {
-        id: idSlider
+        id: _slider
 
-        anchors.left: idFirstValue.right
+        anchors.left: _firstValue.right
 
-        from: root.from
-        to: root.to
-        first.value: root.firstValue
-        second.value: root.secondValue
-        stepSize: root.stepSize
+        from: _root.from
+        to: _root.to
+        first.value: _root.firstValue
+        second.value: _root.secondValue
+        stepSize: _root.stepSize
 
-        first.onMoved: {
-            root.firstValue = first.value
-        }
-        second.onMoved: {
-            root.secondValue = second.value
+        Component.onCompleted: {
+            _root.firstValue = Qt.binding(() => first.value)
+            _root.secondValue = Qt.binding(() => second.value)
         }
     }
 
     Rectangle {
-        id: idSecondValue
+        id: _secondValue
 
-        anchors.left: idSlider.right
-        anchors.verticalCenter: idSlider.verticalCenter
+        anchors.left: _slider.right
+        anchors.verticalCenter: _slider.verticalCenter
 
         border.color: "#bdbebf"
         border.width: 2
-        width: idSecondValueInput.width
-        height: idSecondValueInput.height
+        width: _secondValueInput.width
+        height: _secondValueInput.height
 
         TextField {
-            id: idSecondValueInput
+            id: _secondValueInput
 
             padding: 5
-            text: root.textFromValue(root.secondValue)
+            text: _root.textFromValue(_root.secondValue)
 
-            font: idSlider.font
+            font: _slider.font
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
 
             readOnly: false
             selectByMouse: true
-            validator: root.validator
+            validator: _root.validator
             inputMethodHints: Qt.ImhFormattedNumbersOnly
 
             onTextEdited: {
-                var value = valueFromText(text)
-                if(value <= root.firstValue)
+                let value = valueFromText(text)
+                if(value <= _root.firstValue)
                 {
-                    value = root.firstValue
+                    value = _root.firstValue
                 }
-                root.secondValue = value
+                _root.secondValue = value
             }
         }
     }
