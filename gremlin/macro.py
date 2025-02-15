@@ -421,7 +421,7 @@ class JoystickAction(AbstractAction):
                 event_type=self.input_type,
                 device_guid=self.device_guid,
                 identifier=self.input_id,
-                mode=mode_manager.ModeManager().current,
+                mode=mode_manager.ModeManager().current.name,
                 value=self.value
             )
         elif self.input_type == InputType.JoystickButton:
@@ -429,7 +429,7 @@ class JoystickAction(AbstractAction):
                 event_type=self.input_type,
                 device_guid=self.device_guid,
                 identifier=self.input_id,
-                mode=mode_manager.ModeManager().current,
+                mode=mode_manager.ModeManager().current.name,
                 is_pressed=self.value
             )
         elif self.input_type == InputType.JoystickHat:
@@ -437,7 +437,7 @@ class JoystickAction(AbstractAction):
                 event_type=self.input_type,
                 device_guid=self.device_guid,
                 identifier=self.input_id,
-                mode=mode_manager.ModeManager().current,
+                mode=mode_manager.ModeManager().current.name,
                 value=self.value
             )
 
