@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2024 Lionel Ott
+// Copyright (C) 2019 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -374,9 +374,11 @@ ApplicationWindow {
 
         // Forces a full refresh of the UI
         function onReloadUi() {
+            let currentDeviceIndex = _devicePanel.currentIndex
             _deviceModel.modelReset()
             _deviceListModel.modelReset()
             _inputConfigurationPanel.reload()
+            _devicePanel.currentIndex = currentDeviceIndex
         }
 
         // Updates a single input item button
