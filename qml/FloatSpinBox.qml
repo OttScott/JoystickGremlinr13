@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2022 Lionel Ott
+// Copyright (C) 2020 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -72,8 +72,13 @@ Item {
         }
 
         onValueModified: {
-            _root.realValue = value / (10 ** _root.decimals)
             _root.realValueModified()
+        }
+
+        Component.onCompleted: {
+            _root.realValue = Qt.binding(
+                () => {return value / (10 ** _root.decimals)}
+            )
         }
     }
 }

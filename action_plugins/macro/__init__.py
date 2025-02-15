@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2016 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -124,7 +124,6 @@ class JoystickActionModel(AbstractActionModel):
 
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
-            print(HatDirection.to_string(self._action.value))
             return HatDirection.to_string(self._action.value)
 
     def _set_hat_direction(self, value: str) -> None:
@@ -381,7 +380,6 @@ class VJoyActionModel(AbstractActionModel):
 
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
-            print(HatDirection.to_string(self._action.value))
             return HatDirection.to_string(self._action.value)
 
     def _set_hat_direction(self, value: str) -> None:

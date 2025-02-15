@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -707,9 +707,9 @@ class VJoyAction(AbstractAction):
     def __call__(self) -> None:
         vjoy = gremlin.joystick_handling.VJoyProxy()[self.vjoy_id]
         if self.input_type == InputType.JoystickAxis:
-            if self.axis_type == "absolute":
+            if self.axis_mode == AxisMode.Absolute:
                 vjoy.axis(self.input_id).value = self.value
-            elif self.axis_type == "relative":
+            elif self.axis_mode == AxisMode.Relative:
                 vjoy.axis(self.input_id).value = max(
                     -1.0,
                     min(1.0, vjoy.axis(self.input_id).value + self.value)
@@ -717,7 +717,7 @@ class VJoyAction(AbstractAction):
         elif self.input_type == InputType.JoystickButton:
             vjoy.button(self.input_id).is_pressed = self.value
         elif self.input_type == InputType.JoystickHat:
-            vjoy.hat(self.input_id).direction = self.value
+            vjoy.hat(self.input_id).direction = self.value.value
 
     def to_xml(self) -> ElementTree.Element:
         node = self._create_node(self.tag)

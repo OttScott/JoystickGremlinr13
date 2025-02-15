@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2023 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -40,14 +40,17 @@ Item {
         anchors.right: parent.right
 
         VJoySelector {
-            vjoyInputType: _root.action.actionBehavior
-            vjoyInputId: _root.action.vjoyInputId
-            vjoyDeviceId: _root.action.vjoyDeviceId
             validTypes: [_root.action.actionBehavior]
 
             onVjoyInputIdChanged: { _root.action.vjoyInputId = vjoyInputId }
             onVjoyDeviceIdChanged: { _root.action.vjoyDeviceId = vjoyDeviceId }
             onVjoyInputTypeChanged: { _root.action.vjoyInputType = vjoyInputType }
+
+            Component.onCompleted: {
+                vjoyInputType = _root.action.actionBehavior
+                vjoyInputId = _root.action.vjoyInputId
+                vjoyDeviceId = _root.action.vjoyDeviceId
+            }
         }
 
         // UI for a physical axis behaving as an axis

@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -477,7 +477,6 @@ class Library:
             if can_parse(entry):
                 self._parse_xml_action(entry)
             else:
-                print(self._actions.keys())
                 parse_later.append(entry)
 
 

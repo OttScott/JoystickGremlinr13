@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2024 Lionel Ott
+// Copyright (C) 2024 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -364,14 +364,17 @@ Item {
 
                 actionItem: RowLayout {
                     VJoySelector {
-                        vjoyInputType: modelData.inputType
-                        vjoyInputId: modelData.inputId
-                        vjoyDeviceId: modelData.vjoyId
                         validTypes: ["axis", "button", "hat"]
 
                         onVjoyInputIdChanged: { modelData.inputId = vjoyInputId }
                         onVjoyDeviceIdChanged: { modelData.vjoyId = vjoyDeviceId }
                         onVjoyInputTypeChanged: { modelData.inputType = vjoyInputType }
+
+                        Component.onCompleted: {
+                            vjoyInputType = modelData.inputType
+                            vjoyInputId = modelData.inputId
+                            vjoyDeviceId = modelData.vjoyId
+                        }
                     }
 
                     Filler {}
@@ -416,7 +419,9 @@ Item {
 
                         currentIndex: indexOfValue(modelData.hatDirection)
                         Component.onCompleted: function () {
-                            currentIndex = indexOfValue(modelData.hatDirection)
+                            currentIndex = Qt.binding(
+                                () => {return indexOfValue(modelData.hatDirection)}
+                            )
                         }
 
                         onActivated: function () {
