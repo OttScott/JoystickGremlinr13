@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2021 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ from xml.etree import ElementTree
 from PySide6 import QtCore
 from PySide6.QtCore import Property, Signal, Slot
 
-from gremlin import event_handler, util
+from gremlin import event_handler, fsm, util
 from gremlin.error import GremlinError, ProfileError
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.config import Configuration
@@ -47,10 +47,11 @@ class TempoFunctor(AbstractFunctor):
     def __init__(self, action: TempoData):
         super().__init__(action)
 
-        self.start_time = 0
+        # self.start_time = 0
         self.timer = None
         self.value_press = None
         self.event_press = None
+        self.fsm = self._create_fsm()
 
     def __call__(self, event: event_handler.Event, value: Value) -> None:
         if not isinstance(value.current, bool):
@@ -65,65 +66,64 @@ class TempoFunctor(AbstractFunctor):
             self.value_press = copy.deepcopy(value)
             self.event_press = event.clone()
 
-        # Execute tempo logic
-        if value.current:
-            self.start_time = time.time()
-            self.timer = threading.Timer(self.data.threshold, self._long_press)
-            self.timer.start()
+        self.fsm.perform("press" if value.current else "release", event, value)
 
-            if self.data.activate_on == "press":
-                self._process_event(
-                    self.functors["short"],
-                    self.event_press,
-                    self.value_press
-                )
-        else:
-            # Short press
-            if (self.start_time + self.data.threshold) > time.time():
-                self.timer.cancel()
-
-                if self.data.activate_on == "release":
-                    threading.Thread(target=lambda: self._short_press(
-                        self.event_press,
-                        self.value_press,
-                        event,
-                        value
-                    )).start()
-                else:
-                    self._process_event(self.functors["short"], event, value)
-            # Long press
-            else:
-                self._process_event(self.functors["long"], event, value)
-                if self.data.activate_on == "press":
-                    self._process_event(self.functors["short"], event, value)
-
-            self.timer = None
-
-    def _short_press(
-        self,
-        event_p: event_handler.Event,
-        value_p: Value,
-        event_r: event_handler.Event,
-        value_r: Value
-    ):
-        """Callback executed for a short press action.
-
-        :param event_p event to press the action
-        :param value_p value to press the action
-        :param event_r event to release the action
-        :param value_r value to release the action
-        """
-        self._process_event(self.functors["short"], event_p, value_p)
-        time.sleep(0.05)
-        self._process_event(self.functors["short"], event_r, value_r)
-
-    def _long_press(self):
-        """Callback executed, when the delay expires."""
-        self._process_event(
+    def _create_fsm(self) -> fsm.FiniteStateMachine:
+        short_pulse = lambda e, v: self._pulse_event(
+            self.functors["short"],
+            self.event_press,
+            self.value_press,
+        )
+        short_press = long_press = lambda e, v: self._process_event(
+            self.functors["short"],
+            self.event_press,
+            self.value_press,
+        )
+        short_release = lambda e, v: self._process_event(
+            self.functors["short"], e, v
+        )
+        long_press = lambda e, v: self._process_event(
             self.functors["long"],
             self.event_press,
-            self.value_press
+            self.value_press,
         )
+        long_release = lambda e, v: self._process_event(
+            self.functors["long"], e, v
+        )
+        noop = lambda e, v: None
+
+        states = ["wait", "short", "long"]
+        actions = ["press", "release", "timeout"]
+        transitions = {}
+        if self.data.activate_on == "release":
+            transitions = {
+                ("wait", "press"): fsm.Transition([self._start_timer], "short"),
+                ("wait", "timeout"): fsm.Transition([short_pulse], "wait"),
+                ("short", "release"): fsm.Transition([short_pulse], "wait"),
+                ("short", "timeout"): fsm.Transition([long_press], "long"),
+                ("long", "release"): fsm.Transition([long_release], "wait")
+            }
+        elif self.data.activate_on == "press":
+            transitions = {
+                ("wait", "press"): fsm.Transition(
+                    [self._start_timer, short_press], "short"
+                ),
+                ("wait", "timeout"): fsm.Transition([noop], "wait"),
+                ("short", "release"): fsm.Transition([short_release], "wait"),
+                ("short", "timeout"): fsm.Transition([long_press], "long"),
+                ("long", "release"): fsm.Transition([long_release], "wait")
+            }
+
+        return fsm.FiniteStateMachine("wait", states, actions, transitions)
+
+    def _start_timer(self, event: event_handler.Event, value: Value) -> None:
+        if self.timer:
+            self.timer.cancel()
+        self.timer = threading.Timer(self.data.threshold, self._timeout)
+        self.timer.start()
+
+    def _timeout(self):
+        self.fsm.perform("timeout", self.event_press, self.value_press)
 
 
 class TempoModel(ActionModel):

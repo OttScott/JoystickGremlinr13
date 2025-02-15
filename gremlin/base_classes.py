@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2025 Lionel Ott
+# Copyright (C) 2017 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,11 +20,12 @@ from __future__ import annotations
 import typing
 from abc import abstractmethod, ABC
 import copy
+import time
 from typing import Any, List, Tuple, Optional
 import uuid
 from xml.etree import ElementTree
 
-from gremlin import util
+from gremlin import util, event_handler
 from gremlin.error import GremlinError
 from gremlin.profile import Library
 from gremlin.types import ActionActivationMode, ActionProperty, InputType, \
@@ -497,19 +498,44 @@ class AbstractFunctor(ABC):
 
     def _process_event(
         self,
-        actions: List[AbstractFunctor],
+        functors: List[AbstractFunctor],
         event: event_handler.Event,
         value: Value
     ):
-        """Processes the provided event data with every provided action.
+        """Processes the provided event data with every provided functor.
 
         Args:
-            actions: List of actions to process the event with
+            functors: List of functors to process the event with
             event: event to process
             value: value of the event
         """
-        for action in actions:
-            action(event, value)
+        for functor in functors:
+            functor(event, value)
+
+    def _pulse_event(
+            self,
+            functors: List[AbstractFunctor],
+            event_press: event_handler.Event,
+            value_press: Value
+    ):
+        """Processes the provided event as a pulse with every provided functor.
+
+        This assumes that the provided event and value correspond to an input
+        "press" event as the event data will then be modified to a release one
+        in order to emit the pulse.
+
+        Args:
+            functors: List of functors to process the event with
+            event: press event to use
+            value: press value to use
+        """
+        self._process_event(functors, event_press, value_press)
+        time.sleep(0.05)
+        value_release = Value(False)
+        event_release = event_press.clone()
+        event_release.is_pressed = False
+        event_release.raw_value = None
+        self._process_event(functors, event_release, value_release)
 
     def _should_execute(self, value: Value) -> bool:
         """Checks if the action should execute based on the value and
