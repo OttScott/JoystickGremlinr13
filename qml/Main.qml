@@ -256,7 +256,6 @@ ApplicationWindow {
                 }
             }
             ToolButton {
-                id: bla
                 icon.source: "qrc:///icons/options"
 
                 ToolTip {
@@ -267,6 +266,23 @@ ApplicationWindow {
 
                 onClicked: {
                     Helpers.createComponent("DialogOptions.qml")
+                }
+            }
+
+            ToolButton {
+                text: bsi.icons.chart
+                font.family: "bootstrap-icons"
+                font.pixelSize: 20
+                font.weight: 900
+
+                ToolTip {
+                    visible: parent.hovered
+                    text: qsTr("Open input viewer")
+                    delay: 500
+                }
+
+                onClicked: {
+                    Helpers.createComponent("DialogInputViewer.qml")
                 }
             }
 
