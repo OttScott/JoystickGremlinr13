@@ -79,7 +79,7 @@ Item {
                 {
                     value = _root.secondValue
                 }
-                _root.firstValue = value
+                _slider.first.value = value
             }
         }
     }
