@@ -483,13 +483,14 @@ ApplicationWindow {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
+            clip: true
             orientation: Qt.Horizontal
 
             // List of the inputs of the currently selected device
             DeviceInputList {
                 id: _deviceInputList
 
-                visible: false
+                visible: true
                 SplitView.minimumWidth: 200
 
                 device: _deviceModel
@@ -505,7 +506,7 @@ ApplicationWindow {
             IntermediateOutputDevice {
                 id: _ioDeviceList
 
-                visible: true
+                visible: false
                 SplitView.minimumWidth: 200
 
                 device: backend.getIODeviceManagementModel()
