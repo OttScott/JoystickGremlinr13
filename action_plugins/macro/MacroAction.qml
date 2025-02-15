@@ -225,9 +225,10 @@ Item {
                             {value: "north-west", text: "North West"}
                         ]
 
-                        currentIndex: indexOfValue(modelData.hatDirection)
                         Component.onCompleted: function () {
-                            currentIndex = indexOfValue(modelData.hatDirection)
+                            currentIndex = Qt.binding(
+                                () => indexOfValue(modelData.hatDirection)
+                            )
                         }
 
                         onActivated: function () {

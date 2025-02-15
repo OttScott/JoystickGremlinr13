@@ -365,6 +365,8 @@ class VJoyActionModel(AbstractActionModel):
             return self._action.value
 
     def _set_is_pressed(self, value: bool) -> None:
+        if self._action.input_type != InputType.JoystickButton:
+            return
         if value != self._action.value:
             self._action.value = value
             self.changed.emit()
@@ -374,6 +376,8 @@ class VJoyActionModel(AbstractActionModel):
             return self._action.value
 
     def _set_axis_value(self, value: float) -> None:
+        if self._action.input_type != InputType.JoystickAxis:
+            return
         if value != self._action.value:
             self._action.value = value
             self.changed.emit()
@@ -383,6 +387,8 @@ class VJoyActionModel(AbstractActionModel):
             return HatDirection.to_string(self._action.value)
 
     def _set_hat_direction(self, value: str) -> None:
+        if self._action.input_type != InputType.JoystickHat:
+            return
         direction = HatDirection.to_enum(value)
         if direction != self._action.value:
             self._action.value = direction
