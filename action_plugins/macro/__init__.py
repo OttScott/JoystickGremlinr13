@@ -621,6 +621,14 @@ class MacroModel(ActionModel):
             self._data.repeat_mode = mode
             self.changed.emit()
 
+    def _get_is_exclusive(self) -> bool:
+        return self._data.is_exclusive
+
+    def _set_is_exclusive(self, state: bool) -> None:
+        if state != self._data.is_exclusive:
+            self._data.is_exclusive = state
+            self.changed.emit()
+
     repeatCount = Property(
         int,
         fget=_get_repeat_count,
@@ -639,6 +647,13 @@ class MacroModel(ActionModel):
         str,
         fget=_get_repeat_mode,
         fset=_set_repeat_mode,
+        notify=changed
+    )
+
+    isExclusive = Property(
+        bool,
+        fget=_get_is_exclusive,
+        fset=_set_is_exclusive,
         notify=changed
     )
 
