@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2025 Lionel Ott
+// Copyright (C) 2024 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -44,44 +44,6 @@ Item {
     readonly property int handleOffset: 5
 
     implicitHeight: _content.height
-
-    // Handle model value changes as propert bindings run into cyclical
-    // trigger challenges
-    Component.onCompleted: function() {
-        setLow(deadzone.low)
-        setCenterLow(deadzone.centerLow)
-        setCenterHigh(deadzone.centerHigh)
-        setHigh(deadzone.high)
-    }
-
-    Connections {
-        target: deadzone
-
-        function onLowModified(value) { setLow(value) }
-        function onCenterLowModified(value) { setCenterLow(value) }
-        function onCenterHighModified(value) { setCenterHigh(value) }
-        function onHighModified(value) { setHigh(value) }
-    }
-
-    function setLow(value) {
-        _spinLow.realValue = value
-        _sliderLow.first.value = value
-    }
-
-    function setCenterLow(value) {
-        _spinCenterLow.realValue = value
-        _sliderLow.second.value = value
-    }
-
-    function setCenterHigh(value) {
-        _spinCenterHigh.realValue = value
-        _sliderHigh.first.value = value
-    }
-
-    function setHigh(value) {
-        _spinHigh.realValue = value
-        _sliderHigh.second.value = value
-    }
 
     function map2u(x) {
         return RH.x2u(x, _curve.x, _vis.size, handleOffset)
@@ -282,84 +244,43 @@ Item {
             text: "Deadzone"
         }
 
-        GridLayout {
-            Layout.fillWidth: true
-
-            columns: 4
-
-            RangeSlider {
-                id: _sliderLow
-
-                Layout.columnSpan: 2
-                Layout.alignment: Qt.AlignRight
+        RowLayout {
+            // Lower axis half
+            NumericalRangeSlider {
+                id: _lowerDeadzone
 
                 from: -1.0
-                to: 0.0
+                to: _upperDeadzone.firstValue
+                firstValue: deadzone.low
+                secondValue: deadzone.centerLow
+                stepSize: 0.05
+                decimals: 3
 
-                first {
-                    onMoved: {
-                        deadzone.low = first.value
-                    }
+                onFirstValueChanged: {
+                    deadzone.low = firstValue
                 }
-                second {
-                    onMoved: {
-                        deadzone.centerLow = second.value
-                    }
+                onSecondValueChanged: {
+                    deadzone.centerLow = secondValue
                 }
             }
 
-            RangeSlider {
-                id: _sliderHigh
+            // Upper axis half
+            NumericalRangeSlider {
+                id: _upperDeadzone
 
-                Layout.columnSpan: 2
-                Layout.alignment: Qt.AlignLeft
-
-                from: 0.0
+                from: _lowerDeadzone.secondValue
                 to: 1.0
+                firstValue: deadzone.centerHigh
+                secondValue: deadzone.high
+                stepSize: 0.05
+                decimals: 3
 
-                first {
-                    onMoved: {
-                        deadzone.centerHigh = first.value
-                    }
+                onFirstValueChanged: {
+                    deadzone.centerHigh = firstValue
                 }
-                second {
-                    onMoved: {
-                        deadzone.high = second.value
-                    }
+                onSecondValueChanged: {
+                    deadzone.high = secondValue
                 }
-            }
-
-            FloatSpinBox {
-                id: _spinLow
-
-                realValue: -1.0
-                minValue: -1.0
-                maxValue: _spinCenterLow.realValue
-
-                onRealValueModified: {
-                    deadzone.low = realValue
-                }
-            }
-            FloatSpinBox {
-                id: _spinCenterLow
-
-                realValue: 0.0
-                minValue: _spinLow.realValue
-                maxValue: 0.0
-            }
-            FloatSpinBox {
-                id: _spinCenterHigh
-
-                realValue: 0.0
-                minValue: 0.0
-                maxValue: _spinHigh.realValue
-            }
-            FloatSpinBox {
-                id: _spinHigh
-
-                realValue: 1.0
-                minValue: _spinCenterHigh.realValue
-                maxValue: 1.0
             }
         }
     }
