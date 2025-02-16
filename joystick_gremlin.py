@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -261,7 +261,9 @@ if __name__ == "__main__":
         syslog.error("Failed to load BootstrapIcons")
 
     # Initialize main UI
-    engine.load(QtCore.QUrl.fromLocalFile("qml/Main.qml"))
+    engine.load(QtCore.QUrl.fromLocalFile(
+        gremlin.util.resource_path("qml/Main.qml"))
+    )
     if not engine.rootObjects():
         sys.exit(-1)
 

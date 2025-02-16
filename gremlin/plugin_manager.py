@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 
 from PySide6 import QtQml
 
-from gremlin import common, config, error, shared_state
+from gremlin import common, config, error, shared_state, util
 from gremlin.types import ActionProperty, InputType, DataCreationMode
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ class PluginManager:
         self._tag_to_type_map = {}
         self._parameter_requirements = {}
 
-        self._discover_plugins(Path("action_plugins"), True)
+        self._discover_plugins(Path(util.resource_path("action_plugins")), True)
         path = Path(config.Configuration().value(
             "global", "general", "plugin_directory"
         ))

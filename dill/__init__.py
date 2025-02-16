@@ -23,6 +23,7 @@ import ctypes
 import ctypes.wintypes as ctwt
 from enum import Enum
 import os
+import sys
 import time
 from typing import Callable
 import uuid
@@ -435,6 +436,8 @@ C_EVENT_CALLBACK = ctypes.CFUNCTYPE(None, _JoystickInputData)
 C_DEVICE_CHANGE_CALLBACK = ctypes.CFUNCTYPE(None, _DeviceSummary, ctypes.c_uint8)
 
 _dll_path = os.path.join(os.path.dirname(__file__), "dill.dll")
+if "_MEIPASS" in sys.__dict__:
+    _dll_path = os.path.join(sys._MEIPASS, "dill.dll")
 _di_listener_dll = ctypes.cdll.LoadLibrary(_dll_path)
 
 _di_listener_dll.get_device_information_by_index.argtypes = [ctypes.c_uint]
@@ -450,6 +453,8 @@ class DILL:
     _dev_path = os.path.join(os.path.dirname(__file__), "dill.dll")
     if os.path.isfile("dill.dll"):
         _dll_path = "dill.dll"
+    elif "_MEIPASS" in sys.__dict__:
+        _dll_path = os.path.join(sys._MEIPASS, "dill.dll")
     elif os.path.isfile(_dev_path):
         _dll_path = _dev_path
     else:

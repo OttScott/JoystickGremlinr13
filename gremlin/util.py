@@ -816,7 +816,7 @@ def resource_path(relative_path: str) -> str:
     if "_MEIPASS" in sys.__dict__:
         base_path = sys._MEIPASS
 
-    return os.path.normcase(os.path.join(base_path, relative_path))
+    return os.path.normpath(os.path.join(base_path, relative_path))
 
 
 def display_error(msg: str) -> None:

@@ -428,6 +428,19 @@ An `Item` on the other hand is an explicitly existing object that is rendered an
 
 A typical use of `Component` definitions is to define a reusable component inside a QML file, rather than having to create an entirely new QML file that would implement the desired component.
 
+## PyInstaller Considerations
+
+PyInstaller can't necessarily find all the imports required by the action plugins and UI code as they are not necessarily imported. Therefore, all files falling into this category need to be listed as hidden imports in the `joystick_gremlin.spec` file such that they are analyzed for required imports. Failure to do so will result in the build completing but not working afterwards.
+
+A way to find out what imports are active in a program you can use the following code snippet, which should give a good overview.
+
+```python
+import sys, pprint
+pprint.pprint(sorted(sys.modules.keys()))
+```
+
+Entries from this or other imports that should be analyzed need to put in the `hidden_imports` variable inside the `joystick_gremlin.spec` file.
+
 # User Action Plugins
 
 R14 allows specifying a folder that contains additional action plugins to show in the normal drop down. These actions need to be implemented following the same rules as the core actions, however, users can create their own and implement them independently of Gremlin Core.

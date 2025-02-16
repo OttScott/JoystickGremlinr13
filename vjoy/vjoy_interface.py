@@ -19,6 +19,7 @@
 import ctypes
 import enum
 import os
+import sys
 
 from gremlin.error import GremlinError
 
@@ -43,6 +44,8 @@ class VJoyInterface:
     dev_path = os.path.join(os.path.dirname(__file__), "vJoyInterface.dll")
     if os.path.isfile("vJoyInterface.dll"):
         dll_path = "vJoyInterface.dll"
+    if "_MEIPASS" in sys.__dict__:
+        dll_path = os.path.join(sys._MEIPASS, "vJoyInterface.dll")
     elif os.path.isfile(dev_path):
         dll_path = dev_path
     else:

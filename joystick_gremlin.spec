@@ -1,8 +1,7 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 
 import os
 
-block_cipher = None
 
 # Properly enumerate all files required for the action_plugins and
 # container_plugins system
@@ -13,32 +12,67 @@ for root, _, files in os.walk("action_plugins"):
             continue
         action_plugins_files.append((os.path.join(root, fname), root))
 
-added_files = [
+datas = [
     ("about", "about"),
     ("doc", "doc"),
     ("gfx", "gfx"),
-    ("qml", "qml")
+    ("qml", "qml"),
+    ("device_db.json", "."),
 ]
-added_files.extend(action_plugins_files)
-added_binaries = [
+datas.extend(action_plugins_files)
+binaries = [
     ("vjoy/vJoyInterface.dll", "."),
     ("dill/dill.dll", "."),
 ]
 
+hidden_imports = [
+    "action_plugins",
+    "action_plugins.chain",
+    "action_plugins.change_mode",
+    "action_plugins.common",
+    "action_plugins.condition",
+    "action_plugins.condition.comparator",
+    "action_plugins.description",
+    "action_plugins.double_tap",
+    "action_plugins.hat_buttons",
+    "action_plugins.load_profile",
+    "action_plugins.macro",
+    "action_plugins.map_to_io",
+    "action_plugins.map_to_keyboard",
+    "action_plugins.map_to_mouse",
+    "action_plugins.map_to_vjoy",
+    "action_plugins.merge_axis",
+    "action_plugins.pause_resume",
+    "action_plugins.play_sound",
+    "action_plugins.reference",
+    "action_plugins.response_curve",
+    "action_plugins.root",
+    "action_plugins.tempo",
+    "gremlin.ui",
+    "gremlin.ui.action_model",
+    "gremlin.ui.backend",
+    "gremlin.ui.config",
+    "gremlin.ui.device",
+    "gremlin.ui.profile",
+    "gremlin.ui.util",
+]
+
 a = Analysis(
-    ["jg_qml.py"],
-    pathex=['C:\\Users\\Ivan\\Code\\JoystickGremlin'],
-    binaries=added_binaries,
-    datas=added_files,
-    hiddenimports=[],
-    hookspath=None,
-    runtime_hooks=None,
-    excludes=None,
-    win_no_prefer_redirects=None,
-    win_private_assemblies=None,
-    cipher=block_cipher
+    ['joystick_gremlin.py'],
+    pathex=[],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hidden_imports,
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[],
+    excludes=[],
+    noarchive=False,
+    optimize=0,
 )
 
+# Implementation of a library exclusion system to remove huge and unneded
+# Qt libraries
 to_keep = []
 to_exclude = {
     "Qt6WebChannel.dll",
@@ -53,30 +87,39 @@ for (dest, source, kind) in a.binaries:
         to_keep.append((dest, source, kind))
 a.binaries = to_keep
 
-pyz = PYZ(
-    a.pure,
-    a.zipped_data,
-    cipher=block_cipher
-)
+pyz = PYZ(a.pure)
+
+single_folder = True
 
 exe = EXE(
     pyz,
     a.scripts,
-    exclude_binaries=True,
-    name="joystick_gremlin",
-    debug=False,
-    strip=None,
+    a.binaries,
+    a.datas,
+    [],
+    name='joystick_gremlin',
+    debug=True,
+    bootloader_ignore_signals=False,
+    exclude_binaries=single_folder,
+    strip=False,
     upx=True,
-    console=False,
-    icon="gfx\\icon.ico"
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
 )
 
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=None,
-    upx=True,
-    name="joystick_gremlin"
-)
+if single_folder:
+    coll = COLLECT(
+        exe,
+        a.binaries,
+        a.datas,
+        strip=False,
+        upx=True,
+        upx_exclude=[],
+        name='joystick_gremlin',
+    )
