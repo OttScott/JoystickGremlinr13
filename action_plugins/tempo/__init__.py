@@ -53,7 +53,12 @@ class TempoFunctor(AbstractFunctor):
         self.event_press = None
         self.fsm = self._create_fsm()
 
-    def __call__(self, event: event_handler.Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty] = []
+    ) -> None:
         if not isinstance(value.current, bool):
             logging.getLogger("system").warning(
                 f"Invalid data type received in Tempo container: "

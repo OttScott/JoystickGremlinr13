@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2022 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -93,7 +93,12 @@ class MergeAxisFunctor(AbstractFunctor):
     def __init__(self, action: MergeAxisData):
         super().__init__(action)
 
-    def __call__(self, event: Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty] = []
+    ) -> None:
         joy = Joystick()
         axis1 = joy[self.data.axis_in1.device_guid].axis(
             self.data.axis_in1.input_id
@@ -107,7 +112,7 @@ class MergeAxisFunctor(AbstractFunctor):
         )
 
         for functor in self.functors["children"]:
-            functor(event, value)
+            functor(event, value, properties)
 
     @staticmethod
     def _average(value1: float, value2: float) -> float:

@@ -1,5 +1,7 @@
 # -*- coding: utf-8; -*-
 
+# # Copyright (C) 2017 Lionel Ott
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -47,9 +49,10 @@ class PlaySoundFunctor(AbstractFunctor):
         super().__init__(action)
 
     def __call__(
-        self,
-        event: event_handler.Event,
-        value: Value
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
     ) -> None:
         if not self._should_execute(value):
             return

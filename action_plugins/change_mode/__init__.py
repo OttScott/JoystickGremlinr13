@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2024 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -80,9 +80,10 @@ class ChangeModeFunctor(AbstractFunctor):
                 mode_manager.ModeSequence(self.data._target_modes)
 
     def __call__(
-        self,
-        event: event_handler.Event,
-        value: Value
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
     ) -> None:
         if not value.current and self.data.change_type != ChangeType.Temporary:
             return

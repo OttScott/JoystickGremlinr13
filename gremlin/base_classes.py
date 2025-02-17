@@ -463,12 +463,7 @@ class AbstractActionData(ABC):
 
 class AbstractFunctor(ABC):
 
-    """Abstract base class defining the interface for functor like classes.
-
-    TODO: Rework this thing
-
-    These classes are used in the internal code execution system.
-    """
+    """Abstract base class defining the interface for functor like classes."""
 
     def __init__(self, instance: AbstractActionData) -> None:
         """Creates a new instance, extracting needed information.
@@ -487,12 +482,19 @@ class AbstractFunctor(ABC):
             self.functors[selector].append(action.functor(action))
 
     @abstractmethod
-    def __call__(self, event: Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
+    ) -> None:
         """Processes the functor using the provided event and value data.
 
         Args:
             event: the raw event that caused the functor to be executed
             value: the possibly modified value
+            properties: additional property information to pass to child
+                functors
         """
         pass
 
@@ -500,7 +502,8 @@ class AbstractFunctor(ABC):
         self,
         functors: List[AbstractFunctor],
         event: event_handler.Event,
-        value: Value
+        value: Value,
+        properties: list[ActionProperty]=[]
     ):
         """Processes the provided event data with every provided functor.
 
@@ -508,15 +511,18 @@ class AbstractFunctor(ABC):
             functors: List of functors to process the event with
             event: event to process
             value: value of the event
+            properties: additional property information to pass to child
+                functors
         """
         for functor in functors:
-            functor(event, value)
+            functor(event, value, properties)
 
     def _pulse_event(
             self,
             functors: List[AbstractFunctor],
             event_press: event_handler.Event,
-            value_press: Value
+            value_press: Value,
+            properties: list[ActionProperty] = []
     ):
         """Processes the provided event as a pulse with every provided functor.
 
@@ -528,14 +534,16 @@ class AbstractFunctor(ABC):
             functors: List of functors to process the event with
             event: press event to use
             value: press value to use
+            properties: additional property information to pass to child
+                functors
         """
-        self._process_event(functors, event_press, value_press)
+        self._process_event(functors, event_press, value_press, properties)
         time.sleep(0.05)
         value_release = Value(False)
         event_release = event_press.clone()
         event_release.is_pressed = False
         event_release.raw_value = None
-        self._process_event(functors, event_release, value_release)
+        self._process_event(functors, event_release, value_release, properties)
 
     def _should_execute(self, value: Value) -> bool:
         """Checks if the action should execute based on the value and

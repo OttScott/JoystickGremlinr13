@@ -494,16 +494,11 @@ class MacroFunctor(AbstractFunctor):
                 )
 
     def __call__(
-        self,
-        event: event_handler.Event,
-        value: Value
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
     ) -> None:
-        """Processes the provided event.
-
-        Args:
-            event: the input event to process
-            value: the potentially modified input value
-        """
         if self._should_execute(value):
             macro.MacroManager().queue_macro(self.macro)
             if self.data.repeat_mode == MacroRepeatModes.Hold:

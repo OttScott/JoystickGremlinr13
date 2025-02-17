@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2025 Lionel Ott
+# Copyright (C) 2025 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,9 +52,12 @@ class DoubleTapFunctor(AbstractFunctor):
         self.event_press = None
         self.fsm = self._create_fsm()
 
-    def __call__(self, event: event_handler.Event, value: Value) -> None:
-        # TODO: Currently this does not handle hat or axis events, however
-        #       virtual buttons created on those inputs is supported
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty] = []
+    ) -> None:
         if not isinstance(value.current, bool):
             logging.getLogger("system").warning(
                 f"Invalid data type received in DoubleTap action: {event.value}"
@@ -66,7 +69,12 @@ class DoubleTapFunctor(AbstractFunctor):
             self.value_press = copy.deepcopy(value)
             self.event_press = event.clone()
 
-        self.fsm.perform("press" if value.current else "release", event, value)
+        self.fsm.perform(
+            "press" if value.current else "release",
+            event,
+            value,
+            properties
+        )
 
     def _create_fsm(self):
         # Define lambda functions for the needed actions

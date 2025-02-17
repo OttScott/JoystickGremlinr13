@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2024 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,23 +48,18 @@ class ChainFunctor(AbstractFunctor):
         self.last_execution = 0.0
 
     def __call__(
-        self,
-        event: event_handler.Event,
-        value: Value
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
     ) -> None:
-        """Processes the provided event.
-
-        Args:
-            event: the input event to process
-            value: the potentially modified input value
-        """
         if self.data.timeout > 0.0:
             if self.last_execution + self.data.timeout < time.time():
                 self.current_index = 0
             self.last_execution = time.time()
 
         for functor in self.functors[str(self.current_index)]:
-            functor(event, value)
+            functor(event, value, properties)
 
         if value.current:
             self.current_index = \

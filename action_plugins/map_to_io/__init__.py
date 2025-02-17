@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2023 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,12 @@ class MapToIOFunctor(AbstractFunctor):
         self._cache = input_cache.Joystick()
         self._event_listener = EventListener()
 
-    def __call__(self, event: Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty] = []
+    ) -> None:
         if not self._should_execute(value):
             return
 

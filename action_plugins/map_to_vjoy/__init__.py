@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2016 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,7 +53,12 @@ class MapToVjoyFunctor(AbstractFunctor):
         self.axis_delta_value = 0.0
         self.axis_value = 0.0
 
-    def __call__(self, event: event_handler.Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
+    ) -> None:
         if not self._should_execute(value):
             return
 

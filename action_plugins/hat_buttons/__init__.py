@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2025 Lionel Ott
+# Copyright (C) 2025 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,45 +69,48 @@ class DirectionalButton:
         self.functor_direction = direction
         self.type_direction = DirectionalButton.resolve_direction[direction]
 
+        self.fsm = self._create_fsm()
+
+    def _create_fsm(self) -> fsm.FiniteStateMachine:
+        T = fsm.Transition
+        noop = lambda *args: None
+
         states = ["up", "down"]
         actions = ["press", "release"]
         transitions = {
-            ("up", "press"): fsm.Transition([self._execute], "down"),
-            ("up", "release"): fsm.Transition([self._noop], "up"),
-            ("down", "release"): fsm.Transition([self._execute], "up"),
-            ("down", "press"): fsm.Transition([self._noop], "down")
+            ("up", "press"): T([self._execute], "down"),
+            ("up", "release"): T([noop], "up"),
+            ("down", "release"): T([self._execute], "up"),
+            ("down", "press"): T([noop], "down")
         }
-        self.fsm = fsm.FiniteStateMachine("up", states, actions, transitions)
+        return fsm.FiniteStateMachine("up", states, actions, transitions)
 
-
-    def __call__(self, event: event_handler.Event, value: Value) -> None:
+    def __call__(
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty] = []
+    ) -> None:
         is_pressed = HatDirection.to_enum(event.value) == self.type_direction
         action = "press" if is_pressed else "release"
 
         # Event creation
-        # FIXME: this mangles the input type stuff quite badly
         btn_event = event.clone()
         btn_event.event_type = InputType.JoystickButton
         btn_event.is_pressed = is_pressed
         btn_event.value = None
         btn_value = Value(is_pressed)
 
-        self.fsm.perform(action, btn_event, btn_value,)
+        self.fsm.perform(action, btn_event, btn_value, properties)
 
     def _execute(
             self,
             event: event_handler.Event,
-            value: Value
+            value: Value,
+            properties: list[ActionProperty] = []
     ) -> None:
         for functor in self.functors[self.functor_direction]:
-            functor(event, value)
-
-    def _noop(
-            self,
-            event: event_handler.Event,
-            value: Value
-    ) -> None:
-        pass
+            functor(event, value, properties)
 
 
 class HatButtonsFunctor(AbstractFunctor):
@@ -122,18 +125,13 @@ class HatButtonsFunctor(AbstractFunctor):
             self.buttons.append(DirectionalButton(self.functors, direction))
 
     def __call__(
-        self,
-        event: event_handler.Event,
-        value: Value
+            self,
+            event: Event,
+            value: Value,
+            properties: list[ActionProperty]=[]
     ) -> None:
-        """Processes the provided event.
-
-        Args:
-            event: the input event to process
-            value: the potentially modified input value
-        """
         for button in self.buttons:
-            button(event, value)
+            button(event, value, properties)
 
 
 class HatButtonsModel(ActionModel):
