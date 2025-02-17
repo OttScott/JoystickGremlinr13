@@ -31,8 +31,9 @@ import dill
 import gremlin
 from gremlin.base_classes import Value
 import gremlin.fsm
-from gremlin import error, event_handler, input_devices, joystick_handling, \
-    macro, mode_manager, profile, sendinput, user_plugin, util
+from gremlin import audio_player, error, event_handler, input_devices, \
+    joystick_handling, macro, mode_manager, profile, sendinput, user_plugin, \
+    util
 from gremlin.types import ActionProperty, AxisButtonDirection, HatDirection, \
     InputType
 
@@ -447,6 +448,8 @@ class CodeRunner:
         # Remove all claims on VJoy devices
         joystick_handling.VJoyProxy.reset()
 
+        # Remove other possibly long-running aspects
+        audio_player.AudioPlayer().stop()
     def _reset_state(self):
         """Resets all states to their default values."""
         self.event_handler._active_mode = self._profile.modes.first_mode

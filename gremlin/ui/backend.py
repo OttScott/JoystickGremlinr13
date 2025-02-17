@@ -114,7 +114,6 @@ class Backend(QtCore.QObject):
         else:
             # Stop running the code
             self.runner.stop()
-            AudioPlayer().stop()
             # self._update_statusbar_active(False)
             # self._profile_auto_activated = False
             # current_tab = self.ui.devices.currentWidget()
