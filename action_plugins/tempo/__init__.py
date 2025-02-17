@@ -71,64 +71,73 @@ class TempoFunctor(AbstractFunctor):
             self.value_press = copy.deepcopy(value)
             self.event_press = event.clone()
 
-        self.fsm.perform("press" if value.current else "release", event, value)
+        self.fsm.perform(
+            "press" if value.current else "release",
+            event,
+            value,
+            properties
+        )
 
     def _create_fsm(self) -> fsm.FiniteStateMachine:
-        short_pulse = lambda e, v: self._pulse_event(
+        T = fsm.Transition
+        short_pulse = lambda e, v, p: self._pulse_event(
             self.functors["short"],
             self.event_press,
             self.value_press,
+            p
         )
-        short_press = long_press = lambda e, v: self._process_event(
+        short_press = lambda e, v, p: self._process_event(
             self.functors["short"],
             self.event_press,
             self.value_press,
+            p
         )
-        short_release = lambda e, v: self._process_event(
-            self.functors["short"], e, v
+        short_release = lambda e, v, p: self._process_event(
+            self.functors["short"], e, v, p
         )
-        long_press = lambda e, v: self._process_event(
+        long_press = lambda e, v, p: self._process_event(
             self.functors["long"],
             self.event_press,
             self.value_press,
+            p
         )
-        long_release = lambda e, v: self._process_event(
-            self.functors["long"], e, v
+        long_release = lambda e, v, p: self._process_event(
+            self.functors["long"], e, v, []
         )
-        noop = lambda e, v: None
+        noop = lambda *args: None
 
         states = ["wait", "short", "long"]
         actions = ["press", "release", "timeout"]
         transitions = {}
         if self.data.activate_on == "release":
             transitions = {
-                ("wait", "press"): fsm.Transition([self._start_timer], "short"),
-                ("wait", "timeout"): fsm.Transition([short_pulse], "wait"),
-                ("short", "release"): fsm.Transition([short_pulse], "wait"),
-                ("short", "timeout"): fsm.Transition([long_press], "long"),
-                ("long", "release"): fsm.Transition([long_release], "wait")
+                ("wait", "press"): T([self._start_timer], "short"),
+                ("wait", "timeout"): T([short_pulse], "wait"),
+                ("short", "release"): T([short_pulse], "wait"),
+                ("short", "timeout"): T([long_press], "long"),
+                ("long", "release"): T([long_release], "wait")
             }
         elif self.data.activate_on == "press":
             transitions = {
-                ("wait", "press"): fsm.Transition(
+                ("wait", "press"): T(
                     [self._start_timer, short_press], "short"
                 ),
-                ("wait", "timeout"): fsm.Transition([noop], "wait"),
-                ("short", "release"): fsm.Transition([short_release], "wait"),
-                ("short", "timeout"): fsm.Transition([long_press], "long"),
-                ("long", "release"): fsm.Transition([long_release], "wait")
+                ("wait", "timeout"): T([noop], "wait"),
+                ("short", "release"): T([short_release], "wait"),
+                ("short", "timeout"): T([long_press], "long"),
+                ("long", "release"): T([long_release], "wait")
             }
 
         return fsm.FiniteStateMachine("wait", states, actions, transitions)
 
-    def _start_timer(self, event: event_handler.Event, value: Value) -> None:
+    def _start_timer(self, *args) -> None:
         if self.timer:
             self.timer.cancel()
         self.timer = threading.Timer(self.data.threshold, self._timeout)
         self.timer.start()
 
-    def _timeout(self):
-        self.fsm.perform("timeout", self.event_press, self.value_press)
+    def _timeout(self) -> None:
+        self.fsm.perform("timeout", self.event_press, self.value_press, [])
 
 
 class TempoModel(ActionModel):
