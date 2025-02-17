@@ -336,6 +336,7 @@ class ButtonReleaseActions(QtCore.QObject):
         QtCore.QObject.__init__(self)
 
         self._registry = {}
+        self._ignore_registry = {}
         el = event_handler.EventListener()
         el.joystick_event.connect(self._input_event_cb)
         el.keyboard_event.connect(self._input_event_cb)
@@ -369,7 +370,7 @@ class ButtonReleaseActions(QtCore.QObject):
 
     def register_button_release(
         self,
-        vjoy_input: int,
+        vjoy_input: tuple[int, int],
         physical_event: event_handler.Event,
         activate_on: bool
     ):
@@ -385,18 +386,51 @@ class ButtonReleaseActions(QtCore.QObject):
                 (vjoy_device_id, vjoy_button_id)
             physical_event: the button event when release should
                 trigger the release of the vjoy button
+            activate_on: button state on which to trigger the automatic
+                release
         """
+        if (physical_event, vjoy_input) in self._ignore_registry:
+            logging.getLogger("system").warning(
+                f"Not registering button release event for "
+                f"{physical_event} to {vjoy_input}"
+            )
+            return
+
         release_evt = physical_event.clone()
         release_evt.is_pressed = activate_on
 
-        if release_evt not in self._registry:
-            self._registry[release_evt] = []
+        if release_evt not in self._ignore_registry:
+            self._ignore_registry[release_evt] = []
         # Record current mode so we only release if we've changed mode
-        self._registry[release_evt].append(ButtonReleaseEntry(
+        self._ignore_registry[release_evt].append(ButtonReleaseEntry(
             lambda: self._release_callback_prototype(vjoy_input),
             release_evt,
             self._current_mode
         ))
+
+    def ignore_button_release(
+            self,
+            vjoy_input: tuple[int, int],
+            physical_event: event_handler.Event
+    ):
+        """Ignores physical and vjoy button pair tracking requests.
+
+        This prevents calls to register_button_callback from being honored
+        in cases where some action wants to disable this feature.
+
+        Args:
+            vjoy_input: the vjoy button to release, represented as
+                (vjoy_device_id, vjoy_button_id)
+            physical_event: the button event when release should
+                trigger the release of the vjoy button
+        """
+        key = (physical_event, vjoy_input)
+        self._ignore_registry[key] = True
+
+    def reset(self) -> None:
+        """Wipes the registry database."""
+        self._registry = {}
+        self._ignore_registry = {}
 
     def _release_callback_prototype(self, vjoy_input: int) -> None:
         """Prototype of a button release callback, used with lambdas.

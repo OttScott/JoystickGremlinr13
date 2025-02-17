@@ -450,11 +450,13 @@ class CodeRunner:
 
         # Remove other possibly long-running aspects
         audio_player.AudioPlayer().stop()
+
     def _reset_state(self):
         """Resets all states to their default values."""
         self.event_handler._active_mode = self._profile.modes.first_mode
         self.event_handler._previous_mode = self._profile.modes.first_mode
         input_devices.callback_registry.clear()
+        input_devices.ButtonReleaseActions().reset()
 
     def _setup_plugins(self):
         """Handles loading and configuring of loaded plugins."""
