@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2016 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -354,22 +354,6 @@ class CodeRunner:
         try:
             # Process actions define in user plugins
             self._setup_plugins()
-
-            # Create callbacks fom the user code
-            # FIXME: This seems like it's no longer actively used and should
-            #        be removed in its entirety
-            # callback_count = 0
-            # for dev_id, modes in input_devices.callback_registry.registry.items():
-            #     for mode, events in modes.items():
-            #         for event, callback_list in events.items():
-            #             for callback in callback_list.values():
-            #                 self.event_handler.add_callback(
-            #                     dev_id,
-            #                     mode,
-            #                     event,
-            #                     callback,
-            #                 )
-            #                 callback_count += 1
 
             # Add a fake keyboard action which does nothing to the callbacks
             # in every mode in order to have empty modes be "present"

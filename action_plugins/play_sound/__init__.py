@@ -90,19 +90,17 @@ class PlaySoundModel(ActionModel):
         return self._data.sound_filename
 
     def _set_sound_filename(self, value: str) -> None:
-        if str(value) == self._data.sound_filename:
-            return
-        self._data.sound_filename = str(value)
-        self.soundFilenameChanged.emit()
+        if str(value) != self._data.sound_filename:
+            self._data.sound_filename = str(value)
+            self.soundFilenameChanged.emit()
 
     def _get_sound_volume(self) -> int:
         return self._data.sound_volume
 
     def _set_sound_volume(self, value: int) -> None:
-        if value == self._data.sound_volume:
-            return
-        self._data.sound_volume = value
-        self.soundVolumeChanged.emit()
+        if value != self._data.sound_volume:
+            self._data.sound_volume = value
+            self.soundVolumeChanged.emit()
 
     soundFilename = Property(
         str,
@@ -160,7 +158,9 @@ class PlaySoundData(AbstractActionData):
         )
 
         if not self.is_valid():
-            raise GremlinError(f"{self.sound_filename} does not exists or is not accessible.")
+            raise GremlinError(
+                f"{self.sound_filename} does not exists or is not accessible."
+            )
 
     def _to_xml(self) -> ElementTree.Element:
         node = util.create_action_node(PlaySoundData.tag, self._id)

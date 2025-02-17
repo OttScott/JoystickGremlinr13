@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -110,6 +110,9 @@ class Event:
 
     def __ne__(self, other: Event) -> bool:
         return not (self == other)
+
+    def __str__(self) -> str:
+        return f"{self.device_guid}: {self.event_type} {self.identifier}"
 
     def __hash__(self) -> int:
         """Computes the hash value of this event.
