@@ -605,6 +605,8 @@ class ActionProperty(enum.Enum):
     ActivateOnRelease = 4
     ActivateOnBoth = 5
     ActivateDisabled = 6
+    # Disable auto release functionality for this action and child actions
+    DisableAutoRelease = 7
 
 
 class ActionActivationMode(enum.Enum):
