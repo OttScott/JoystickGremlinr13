@@ -176,9 +176,6 @@ class MergeAxisModel(ActionModel):
             self._parent_sequence_index.index
         ).actionBehavior
 
-    def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
-        self._data.insert_action(action, options)
-
     @Property(LabelValueSelectionModel, notify=modelChanged)
     def operationList(self) -> LabelValueSelectionModel:
         """Returns the list of all valid operation names.

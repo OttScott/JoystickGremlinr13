@@ -176,28 +176,6 @@ class DoubleTapModel(ActionModel):
             self._parent_sequence_index.index
         ).actionBehavior
 
-    def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
-        """Adds a new action to one of the two condition branches.
-
-        Args:
-            action: the action to add
-            options: which of the two activation types to add the action two, valid
-                options are [short, long]
-        """
-        predicate = lambda x: True if x.value and x.value.id == self.id else False
-        nodes = self._action_tree.root.nodes_matching(predicate)
-        if len(nodes) != 1:
-            raise GremlinError(f"Node with ID {self.id} has invalid state")
-        nodes[0].add_child(TreeNode(action))
-        if options == "single":
-            self._single_action_ids.append(action.id)
-        elif options == "double":
-            self._double_action_ids.append(action.id)
-        else:
-            raise GremlinError(f"Invalid branch specification: {options}")
-
-        self.actionsChanged.emit()
-
     def _set_threshold(self, value: float) -> None:
         if self._data.threshold != value:
             self._data.threshold = value

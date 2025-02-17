@@ -70,9 +70,6 @@ class RootModel(ActionModel):
     ):
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
-    def _add_action_impl(self, action: AbstractActionData, options: Any) -> None:
-        self._data.insert_action(action, options)
-
     def _qml_path_impl(self) -> str:
         return "file:///" + QtCore.QFile(
             "core_plugins:root/RootAction.qml"
