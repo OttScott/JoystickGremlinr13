@@ -19,4 +19,8 @@
         <name>action-label</name>
         <value></value>
     </property>
+    <property type="activation-mode">
+        <name>activation-mode</name>
+        <value>both</value>
+    </property>
 </action>

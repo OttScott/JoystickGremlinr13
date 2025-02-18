@@ -20,6 +20,7 @@ import importlib
 import logging
 import math
 import os
+from pathlib import Path
 import re
 import sys
 import threading
@@ -27,7 +28,6 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 import uuid
 from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
 
 from PySide6 import QtCore, QtWidgets
 
@@ -381,7 +381,7 @@ def create_subelement_node(
 def create_node_from_data(
         node_name: str,
         properties: List[Tuple[str, Any, PropertyType]]
-) -> Element:
+) -> ElementTree.Element:
     """Returns an XML node with the given name and property elements.
 
     Args:
@@ -778,27 +778,13 @@ def truncate(text: str, left_size: int, right_size: int) -> str:
     return f"{text[:left_size]}...{text[-right_size:]}"
 
 
-def script_path() -> str:
-    """Returns the path to the scripts location.
-
-    Returns:
-        path to the scripts location
-    """
-    return os.path.normcase(
-        os.path.dirname(os.path.abspath(os.path.realpath(sys.argv[0])))
-    )
-
-
 def userprofile_path() -> str:
     """Returns the path to the user's profile folder, %userprofile%.
 
     Returns:
         Path to the user's profile folder
     """
-    return os.path.normcase(os.path.abspath(os.path.join(
-        os.getenv("userprofile"),
-        "Joystick Gremlin")
-    ))
+    return str((Path(os.getenv("userprofile")) / "Joystick Gremlin").resolve())
 
 
 def resource_path(relative_path: str) -> str:
@@ -811,12 +797,12 @@ def resource_path(relative_path: str) -> str:
     Returns:
         properly normalized resource path
     """
-    base_path = script_path()
+    gremlin_root = Path(__file__).resolve().parent.parent
     # PyInstaller creates a temp folder and stores path in _MEIPASS
     if "_MEIPASS" in sys.__dict__:
-        base_path = sys._MEIPASS
+        gremlin_root = Path(sys._MEIPASS).resolve()
 
-    return os.path.normpath(os.path.join(base_path, relative_path))
+    return str(gremlin_root / relative_path)
 
 
 def display_error(msg: str) -> None:

@@ -32,6 +32,10 @@
                 <name>action-label</name>
                 <value></value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
         </action>
 
         <action id="80e29257-f2ad-43bf-b5ab-9229d01e64d7" type="description">
@@ -43,6 +47,10 @@
                 <name>action-label</name>
                 <value></value>
             </property>
+                <property type="activation-mode">
+                    <name>activation-mode</name>
+                    <value>disallowed</value>
+                </property>
         </action>
     </library>
 </profile>

@@ -22,6 +22,10 @@
                 <name>action-label</name>
                 <value></value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
         </action>
         <action id="0c905a47-9ad3-4b65-b702-fbae1d133601" type="tempo">
             <property type="float">
@@ -42,6 +46,10 @@
                 <name>action-label</name>
                 <value></value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>both</value>
+            </property>
         </action>
         <action id="0c905a47-9ad3-4b65-b702-fbae1d133602" type="description">
             <property type="string">
@@ -51,6 +59,10 @@
             <property type="string">
                 <name>action-label</name>
                 <value></value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
             </property>
         </action>
         <action id="0c905a47-9ad3-4b65-b702-fbae1d133603" type="description">
@@ -62,6 +74,10 @@
                 <name>action-label</name>
                 <value></value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
         </action>
         <action id="ac905a47-9ad3-4b65-b702-fbae1d133609" type="root">
             <actions>
@@ -72,6 +88,10 @@
             <property type="string">
                 <name>action-label</name>
                 <value></value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
             </property>
         </action>
     </library>

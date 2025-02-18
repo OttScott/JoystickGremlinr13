@@ -44,6 +44,10 @@
                 <name>action-label</name>
                 <value>Root</value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
         </action>
         <action id="837322a1-9c25-42d1-ad1a-d134e692885a" type="map-to-vjoy">
             <property type="int">
@@ -66,6 +70,10 @@
                 <name>action-label</name>
                 <value>Map to vJoy</value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>both</value>
+            </property>
         </action>
         <action id="e7d8d8cd-03f8-4a3f-81c8-66a6dae61b1b" type="root">
             <actions>
@@ -74,6 +82,10 @@
             <property type="string">
                 <name>action-label</name>
                 <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
             </property>
         </action>
         <action id="6dda063c-b1b5-44b5-a628-6981dff84429" type="map-to-vjoy">
@@ -97,6 +109,10 @@
                 <name>action-label</name>
                 <value>Map to vJoy</value>
             </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>both</value>
+            </property>
         </action>
         <action id="5c59550c-6649-450f-b973-8f7367262546" type="root">
             <actions>
@@ -105,6 +121,10 @@
             <property type="string">
                 <name>action-label</name>
                 <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
             </property>
         </action>
         <action id="fa609603-a357-4292-86e7-17c212128186" type="map-to-vjoy">
@@ -126,7 +146,12 @@
             </property>
             <property type="string">
                 <name>action-label</name>
-                <value>Map to vJoy</value>
+                <value>
+                    Map to vJoy</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>both</value>
             </property>
         </action>
     </library>

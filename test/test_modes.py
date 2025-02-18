@@ -27,10 +27,13 @@ import gremlin.plugin_manager
 import gremlin.shared_state
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
+import gremlin.mode_manager
 from gremlin.mode_manager import Mode, ModeManager
 from gremlin.types import AxisMode, InputType
 
 from gremlin.profile import Profile, ModeHierarchy
+
+import action_plugins.tempo as tempo
 
 
 class TestModeHierarchy:
@@ -129,8 +132,8 @@ class TestModeManager:
         gremlin.shared_state.current_profile = p
 
         mm = ModeManager()
-
-        cfg = Configuration().set("profile", "mode-change", "resolution-mode", "oldest")
+        cfg = Configuration()
+        cfg.set("profile", "mode-change", "resolution-mode", "oldest")
         mm.reset()
         del mm._mode_stack[0]
         mm.switch_to(Mode("A", None))
@@ -143,7 +146,7 @@ class TestModeManager:
         assert ml[0].name == "A"
         assert ml[1].name == "B"
 
-        cfg = Configuration().set("profile", "mode-change", "resolution-mode", "newest")
+        cfg.set("profile", "mode-change", "resolution-mode", "newest")
         mm.reset()
         del mm._mode_stack[0]
         mm.switch_to(Mode("A", None))
