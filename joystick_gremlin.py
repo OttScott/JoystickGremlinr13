@@ -251,6 +251,9 @@ if __name__ == "__main__":
     syslog.info("Initializing plugins")
     gremlin.plugin_manager.PluginManager()
 
+    # Purgre configuration options that have not been registered
+    cfg.purge_unused()
+
 
     # +-------------------------------------------------------------------------
     # | Start Gremlin UI
