@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ import time
 import os
 import re
 
-from typing import Any, Dict, List
+from typing import Any
 
 from PySide6 import QtCore
 
@@ -145,7 +145,7 @@ class Configuration:
         data_type: PropertyType,
         initial_value: Any,
         description: str,
-        properties: Dict[str, Any],
+        properties: dict[str, Any],
         expose: bool=False
     ) -> None:
         """Registers a new configuration parameter.
@@ -186,29 +186,45 @@ class Configuration:
 
         # Handle pre-existing entries
         if key in self._data:
-            old_data_type = self._data[key]["data_type"]
             if self._data[key]["properties"] != properties:
-                logging.warning(
+                logging.getLogger("system").warning(
                     f"Properties for parameter '{key}' changed, updating"
                 )
                 self._data[key]["properties"] = properties
-                self.save()
 
-            if data_type != old_data_type:
-                logging.warning(
+            if data_type != self._data[key]["data_type"]:
+                logging.getLogger("system").warning(
                     f"Data type for parameter '{key}' changed, updating from " +
-                    f"'{old_data_type}' to '{data_type}'")
-            else:
-                return
+                    f"'{self._data[key]["data_type"]}' to '{data_type}'")
+                self._data.key["data_type"] = data_type
 
+            if description != self._data[key]["description"]:
+                self._data[key]["description"] = description
         # Store new entry
-        self._data[key] = {
-            "value": initial_value,
-            "data_type": data_type,
-            "description": description,
-            "properties": properties,
-            "expose": expose
-        }
+        else:
+            self._data[key] = {
+                "value": initial_value,
+                "data_type": data_type,
+                "description": description,
+                "properties": properties,
+                "expose": expose
+            }
+        self.save()
+
+        # Mark property as being registered
+        self._data[key]["is_registered"] = True
+
+    def purge_unused(self):
+        """Removes all options that have failed to be registered."""
+        keys_to_delete = []
+        for key, value in self._data.items():
+            if not value.get("is_registered", False):
+                logging.getLogger("system").warning(
+                    f"Parameter '{key}' has not been registered, purging."
+                )
+                keys_to_delete.append(key)
+        for key in keys_to_delete:
+            del self._data[key]
         self.save()
 
     def get(self, section: str, group: str, name: str, entry: str) -> Any:
@@ -252,41 +268,68 @@ class Configuration:
                 f"'{data_type}' got '{type(value)}'"
             )
 
-    def sections(self) -> List[str]:
+    def sections(self, only_exposed: bool=True) -> list[str]:
         """Returns the list of all sections.
+
+        Args:
+            only_exposed: If True, only return sections containing data
+                exposed to the user
 
         Returns:
             List containing the name of all sections present.
         """
-        return sorted(list(set([key[0] for key in self._data.keys()])))
+        section_names = []
+        for key in self._data.keys():
+            if len(self.groups(key[0], only_exposed)) > 0:
+                section_names.append(key[0])
+        return sorted(set(section_names))
 
-    def groups(self, section: str) -> List[str]:
+    def groups(self, section: str, only_exposed: bool=True) -> list[str]:
         """Returns the list of groups used within a section.
 
         Args:
             section: name of the section for which to return the groups
+            only_exposed: filters out all groups which would contain no
+                entries once non exposed entries have been filtered out
 
         Returns:
             The list of groups occurring within the given section.
         """
-        return sorted(list(set(
-            [key[1] for key in self._data.keys() if key[0] == section]
-        )))
+        group_names = []
+        for key in self._data.keys():
+            if key[0] == section and \
+                    len(self.entries(key[0], key[1], only_exposed)) > 0:
+                group_names.append(key[1])
+        return sorted(set(group_names))
 
-    def entries(self, section: str, group: str) -> List[str]:
+    def entries(
+            self,
+            section: str,
+            group: str,
+            only_exposed: bool=True
+    ) -> list[str]:
         """Returns the list of entry names for a group within a section.
 
         Args:
             section: name of the section for which to return entries
             group: name of the group for which to return entries
+            only_exposed: if True only exposed entries are returned, if False
+                every entry is
 
         Returns:
             The list of groups occurring within the given section.
         """
-        return sorted(list(set(
-            [key[2] for key in self._data.keys() if
-                key[0] == section and key[1] == group]
-        )))
+        if only_exposed:
+            return sorted(list(set(
+                [key[2] for key in self._data.keys() if
+                 key[0] == section and key[1] == group and
+                 self.expose(section, group, key[2])]
+            )))
+        else:
+            return sorted(list(set(
+                [key[2] for key in self._data.keys() if
+                    key[0] == section and key[1] == group]
+            )))
 
     def value(self, section: str, group: str, name: str) -> Any:
         """Returns the value associated with the given parameter.
@@ -327,7 +370,7 @@ class Configuration:
         """
         return self._retrieve_value(section, group, name, "description")
 
-    def properties(self, section: str, group: str, name: str) -> Dict[str, Any]:
+    def properties(self, section: str, group: str, name: str) -> dict[str, Any]:
         """Returns the properties associated with the given parameter.
 
         Args:
