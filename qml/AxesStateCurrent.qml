@@ -96,9 +96,13 @@ Item {
 
                         text: "Axis " +  identifier
                     }
-                    VerticalProgressBar {
+                    BetterProgressBar {
                         Layout.fillHeight: true
                         Layout.alignment: Qt.AlignHCenter
+
+                        orientation: BetterProgressBar.Orientation.Vertical
+                        barSize: 20
+                        height: 100
 
                         from: -1
                         to: 1
