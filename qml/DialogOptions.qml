@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2024 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ import "helpers.js" as Helpers
 
 
 Window {
-    minimumWidth: 900
-    minimumHeight: 500
+    minimumWidth: 800
+    minimumHeight: 600
 
     title: "Options"
 
@@ -42,71 +42,23 @@ Window {
 
         anchors.fill: parent
 
+        // Shows the list of all option sections
         ListView {
-            id: _sectionView
+            id: _sectionSelector
 
             Layout.preferredWidth: 200
             Layout.fillHeight: true
 
             model: _sectionModel
-            delegate: _sectionDelegate
+            delegate: ConfigSectionButton {}
         }
 
-        ConfigGroup {
-            id: _configGroup
+        // Shows the contents of the currently selected section
+        ConfigSection {
+            id: _configSection
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-        }
-    }
-
-    Component {
-        id: _sectionDelegate
-
-        Button {
-            id: _text
-
-            required property int index
-            required property string name
-            required property ConfigGroupModel groupModel
-
-            text: name
-
-            height: 40
-            width: _sectionView.width
-
-            background: Row {
-                Rectangle {
-                    width: 5
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-
-                    color: _sectionView.currentIndex == index ?
-                        Universal.accent : Universal.background
-                }
-                Rectangle {
-                    x: 5
-                    width: parent.width - 5
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-
-                    color: _sectionView.currentIndex == index ?
-                        Universal.chromeMediumColor : Universal.background
-                }
-            }
-
-            contentItem: Text {
-                text: Helpers.capitalize(_text.text)
-                font: _text.font
-                horizontalAlignment: Text.AlignLeft
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
-            }
-
-            onClicked: function() {
-                _sectionView.currentIndex = index
-                _configGroup.groupModel = groupModel
-            }
         }
     }
 }

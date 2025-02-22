@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2022 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,31 +21,25 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import Gremlin.Config
+import "helpers.js" as Helpers
 
 
-Item {
-    id: _root
+ListView {
+    property ConfigGroupModel groupModel
 
-    property string sectionName
-    property ConfigSectionModel sectionModel
+    spacing: 10
+    rightMargin: 30
+    bottomMargin: 10
 
-    implicitHeight: _text.height
-    anchors.left: parent.left
-    anchors.right: parent.right
+    // Make it behave like a sensible scrolling container
+    ScrollBar.vertical: ScrollBar {
+        policy: ScrollBar.AlwaysOn
+    }
+    flickableDirection: Flickable.VerticalFlick
+    boundsBehavior: Flickable.StopAtBounds
 
-
-    ColumnLayout {
-        anchors.fill: parent
-
-        SelectButton {
-            id: _text
-            text: sectionName
-
-            Layout.fillWidth: true
-
-            onActivated: function() {
-                console.log("test")
-            }
-        }
+    model: groupModel
+    delegate: ConfigGroup {
+        Layout.fillWidth: true
     }
 }

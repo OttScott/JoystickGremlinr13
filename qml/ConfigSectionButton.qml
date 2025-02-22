@@ -1,0 +1,71 @@
+// -*- coding: utf-8; -*-
+//
+// Copyright (C) 2022 Lionel Ott
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import Gremlin.Config
+import "helpers.js" as Helpers
+
+
+Button {
+    id: _text
+
+    required property int index
+    required property string name
+    required property ConfigGroupModel groupModel
+
+    text: name
+
+    height: 40
+    width: _sectionSelector.width
+
+    background: Row {
+        Rectangle {
+            width: 5
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            color: _sectionSelector.currentIndex == index ?
+                Universal.accent : Universal.background
+        }
+        Rectangle {
+            x: 5
+            width: parent.width - 5
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            color: _sectionSelector.currentIndex == index ?
+                Universal.chromeMediumColor : Universal.background
+        }
+    }
+
+    contentItem: Text {
+        text: Helpers.capitalize(_text.text)
+        font: _text.font
+        horizontalAlignment: Text.AlignLeft
+        verticalAlignment: Text.AlignVCenter
+        elide: Text.ElideRight
+    }
+
+    onClicked: function () {
+        _sectionSelector.currentIndex = index
+        _configSection.groupModel = groupModel
+    }
+}

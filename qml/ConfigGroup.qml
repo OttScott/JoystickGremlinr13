@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2024 Lionel Ott
+// Copyright (C) 2022 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,186 +25,154 @@ import Gremlin.Config
 import "helpers.js" as Helpers
 
 
-Item {
-    property ConfigGroupModel groupModel
+ColumnLayout {
+    required property int index
+    required property string groupName
+    required property ConfigEntryModel entryModel
 
-    ListView {
-        id: _content
+    anchors.left: parent.left
+    anchors.right: parent.right
 
-        implicitHeight: contentItem.childrenRect.height
-        anchors.left: parent.left
-        anchors.right: parent.right
+    // Group header
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 50
 
-        model: groupModel
-        delegate: _groupComponent
-    }
-
-    Component {
-        id: _groupComponent
-
-        Item {
-            required property int index
-            required property string groupName
-            required property ConfigEntryModel entryModel
-
-            width: parent.width
-            height: _groupItem.childrenRect.height
-
-            Column {
-                id: _groupItem
-
-                anchors.left: parent.left
-                anchors.right: parent.right
-
-                // Group header
-                RowLayout {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    DisplayText {
-                        text: Helpers.capitalize(groupName)
-
-                        font.pointSize: 12
-                    }
-
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignVCenter
-
-                        height: 2
-                        color: Universal.baseLowColor
-                    }
-                }
-
-                // Group entries
-                ListView {
-                    implicitHeight: contentItem.childrenRect.height
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    model: entryModel
-                    delegate: _entryDelegateChooser
-                }
-            }
+        UIHeader {
+            text: Helpers.capitalize(groupName)
         }
     }
 
+    // Display config entries
+    Repeater {
+        model: entryModel
+        delegate: _entryDelegateChooser
+    }
+
+    // Header text component
+    component UIHeader : Text {
+        font.pointSize: 14
+        font.weight: 500
+        font.family: "Segoe UI"
+    }
+
+    // Standard text component
+    component UIText : Text {
+        Layout.fillWidth: true
+        horizontalAlignment: Text.AlignJustify
+        wrapMode: Text.Wrap
+
+        font.pointSize: 11
+        font.family: "Segoe UI"
+    }
+
+    // Delegate rendering individual configuration option styles
     DelegateChooser {
         id: _entryDelegateChooser
         role: "data_type"
 
-        property int controlWidth: 200
-
+        // On/off options
         DelegateChoice {
             roleValue: "bool"
 
             RowLayout {
-                Switch {
-                    Layout.preferredWidth: _entryDelegateChooser.controlWidth
+                Layout.fillWidth: true
 
+                Switch {
+                    Layout.alignment: Qt.AlignTop
                     checked: value
 
-                    onToggled: function () {
-                        value = checked
-                    }
-                }
-                Label {
-                    Layout.fillWidth: true
+                    text: checked ? "On" : "Off"
 
+                    onToggled: () => value = checked
+                }
+
+                UIText {
                     text: description
                 }
             }
         }
+        // Floating point value inputs
         DelegateChoice {
             roleValue: "float"
 
-            RowLayout {
-                FloatSpinBox {
-                    Layout.preferredWidth: _entryDelegateChooser.controlWidth
+            ColumnLayout {
+                Layout.fillWidth: true
 
+                UIText {
+                    text: description
+                }
+
+                FloatSpinBox {
                     realValue: value
                     minValue: properties.min
                     maxValue: properties.max
 
-                    onRealValueModified: function() {
-                        value = realValue
-                    }
-                }
-                Label {
-                    Layout.fillWidth: true
-
-                    text: description
+                    onRealValueModified: () => value = realValue
                 }
             }
         }
+        // Integer value inputs
         DelegateChoice {
             roleValue: "int"
 
-            RowLayout {
-                SpinBox {
-                    Layout.preferredWidth: _entryDelegateChooser.controlWidth
+            ColumnLayout {
+                Layout.fillWidth: true
 
+                UIText {
+                    text: description
+                }
+
+                SpinBox {
                     value: model.value
                     from: properties.min
                     to: properties.max
 
-                    onValueModified: function() {
-                        model.value = value
-                    }
-                }
-                Label {
-                    Layout.fillWidth: true
-
-                    text: description
+                    onValueModified: () => model.value = value
                 }
             }
         }
+        // Textual inputs
         DelegateChoice {
             roleValue: "string"
 
-            RowLayout {
-                TextInput {
-                    Layout.preferredWidth: _entryDelegateChooser.controlWidth
+            ColumnLayout {
+                Layout.fillWidth: true
 
-                    text: value
-
-                    onTextEdited: function() {
-                        value = text
-                    }
+                UIText {
+                    text: description
                 }
 
-                Label {
+                TextField {
+                    text: value
+
                     Layout.fillWidth: true
 
-                    text: description
+                    onTextEdited: () => value = text
                 }
             }
         }
+        // Drop down menu selection
         DelegateChoice {
             roleValue: "selection"
 
-            RowLayout {
-                ComboBox {
-                    Layout.preferredWidth: _entryDelegateChooser.controlWidth
+            ColumnLayout {
+                Layout.fillWidth: true
 
-                    model: properties.valid_options
-
-                    Component.onCompleted: function() {
-                        currentIndex = find(value)
-                    }
-
-                    onActivated: function(index) {
-                        value = currentValue
-                    }
-
+                UIText {
+                    text: description
                 }
 
-                Label {
-                    Layout.fillWidth: true
+                ComboBox {
+                    model: properties.valid_options
 
-                    text: description
+                    implicitContentWidthPolicy: ComboBox.WidestText
+
+                    Component.onCompleted: () => currentIndex = find(value)
+                    onActivated: () => value = currentValue
                 }
             }
         }
+
     }
 }
