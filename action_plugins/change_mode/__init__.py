@@ -32,7 +32,6 @@ from gremlin import error, event_handler, input_devices, \
     joystick_handling, mode_manager, shared_state, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
     Value
-from gremlin.config import Configuration
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, DataCreationMode
 

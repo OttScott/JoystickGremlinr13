@@ -198,7 +198,8 @@ Configuration().register(
     "sequential-play",
     PropertyType.Bool,
     False,
-    "Play sound files sequentially.",
+    "When playing sound files wait for the previous sound to finish (On) or " \
+        "cancel the current playback when a new sound wants to play (Off).",
     {
         "off": False,
         "on": True

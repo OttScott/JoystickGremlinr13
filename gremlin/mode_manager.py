@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2024 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ class ModeManager(QtCore.QObject):
         # Detect cycle in the mode stack and resolve it
         if self._exists(mode):
             resolution_mode = Configuration().value(
-                "profile", "mode-change", "resolution-mode"
+                "action", "change-mode", "resolution-mode"
             )
             idx = self._mode_stack.index(mode)
 
@@ -195,12 +195,15 @@ class ModeManager(QtCore.QObject):
 
 
 Configuration().register(
-    "profile",
-    "mode-change",
+    "action",
+    "change-mode",
     "resolution-mode",
     PropertyType.Selection,
     "oldest",
-    "Defines how a mode cycle is resolved.",
+    "Defines how a what mode is switched to in the case that a cyclical mode " \
+        "traversal is detected. \"Oldest\" switches to the oldest mode in " \
+        "the cycle while \"newest\" finds the most recent common mode and " \
+        "switches to that one.",
     {
         "valid_options": ["oldest", "newest"]
     },

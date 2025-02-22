@@ -300,7 +300,8 @@ Configuration().register(
     "duration",
     PropertyType.Float,
     0.5,
-    "Default time before triggering the long press action.",
+    "The time in seconds that can elapse between subsequent presses in order " \
+        "to trigger the double tap action.",
     {
         "min": 0.0,
         "max": 10.0
