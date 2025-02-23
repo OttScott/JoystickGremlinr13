@@ -60,7 +60,7 @@ Item {
                 }
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             Label {
                 text: "Single/Double tap:"

@@ -57,7 +57,7 @@ Item {
                 }
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             ActionSelector {
                 actionNode: _root.action

@@ -205,6 +205,6 @@ Item {
             }
         }
 
-        LayoutSpacer {}
+        LayoutHorizontalSpacer {}
     }
 }

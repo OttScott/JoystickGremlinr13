@@ -78,7 +78,7 @@ Item {
                 text: _root.action.buttonName(index)
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             ActionSelector {
                 actionNode: _root.action

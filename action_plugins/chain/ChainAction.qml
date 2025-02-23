@@ -57,7 +57,7 @@ Item {
                 }
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             Button {
                 text: "Add Chain Sequence"
@@ -85,7 +85,7 @@ Item {
                 text: "Sequence " + index
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             ActionSelector {
                 actionNode: _root.action

@@ -77,7 +77,7 @@ Item {
                 }
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             Label {
                 text: "Repeat Mode"
@@ -130,7 +130,7 @@ Item {
                 }
             }
 
-            LayoutSpacer {}
+            LayoutHorizontalSpacer {}
 
             Switch {
                 text: "Exclusive"
