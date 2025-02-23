@@ -33,4 +33,6 @@ QtObject {
     readonly property string duplicate: "\uF759"
     readonly property string options: "\uF3E2"
     readonly property string chart: "\uF3F2"
+    readonly property string save: "\uF7D9"
+    readonly property string reload: "\uF116"
 }

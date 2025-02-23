@@ -209,7 +209,12 @@ class Configuration:
                 "properties": properties,
                 "expose": expose
             }
-        self.save()
+
+        try:
+            self.save()
+        except TypeError as e:
+            print(key, self._data[key])
+            print(e)
 
         # Mark property as being registered
         self._data[key]["is_registered"] = True
@@ -224,7 +229,8 @@ class Configuration:
                 )
                 keys_to_delete.append(key)
         for key in keys_to_delete:
-            del self._data[key]
+            if key[0] != "calibration":
+                del self._data[key]
         self.save()
 
     def get(self, section: str, group: str, name: str, entry: str) -> Any:

@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import math
 import json
 from json.decoder import JSONDecodeError
 import logging
@@ -29,13 +30,12 @@ from PySide6.QtCore import Property, Signal, Slot
 
 import dill
 
-from gremlin import common, event_handler, joystick_handling, shared_state
+from gremlin import common, event_handler, joystick_handling, shared_state, util
+from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.intermediate_output import IntermediateOutput
 from gremlin.types import InputType, PropertyType
-import gremlin.util as util
 from gremlin.common import SingletonDecorator
-from gremlin.config import Configuration
 
 
 QML_IMPORT_NAME = "Gremlin.Device"
@@ -1188,6 +1188,272 @@ class DeviceAxisSeries(QtCore.QObject):
         fset=_set_window_size,
         fget=_get_window_size,
         notify=windowSizeChanged
+    )
+
+
+@QtQml.QmlElement
+class AxisCalibration(QtCore.QAbstractListModel):
+
+    deviceChanged = Signal()
+
+    roles = {
+        QtCore.Qt.UserRole + 1: QtCore.QByteArray("identifier".encode()),
+        QtCore.Qt.UserRole + 2: QtCore.QByteArray("calibratedValue".encode()),
+        QtCore.Qt.UserRole + 3: QtCore.QByteArray("rawValue".encode()),
+        QtCore.Qt.UserRole + 4: QtCore.QByteArray("low".encode()),
+        QtCore.Qt.UserRole + 5: QtCore.QByteArray("centerLow".encode()),
+        QtCore.Qt.UserRole + 6: QtCore.QByteArray("centerHigh".encode()),
+        QtCore.Qt.UserRole + 7: QtCore.QByteArray("high".encode()),
+        QtCore.Qt.UserRole + 8: QtCore.QByteArray("withCenter".encode()),
+        QtCore.Qt.UserRole + 9: QtCore.QByteArray("unsavedChanges".encode()),
+    }
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        el = event_handler.EventListener()
+        el.joystick_event.connect(self._event_callback)
+
+        self._device = None
+        self._device_uuid = None
+        self._state = []
+        self._calibration_fn = []
+        self._active_calibrations = []
+
+        self._config = Configuration()
+        self._device_db = DeviceDatabase()
+        self._device_mapping = None
+
+    def data(self, index: QtCore.QModelIndex, role:int=...) -> Any:
+        if role not in AxisCalibration.roles:
+            return None
+
+        role_name = AxisCalibration.roles[role].data().decode()
+        return self._state[index.row()][role_name]
+
+    def setData(self, index: QtCore.QModelIndex, value: Any, role: int=...) -> None:
+        if role not in AxisCalibration.roles:
+            return
+
+        # Update internal representation
+        role_name = AxisCalibration.roles[role].data().decode()
+        self._state[index.row()][role_name] = value
+        self._state[index.row()]["unsavedChanges"] = True
+        self._update_calibration(index.row())
+
+        # Signal that the model has changed for a UI update
+        self.emit_update(index.row())
+
+    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+        if self._device is None:
+            return 0
+
+        return len(self._state)
+
+    def roleNames(self) -> Dict:
+        return AxisCalibration.roles
+
+    def emit_update(self, index: int):
+        """Emits the data update signal for the given index."""
+        self.dataChanged.emit(self.index(index, 0), self.index(index, 0))
+
+    @Slot(int)
+    def reset(self, index: int) -> None:
+        """Resets the calibration data of the specified axis.
+
+        Args:
+            index: index of the axis to reset
+        """
+        if not (0 <= index < len(self._state)):
+            return
+
+        # Reset values to defaults
+        self._state[index]["low"] = -32678
+        self._state[index]["centerLow"] = 0
+        self._state[index]["centerHigh"] = 0
+        self._state[index]["high"] = 32767
+        self._state[index]["unsavedChanges"] = True
+
+        # Reset calibration tracking data to continue calibration after a
+        # reset.
+        self._active_calibrations[index]["cvalues"] = [0, 0]
+        self._active_calibrations[index]["evalues"] = [0, 0]
+
+        # Update models
+        self._update_calibration(index)
+        self.emit_update(index)
+
+    @Slot(int, bool)
+    def calibrateCenter(self, index: int, is_active: bool) -> None:
+        self._active_calibrations[index]["center"] = is_active
+        self._active_calibrations[index]["extrema"] = False
+        self._active_calibrations[index]["cvalues"] = [0, 0]
+        if is_active:
+            self._state[index]["centerLow"] = 0
+            self._state[index]["centerHigh"] = 0
+            self.emit_update(index)
+
+    @Slot(int, bool)
+    def calibrateExtrema(self, index: int, is_active: bool) -> None:
+        self._active_calibrations[index]["extrema"] = is_active
+        self._active_calibrations[index]["center"] = False
+        self._active_calibrations[index]["evalues"] = [0, 0]
+        if is_active:
+            self._state[index]["low"] = 0
+            self._state[index]["high"] = 0
+            self.emit_update(index)
+
+    @Slot(int)
+    def save(self, index: int) -> None:
+        """Saves the current calibration data to the configuration system.
+
+        Args:
+            index: index of the axis whose data to save
+        """
+        self._config.set(
+            "calibration",
+            str(self._device_uuid),
+            str(self._device.axis_map[index].axis_index),
+            [
+                self._state[index]["low"],
+                self._state[index]["centerLow"],
+                self._state[index]["centerHigh"],
+                self._state[index]["high"],
+                self._state[index]["withCenter"],
+            ]
+        )
+        self._state[index]["unsavedChanges"] = False
+        self.emit_update(index)
+
+    def _update_calibration(self, index: int) -> None:
+        """Creates the calibration function based on the stored values.
+
+        Args:
+            index: index of the axis to update the calibration function of
+        """
+        self._calibration_fn[index] = util.create_calibration_function(
+            self._state[index]["low"],
+            self._state[index]["centerLow"],
+            self._state[index]["centerHigh"],
+            self._state[index]["high"],
+            self._state[index]["withCenter"]
+        )
+
+    def _set_guid(self, guid: str) -> None:
+        if self._device is not None and guid == str(self._device.device_guid):
+            return
+
+        self._device = dill.DILL.get_device_information_by_guid(
+            dill.GUID.from_str(guid)
+        )
+        self._device_uuid = uuid.UUID(guid)
+        self._device_mapping = self._device_db.get_mapping(self._device)
+        self._state = []
+        self._calibration_fn = []
+        self._active_calibrations = []
+        self._initialize_state()
+        self.deviceChanged.emit()
+        self.modelReset.emit()
+
+    def _initialize_state(self) -> None:
+        for i in range(self._device.axis_count):
+            # Register the device in the configuration system, does not
+            # changethe calibration values if the device has previously been
+            # calibrated.
+            key = (
+                "calibration",
+                str(self._device_uuid),
+                str(self._device.axis_map[i].axis_index)
+            )
+            self._config.register(
+                key[0],
+                key[1],
+                key[2],
+                PropertyType.List,
+                [-32768, 0, 0, 32767, True],
+                "",
+                {},
+                False
+            )
+
+            axis_name = "{} {:d}".format(
+                InputType.to_string(InputType.JoystickAxis).capitalize(),
+                self._device.axis_map[i].axis_index
+            )
+            if self._device_mapping:
+                axis_name = self._device_mapping.input_name(axis_name)
+
+            calibration_data = [
+                int(v) for v in self._config.value(*key)[:-1]
+            ] + [util.parse_bool(self._config.value(*key)[-1])]
+            self._state.append({
+                "identifier": axis_name,
+                "rawValue": 0,
+                "calibratedValue": 0,
+                "low": calibration_data[0],
+                "centerLow": calibration_data[1],
+                "centerHigh": calibration_data[2],
+                "high": calibration_data[3],
+                "withCenter": calibration_data[4],
+                "unsavedChanges": False
+            })
+
+            self._calibration_fn.append(None)
+            self._active_calibrations.append({"center": False, "extrema": False})
+            self._update_calibration(i)
+
+    def _event_callback(self, event: event_handler.Event):
+        if event.device_guid != self._device_uuid:
+            return
+
+        if event.event_type == InputType.JoystickAxis:
+            index = self._device.axis_lookup[event.identifier] - 1
+            state = self._state[index]
+
+            # Update axis value information
+            state["rawValue"] = event.raw_value
+            state["calibratedValue"] = math.floor(
+                self._calibration_fn[index](event.raw_value) * 65535 / 2
+            )
+
+            # Check if we're calibrating the axis and if so record possible
+            # new calibration values
+            calibration_changed = False
+            if self._active_calibrations[index]["center"]:
+                data = self._active_calibrations[index]["cvalues"]
+                if data[0] > event.raw_value:
+                    data[0] = event.raw_value
+                    state["centerLow"] = event.raw_value
+                    calibration_changed = True
+                if data[1] < event.raw_value:
+                    data[1] = event.raw_value
+                    state["centerHigh"] = event.raw_value
+                    calibration_changed = True
+            elif self._active_calibrations[index]["extrema"]:
+                data = self._active_calibrations[index]["evalues"]
+                if data[0] > event.raw_value:
+                    data[0] = event.raw_value
+                    state["low"] = event.raw_value
+                    calibration_changed = True
+                if data[1] < event.raw_value:
+                    data[1] = event.raw_value
+                    state["high"] = event.raw_value
+                    calibration_changed = True
+
+            # Recompute the calibration function if we're actively calibrating
+            if self._active_calibrations[index]["center"] or \
+                    self._active_calibrations[index]["extrema"]:
+                self._update_calibration(index)
+                if calibration_changed == True:
+                    self._state[index]["unsavedChanges"] = True
+
+            # Signal that the model has changed for a UI update
+            self.emit_update(index)
+
+    guid = Property(
+        str,
+        fset=_set_guid,
+        notify=deviceChanged
     )
 
 
