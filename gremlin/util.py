@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -306,6 +306,7 @@ _type_lookup = {
     PropertyType.UUID: uuid.UUID,
     PropertyType.AxisMode: AxisMode,
     PropertyType.HatDirection: HatDirection,
+    PropertyType.List: list,
     PropertyType.Selection: str,
     PropertyType.ActionActivationMode: ActionActivationMode,
     PropertyType.Point2D: Point2D,
@@ -702,31 +703,35 @@ def is_user_admin():
     return ctypes.windll.shell32.IsUserAnAdmin() == 1
 
 
-def axis_calibration(
-        value: float,
-        minimum: float,
-        center: float,
-        maximum: float
+def with_center_calibration(
+        value: int,
+        low: int,
+        centerLow: int,
+        centerHigh: int,
+        high:int
 ) -> float:
     """Returns the calibrated value for a normal style axis.
 
     Args:
         value: the raw value to process
-        minimum: the minimum value of the axis
-        center: the center value of the axis
-        maximum: the maximum value of the axis
+        low: the minimum value of the axis
+        centerLow: the center low value of the axis
+        centerHigh: the center high value of the axis
+        high: the maximum value of the axis
 
     Returns:
         the calibrated value in [-1, 1] corresponding to the provided raw value
     """
-    value = clamp(value, minimum, maximum)
-    if value < center:
-        return (value - center) / float(center - minimum)
+    value = clamp(value, low, high)
+    if value < centerLow:
+        return (value - centerLow) / float(centerLow - low)
+    elif centerLow <= value <= centerHigh:
+        return 0.0
     else:
-        return (value - center) / float(maximum - center)
+        return (value - centerHigh) / float(high - centerHigh)
 
 
-def slider_calibration(value: float, minimum: float, maximum: float) -> float:
+def no_center_calibration(value: int, minimum: int, maximum: int) -> float:
     """Returns the calibrated value for a slider type axis.
 
     Args:
@@ -742,25 +747,29 @@ def slider_calibration(value: float, minimum: float, maximum: float) -> float:
 
 
 def create_calibration_function(
-        minimum: float,
-        center: float,
-        maximum:float
-) -> Callable[[float], float]:
+        low: int,
+        centerLow: int,
+        centerHigh: int,
+        high:int,
+        has_center: bool
+) -> Callable[[int], float]:
     """Returns a calibration function appropriate for the provided data.
 
     Args:
-        minimum: the minimal value ever reported
-        center: the value in the neutral position
-        maximum: the maximal value ever reported
+        low: the lower bound of the calibration function
+        centerLow: the lower value around the center of the calibration function
+        centerHigh: the upper value around the center of the calibration function
+        high: the upper bound of the calibration function
+        has_center: True if the calibration is for an axis with a center
 
     Returns:
         function which returns a value in [-1, 1] corresponding
         to the provided raw input value
     """
-    if minimum == center or maximum == center:
-        return lambda x: slider_calibration(x, minimum, maximum)
+    if has_center:
+        return lambda x: with_center_calibration(x, low, centerLow, centerHigh, high)
     else:
-        return lambda x: axis_calibration(x, minimum, center, maximum)
+        return lambda x: no_center_calibration(x, low, high)
 
 
 def truncate(text: str, left_size: int, right_size: int) -> str:

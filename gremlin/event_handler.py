@@ -238,15 +238,16 @@ class EventListener(QtCore.QObject):
         """
         event = dill.InputEvent(data)
         if event.input_type == dill.InputType.Axis:
+            calibrated_value = self._apply_calibration(event)
             self._joystick[event.device_guid.uuid].axis(event.input_index) \
-                .update(self._apply_calibration(event))
+                .update(calibrated_value)
 
             self.joystick_event.emit(Event(
                 event_type=InputType.JoystickAxis,
                 device_guid=event.device_guid.uuid,
                 identifier=event.input_index,
                 mode=self._modes.current.name,
-                value=self._apply_calibration(event),
+                value=calibrated_value,
                 raw_value=event.value
             ))
         elif event.input_type == dill.InputType.Button:
@@ -376,7 +377,10 @@ class EventListener(QtCore.QObject):
         if key in self._calibrations:
             return self._calibrations[key](event.value)
         else:
-            return util.axis_calibration(event.value, -32768, 0, 32767)
+            logging.getLogger("system").warning(
+                f"No calibration data for {key}"
+            )
+            return util.with_center_calibration(event.value, -32768, 0, 0, 32767)
 
     def _init_joysticks(self):
         """Initializes joystick devices."""
