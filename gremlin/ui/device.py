@@ -1011,11 +1011,11 @@ class AbstractDeviceState(QtCore.QAbstractListModel):
         if role not in AbstractDeviceState.roles:
             return False
 
-        role_name = DeviceButtonState.roles[role].data().decode()
+        role_name = AbstractDeviceState.roles[role].data().decode()
         return self._state[index.row()][role_name]
 
     def roleNames(self) -> Dict:
-        return DeviceButtonState.roles
+        return AbstractDeviceState.roles
 
     guid = Property(
         str,
