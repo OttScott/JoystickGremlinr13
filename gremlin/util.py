@@ -695,7 +695,7 @@ def all_properties_present(keys: List[str], properties: Dict[str, Any]) -> bool:
 
 
 def is_user_admin():
-    """Returns whether or not the user has admin privileges.
+    """Returns if the user has admin privileges.
 
     Returns:
         True if user has admin rights, False otherwise

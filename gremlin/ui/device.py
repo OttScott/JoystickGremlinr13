@@ -57,9 +57,9 @@ class DeviceMapping:
         Returns:
             The input name based on the global configuration option
             and availability of information about the input in
-            the device device mapping.
+            the device mapping.
 
-            If a device exists in the device database and it's mapping or
+            If a device exists in the device database and its mapping or
             the input are not defined, input_name() returns a default
             input name, e.g. Axis 1 or Button 1 or Hat 1.
 
@@ -439,7 +439,7 @@ class Device(QtCore.QAbstractListModel):
         input_name = "{} {:d}".format(
             InputType.to_string(identifier[0]).capitalize(),
             identifier[1]
-            )
+        )
 
         if self._device_mapping is not None:
             return self._device_mapping.input_name(input_name)
