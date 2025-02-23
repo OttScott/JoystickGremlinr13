@@ -137,6 +137,8 @@ def parse_bool(value: str, default_value: bool = False) -> bool:
     # fail
     if value is None:
         return default_value
+    elif isinstance(value, bool):
+        return value
 
     # Attempt to parse the value
     if value.isnumeric():
