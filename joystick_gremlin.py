@@ -60,6 +60,7 @@ gremlin.util.setup_userprofile()
 
 import gremlin.config
 import gremlin.error
+import gremlin.joystick_handling
 import gremlin.plugin_manager
 import gremlin.types
 import gremlin.signal

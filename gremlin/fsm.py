@@ -1,6 +1,7 @@
 # -*- coding: utf-8; -*-
+# -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2025 Lionel Ott
+# Copyright (C) 2015 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -89,6 +90,10 @@ class FiniteStateMachine:
 
         # Ensure the validity of the transition
         assert(action in self.actions)
+        if key not in self.transitions:
+            logging.getLogger("system").exception(
+                f"Missing transition: {key}: {self.transitions}"
+            )
         assert(key in self.transitions)
         assert(self.transitions[key].new_state in self.states)
 

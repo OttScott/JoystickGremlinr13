@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2017 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -321,5 +321,4 @@ def joystick_devices_initialization():
     ))
 
     _joystick_devices = sorted_devices
-
     _joystick_init_lock.release()
