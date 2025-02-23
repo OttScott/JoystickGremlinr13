@@ -274,6 +274,19 @@ class Configuration:
                 f"'{data_type}' got '{type(value)}'"
             )
 
+    def exists(self, section: str, group: str, name: str) -> bool:
+        """Returns True if the specified entry exists.
+
+        Args:
+            section: overall section this parameter is associated with
+            group: grouping into which the parameter belongs
+            name: name by which the new parameter will be accessed
+
+        Returns:
+            True if a value with the specified path exists, False otherwise.
+        """
+        return (section, group, name) in self._data
+
     def sections(self, only_exposed: bool=True) -> list[str]:
         """Returns the list of all sections.
 
