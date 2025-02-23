@@ -1211,8 +1211,8 @@ class AxisCalibration(QtCore.QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        el = event_handler.EventListener()
-        el.joystick_event.connect(self._event_callback)
+        self._event_listener = event_handler.EventListener()
+        self._event_listener.joystick_event.connect(self._event_callback)
 
         self._device = None
         self._device_uuid = None
@@ -1322,6 +1322,10 @@ class AxisCalibration(QtCore.QAbstractListModel):
             ]
         )
         self._state[index]["unsavedChanges"] = False
+        self._event_listener.reload_calibration(
+            self._device.device_guid,
+            self._device.axis_map[index].axis_index,
+        )
         self.emit_update(index)
 
     def _update_calibration(self, index: int) -> None:

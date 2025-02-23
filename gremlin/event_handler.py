@@ -207,17 +207,13 @@ class EventListener(QtCore.QObject):
         self._running = False
         self.keyboard_hook.stop()
 
-    def reload_calibrations(self) -> None:
-        """Reloads the calibration data from the configuration file."""
+    def reload_calibration(self, uuid: uuid.UUID, axis_index: int) -> None:
+        """Reloads the calibration data of the specified axis."""
         cfg = config.Configuration()
-        for key in self._calibrations:
-            limits = cfg.get_calibration(key[0], key[1])
-            self._calibrations[key] = \
-                util.create_calibration_function(
-                    limits[0],
-                    limits[1],
-                    limits[2]
-                )
+        key = (uuid, axis_index)
+        self._calibrations[key] = util.create_calibration_function(
+            *cfg.get_calibration(*key)
+        )
 
     def _run(self) -> None:
         """Starts the event loop."""
@@ -383,25 +379,17 @@ class EventListener(QtCore.QObject):
             return util.with_center_calibration(event.value, -32768, 0, 0, 32767)
 
     def _init_joysticks(self):
-        """Initializes joystick devices."""
-        for dev_info in joystick_handling.joystick_devices():
-            self._load_calibrations(dev_info)
+        """Initializes joystick devices.
 
-    def _load_calibrations(self, device_info: dill.DeviceSummary):
-        """Loads the calibration data for the given joystick.
-
-        Args:
-            device_info: information about the device
+        Loads calibration data for the joystick.
         """
         cfg = config.Configuration()
-        for entry in device_info.axis_map:
-            key = (device_info.device_guid.uuid, entry.axis_index)
-            limits = cfg.get_calibration(key[0], key[1])
-            self._calibrations[key] = util.create_calibration_function(
-                limits[0],
-                limits[1],
-                limits[2]
-            )
+        for dev_info in joystick_handling.joystick_devices():
+            for entry in device_info.axis_map:
+                self.reload_calibration(
+                    device_info.device_guid.uuid,
+                    entry.axis_index
+                )
 
 
 @common.SingletonDecorator
