@@ -217,6 +217,9 @@ if __name__ == "__main__":
     app.setOrganizationDomain("https://whitemagic.github.io/JoystickGremlin/")
     app.setApplicationName("Joystick Gremlin")
 
+    # Change application wide font
+    app.setFont(QtGui.QFont("Segoe UI", 11))
+
     # Ensure joystick devices are correctly setup
     dill.DILL.init()
     gremlin.joystick_handling.joystick_devices_initialization()
