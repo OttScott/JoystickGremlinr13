@@ -409,6 +409,9 @@ class DeviceSummary:
         self.axis_map = []
         for i in range(8):
             self.axis_map.append(AxisMap(data.axis_map[i]))
+        self.axis_lookup = {}
+        for entry in self.axis_map:
+            self.axis_lookup[entry.axis_index] = entry.linear_index
         self.vjoy_id = -1
 
     @property
