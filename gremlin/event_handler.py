@@ -197,7 +197,7 @@ class EventListener(QtCore.QObject):
         self._running = True
         self.gremlin_active = False
 
-        #self._init_joysticks()
+        self._init_joysticks()
         self.keyboard_hook.start()
 
         Thread(target=self._run).start()
@@ -374,7 +374,7 @@ class EventListener(QtCore.QObject):
             return self._calibrations[key](event.value)
         else:
             logging.getLogger("system").warning(
-                f"No calibration data for {key}"
+                f"No calibration data for {key[0]} - Axis {key[1]}"
             )
             return util.with_center_calibration(event.value, -32768, 0, 0, 32767)
 
@@ -385,9 +385,9 @@ class EventListener(QtCore.QObject):
         """
         cfg = config.Configuration()
         for dev_info in joystick_handling.joystick_devices():
-            for entry in device_info.axis_map:
+            for entry in dev_info.axis_map:
                 self.reload_calibration(
-                    device_info.device_guid.uuid,
+                    dev_info.device_guid,
                     entry.axis_index
                 )
 

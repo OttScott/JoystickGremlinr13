@@ -225,12 +225,12 @@ class Configuration:
         keys_to_delete = []
         for key, value in self._data.items():
             if not value.get("is_registered", False):
-                logging.getLogger("system").warning(
-                    f"Parameter '{key}' has not been registered, purging."
-                )
                 keys_to_delete.append(key)
         for key in keys_to_delete:
             if key[0] != "calibration":
+                logging.getLogger("system").warning(
+                    f"Parameter '{key}' has not been registered, purging."
+                )
                 del self._data[key]
         self.save()
 
@@ -448,8 +448,11 @@ class Configuration:
         Returns:
             Tuple containing calibration data
         """
-        data = self.value("calibration", str(uuid).upper(), str(axis_id))
-        return [int(v) for v in data[:-1]] + [util.parse_bool(data[-1])]
+        if self.exists("calibration", str(uuid), str(axis_id)):
+            data = self.value("calibration", str(uuid).upper(), str(axis_id))
+            return [int(v) for v in data[:-1]] + [util.parse_bool(data[-1])]
+        else:
+            return [-32678, 0, 0, 32767, True]
 
     def set_calibration(
             self,
