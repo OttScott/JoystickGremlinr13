@@ -20,6 +20,7 @@ import logging
 import time
 import os
 import re
+import uuid
 
 from typing import Any
 
@@ -414,6 +415,49 @@ class Configuration:
             True if the parameter should be exposed via the UI.
         """
         return self._retrieve_value(section, group, name, "expose")
+
+    def init_calibration(self, uuid: uuid.UUID, axis_id: int) -> None:
+        """Registers an axis in the configuration.
+
+        Args:
+            uuid: unique id of the device
+            aixs_id: axis index of the axis
+        """
+        uuid_str = str(uuid).upper()
+        if not self.exists("calibration", uuid_str, str(axis_id)):
+            self.register(
+                "calibration", uuid_str, str(axis_id),
+                PropertyType.List,
+                [-32768, 0, 0, 32767, True],
+                "",
+                {},
+                False
+            )
+
+    def get_calibration(
+            self,
+            uuid: uuid.UUID,
+            axis_id: int
+    ) -> list[int, int, int, int, bool]:
+        """Returns the calibration data of a given axis.
+
+        Args:
+            uuid: unique id of the device
+            aixs_id: axis index of the axis
+
+        Returns:
+            Tuple containing calibration data
+        """
+        data = self.value("calibration", str(uuid).upper(), str(axis_id))
+        return [int(v) for v in data[:-1]] + [util.parse_bool(data[-1])]
+
+    def set_calibration(
+            self,
+            uuid: uuid.UUID,
+            axis_id: int,
+            data: list[int, int, int, int, bool]
+    ) -> None:
+        self.set("calibration", str(uuid).upper(), str(axis_id), data)
 
     def _retrieve_value(
         self,

@@ -1310,16 +1310,15 @@ class AxisCalibration(QtCore.QAbstractListModel):
         Args:
             index: index of the axis whose data to save
         """
-        self._config.set(
-            "calibration",
-            str(self._device_uuid),
-            str(self._device.axis_map[index].axis_index),
+        self._config.set_calibration(
+            self._device_uuid,
+            self._device.axis_map[index].axis_index,
             [
                 self._state[index]["low"],
                 self._state[index]["centerLow"],
                 self._state[index]["centerHigh"],
                 self._state[index]["high"],
-                self._state[index]["withCenter"],
+                self._state[index]["withCenter"]
             ]
         )
         self._state[index]["unsavedChanges"] = False
@@ -1360,32 +1359,17 @@ class AxisCalibration(QtCore.QAbstractListModel):
             # Register the device in the configuration system, does not
             # changethe calibration values if the device has previously been
             # calibrated.
-            key = (
-                "calibration",
-                str(self._device_uuid),
-                str(self._device.axis_map[i].axis_index)
-            )
-            self._config.register(
-                key[0],
-                key[1],
-                key[2],
-                PropertyType.List,
-                [-32768, 0, 0, 32767, True],
-                "",
-                {},
-                False
-            )
+            key = (self._device_uuid, self._device.axis_map[i].axis_index)
+            self._config.init_calibration(*key)
 
             axis_name = "{} {:d}".format(
                 InputType.to_string(InputType.JoystickAxis).capitalize(),
-                self._device.axis_map[i].axis_index
+                key[1]
             )
             if self._device_mapping:
                 axis_name = self._device_mapping.input_name(axis_name)
 
-            calibration_data = [
-                int(v) for v in self._config.value(*key)[:-1]
-            ] + [util.parse_bool(self._config.value(*key)[-1])]
+            calibration_data = self._config.get_calibration(*key)
             self._state.append({
                 "identifier": axis_name,
                 "rawValue": 0,
