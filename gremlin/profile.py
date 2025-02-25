@@ -471,13 +471,27 @@ class Library:
 
         # Parse all actions that have missing child actions and repeat this
         # until no action with missing child actions remains.
-        # FIXME: Detect when this gets stuck because a child simply doesn't exist
+        iterations = 0
+        action_set = None
         while len(parse_later) > 0:
             entry = parse_later.pop(0)
             if can_parse(entry):
                 self._parse_xml_action(entry)
+                iterations = 0
             else:
                 parse_later.append(entry)
+
+            # Compute a hash from all the actions to parse
+            new_action_set = set(parse_later)
+            if new_action_set != action_set:
+                new_action_set = action_set
+            else:
+                iterations += 1
+                if iterations > 5:
+                    logging.getLogger("system").error(
+                        f"Loading profile failed due to action resolution chain"
+                    )
+                    break
 
 
     def to_xml(self) -> ElementTree.Element:
@@ -486,9 +500,21 @@ class Library:
         Returns:
             XML node holding the instance's content
         """
+        # Process the entire library, removing links to invalid actions
+        invalid_aids = [n.id for n in self._actions.values() if not n.is_valid()]
+        for action in self._actions.values():
+            for selector in action._valid_selectors():
+                to_remove = []
+                for i, child in enumerate(action.get_actions(selector)[0]):
+                    if child.id in invalid_aids:
+                        to_remove.append(i)
+                for i in to_remove:
+                    action.remove_action(i, selector)
+
+        # Generate library subtree
         node = ElementTree.Element("library")
-        for item in [n for n in self._actions.values() if n.is_valid()]:
-            node.append(item.to_xml())
+        for action in [n for n in self._actions.values() if n.is_valid()]:
+            node.append(action.to_xml())
         return node
 
     def _parse_xml_action(self, action: ElementTree.Element) -> None:

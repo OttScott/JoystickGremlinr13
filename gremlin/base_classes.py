@@ -211,15 +211,22 @@ class AbstractActionData(ABC):
         Returns:
             XML node containing the instance's contents
         """
+        if not self.is_valid():
+            print(f"This node is invalid {self.id}")
+            return None
+
         node = self._to_xml()
-        node.append(util.create_property_node(
-            "action-label", self.action_label, PropertyType.String
-        ))
-        node.append(util.create_property_node(
-            "activation-mode",
-            self.activation_mode,
-            PropertyType.ActionActivationMode
-        ))
+        if node is not None:
+            node.append(util.create_property_node(
+                "action-label", self.action_label, PropertyType.String
+            ))
+            node.append(util.create_property_node(
+                "activation-mode",
+                self.activation_mode,
+                PropertyType.ActionActivationMode
+            ))
+        else:
+            print(f"Received invalid node in {self.id}")
         return node
 
     # Interface that all actions have to support, even if only an empty noop
