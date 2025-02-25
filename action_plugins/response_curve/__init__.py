@@ -43,7 +43,7 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 class ResponseCurveFunctor(AbstractFunctor):
 
-    """Implements the function executed of the Description action at runtime."""
+    """Implements the function executed for the response curve at runtime."""
 
     def __init__(self, action: ResponseCurveData):
         super().__init__(action)

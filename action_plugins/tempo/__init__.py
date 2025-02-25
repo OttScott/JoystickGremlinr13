@@ -239,10 +239,6 @@ class TempoData(AbstractActionData):
             )
 
     def _to_xml(self) -> ElementTree.Element:
-        """Returns an XML node representing this container's data.
-
-        :return XML node representing the data of this container
-        """
         node = util.create_action_node(TempoData.tag, self._id)
         node.append(util.create_action_ids(
             "short-actions", [action.id for action in self.short_actions]
