@@ -114,7 +114,7 @@ Window {
             }
 
             IconButton {
-                text: Constants.edit
+                text: bsi.icons.edit
 
                 Layout.leftMargin: 10
 
@@ -159,7 +159,7 @@ Window {
             }
 
             IconButton {
-                text: Constants.trash
+                text: bsi.icons.trash
 
                 Layout.rightMargin: 10
 

@@ -92,7 +92,7 @@ Item {
             }
 
             IconButton {
-                text: Constants.add
+                text: bsi.icons.add
                 backgroundColor: Universal.baseLowColor
 
                 onClicked: {
@@ -169,7 +169,7 @@ Item {
                 // Button to remove an input
                 IconButton {
                     id: _btnTrash
-                    text: Constants.remove
+                    text: bsi.icons.remove
                     font.pixelSize: 12
 
                     anchors.right: parent.right
@@ -185,7 +185,7 @@ Item {
                 // Button enabling the editing of the input's label
                 IconButton {
                     id: _btnEdit
-                    text: Constants.edit
+                    text: bsi.icons.edit
                     font.pixelSize: 12
 
                     anchors.right: parent.right

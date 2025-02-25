@@ -23,7 +23,7 @@ Button {
     property alias backgroundColor: _bg.color
 
     font.family: "bootstrap-icons"
-    font.pixelSize: 16
+    font.pixelSize: 17
 
     background: Rectangle {
         id: _bg

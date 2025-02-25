@@ -174,7 +174,7 @@ Item {
             roleValue: "joystick"
 
             DraggableAction {
-                icon: Constants.icon_joystick
+                icon: bsi.icons.icon_joystick
                 label: "Joystick"
 
                 actionItem: RowLayout {
@@ -244,7 +244,7 @@ Item {
             roleValue: "key"
 
             DraggableAction {
-                icon: Constants.icon_keyboard
+                icon: bsi.icons.icon_keyboard
                 label: "Keyboard"
 
                 actionItem: RowLayout {
@@ -272,7 +272,7 @@ Item {
             roleValue: "mouse-button"
 
             DraggableAction {
-                icon: Constants.icon_mouse
+                icon: bsi.icons.icon_mouse
                 label: "Mouse Button"
 
                 actionItem: RowLayout {
@@ -300,7 +300,7 @@ Item {
             roleValue: "mouse-motion"
 
             DraggableAction {
-                icon: Constants.icon_mouse
+                icon: bsi.icons.icon_mouse
                 label: "Mouse Motion"
 
                 actionItem: RowLayout {
@@ -340,7 +340,7 @@ Item {
             roleValue: "pause"
 
             DraggableAction {
-                icon: Constants.icon_pause
+                icon: bsi.icons.icon_pause
                 label: "Pause"
 
                 actionItem: RowLayout {
@@ -366,7 +366,7 @@ Item {
             roleValue: "vjoy"
 
             DraggableAction {
-                icon: Constants.icon_joystick
+                icon: bsi.icons.icon_joystick
                 label: "vJoy"
 
                 actionItem: RowLayout {
@@ -447,7 +447,7 @@ Item {
 
     // Predefined button that removes a given action
     component DeleteButton : IconButton {
-        text: Constants.remove
+        text: bsi.icons.remove
         font.pixelSize: 16
 
         onClicked: function() {
@@ -482,7 +482,7 @@ Item {
 
         property alias dragActive: _dragArea.drag.active
 
-        text: Constants.drag_handle + iconName
+        text: bsi.icons.drag_handle + iconName
 
         font.pixelSize: 20
 

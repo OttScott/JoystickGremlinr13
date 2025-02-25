@@ -27,6 +27,7 @@ QtObject {
     readonly property string trash: "\uF5DE"
     readonly property string edit: "\uF4CB"
     readonly property string add_new: "\uF37D"
+    readonly property string drag_handle: "\uF3FE"
     readonly property string replace: "\uF130"
     readonly property string rename: "\uF4CB"
     readonly property string share: "\uF52E"
@@ -35,4 +36,9 @@ QtObject {
     readonly property string chart: "\uF3F2"
     readonly property string save: "\uF7D9"
     readonly property string reload: "\uF116"
+
+    readonly property string icon_mouse: "\uF49D"
+    readonly property string icon_keyboard: "\uF451"
+    readonly property string icon_pause: "\uF4C3"
+    readonly property string icon_joystick: "\uF448"
 }

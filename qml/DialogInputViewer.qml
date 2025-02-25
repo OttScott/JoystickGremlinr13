@@ -137,7 +137,7 @@ Window {
 
                     checkable: true
                     checked: false
-                    text: checked ? Constants.folded : Constants.unfolded
+                    text: checked ? bsi.icons.folded : bsi.icons.unfolded
                 }
 
                 DisplayText {

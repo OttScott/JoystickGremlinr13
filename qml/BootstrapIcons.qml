@@ -1,8 +1,6 @@
 import QtQuick
 
 
-
-
 Item {
     property alias icons: _icon_names
     property alias resource: _loader.resource

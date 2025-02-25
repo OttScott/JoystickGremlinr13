@@ -52,7 +52,7 @@ Item {
 
                 font.pixelSize: 24
                 horizontalPadding: -5
-                text: Constants.verticalDrag
+                text: bsi.icons.verticalDrag
 
                 // Drag handle mouse interaction area
                 MouseArea {
@@ -95,7 +95,7 @@ Item {
             IconButton {
                 id: _headerRemove
 
-                text: Constants.remove
+                text: bsi.icons.remove
                 font.pixelSize: 24
 
                 onClicked: function()
