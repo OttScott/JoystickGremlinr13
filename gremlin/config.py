@@ -448,7 +448,7 @@ class Configuration:
         Returns:
             Tuple containing calibration data
         """
-        if self.exists("calibration", str(uuid), str(axis_id)):
+        if self.exists("calibration", str(uuid).upper(), str(axis_id)):
             data = self.value("calibration", str(uuid).upper(), str(axis_id))
             return [int(v) for v in data[:-1]] + [util.parse_bool(data[-1])]
         else:
