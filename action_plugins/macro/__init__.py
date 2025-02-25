@@ -34,7 +34,7 @@ from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
 from gremlin.error import GremlinError, MissingImplementationError, ProfileError
 from gremlin.macro import KeyAction
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType, \
+from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, \
     MouseButton, HatDirection, DataCreationMode
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
@@ -382,6 +382,15 @@ class VJoyActionModel(AbstractActionModel):
             self._action.value = value
             self.changed.emit()
 
+    def _get_axis_mode(self) -> str:
+        return AxisMode.to_string(self._action.axis_mode)
+
+    def _set_axis_mode(self, value: str) -> None:
+        mode = AxisMode.to_enum(value)
+        if mode != self._action.axis_mode:
+            self._action.axis_mode = mode
+            self.changed.emit()
+
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
             return HatDirection.to_string(self._action.value)
@@ -426,6 +435,13 @@ class VJoyActionModel(AbstractActionModel):
         float,
         fget=_get_axis_value,
         fset=_set_axis_value,
+        notify=changed
+    )
+
+    axisMode = Property(
+        str,
+        fget=_get_axis_mode,
+        fset=_set_axis_mode,
         notify=changed
     )
 

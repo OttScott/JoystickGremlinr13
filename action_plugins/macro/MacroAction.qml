@@ -185,7 +185,7 @@ Item {
                         eventTypes: ["axis", "button", "hat"]
                     }
 
-                    Filler {}
+                    LayoutHorizontalSpacer {}
 
                     // Show different components based on input
                     PressOrRelease {
@@ -255,7 +255,7 @@ Item {
                         eventTypes: ["key"]
                     }
 
-                    Filler {}
+                    LayoutHorizontalSpacer {}
 
                     PressOrRelease {
                         checked: modelData.isPressed
@@ -283,7 +283,7 @@ Item {
                         eventTypes: ["mouse"]
                     }
 
-                    Filler {}
+                    LayoutHorizontalSpacer {}
 
                     PressOrRelease {
                         checked: modelData.isPressed
@@ -330,7 +330,7 @@ Item {
                         }
                     }
 
-                    Filler {}
+                    LayoutHorizontalSpacer {}
                 }
             }
         }
@@ -356,7 +356,7 @@ Item {
                     Label {
                         text: "seconds"
                     }
-                    Filler {}
+                    LayoutHorizontalSpacer {}
                 }
             }
         }
@@ -384,26 +384,40 @@ Item {
                         }
                     }
 
-                    Filler {}
+                    LayoutHorizontalSpacer {}
 
                     // Show different components based on input
                     PressOrRelease {
                         visible: modelData.inputType === "button"
 
                         checked: modelData.isPressed
-                        onCheckedChanged: function () {
+                        onCheckedChanged: () => {
                             modelData.isPressed = checked
                         }
                     }
-                    FloatSpinBox {
-                        visible: modelData.inputType === "axis"
+                    RowLayout {
+                        FloatSpinBox {
+                            visible: modelData.inputType === "axis"
 
-                        minValue: -1.0
-                        maxValue: 1.0
-                        realValue: modelData.axisValue
+                            minValue: -1.0
+                            maxValue: 1.0
+                            realValue: modelData.axisValue
 
-                        onRealValueModified: function () {
-                            modelData.axisValue = realValue
+                            onRealValueModified: () => {
+                                modelData.axisValue = realValue
+                            }
+                        }
+                        Label {
+                            Layout.leftMargin: 50
+                            text: "Mode: Relative"
+                        }
+                        Switch {
+                            text:"Absolute"
+                            checked: modelData.axisMode === "absolute"
+
+                            onToggled: () => {
+                                modelData.axisMode = checked ? "absolute" : "relative"
+                            }
                         }
                     }
                     ComboBox {
@@ -425,13 +439,13 @@ Item {
                         ]
 
                         currentIndex: indexOfValue(modelData.hatDirection)
-                        Component.onCompleted: function () {
+                        Component.onCompleted: () => {
                             currentIndex = Qt.binding(
                                 () => {return indexOfValue(modelData.hatDirection)}
                             )
                         }
 
-                        onActivated: function () {
+                        onActivated: () => {
                             modelData.hatDirection = currentValue
                         }
                     }
@@ -440,19 +454,13 @@ Item {
         }
     }
 
-    // Component filling remaining available space in a RowLayout
-    component Filler : Rectangle {
-        Layout.fillWidth: true
-    }
 
     // Predefined button that removes a given action
     component DeleteButton : IconButton {
         text: bsi.icons.remove
         font.pixelSize: 16
 
-        onClicked: function() {
-            _root.action.removeAction(index)
-        }
+        onClicked: () => _root.action.removeAction(index)
     }
 
     // Switch with press/release labels for button action indication
