@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, NamedTuple, Optional, Any
+from typing import Any, TYPE_CHECKING
 import uuid
 from xml.etree import ElementTree
 
@@ -41,7 +41,10 @@ from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationM
 
 from gremlin.ui.action_model import ActionModel, SequenceIndex
 from gremlin.ui.device import InputIdentifier
-from gremlin.ui.profile import LabelValueSelectionModel, InputItemBindingModel
+from gremlin.ui.profile import LabelValueSelectionModel
+
+if TYPE_CHECKING:
+    from gremlin.ui.profile import InputItemBindingModel
 
 
 class MergeOperation(Enum):
@@ -215,7 +218,7 @@ class MergeAxisModel(ActionModel):
             self.modelChanged.emit()
 
     def _get_merge_action(self) -> str:
-        """Returns the UUID of the emrge action being configured.
+        """Returns the UUID of the merge action being configured.
 
         Returns:
             string representation of an action UUID
@@ -285,17 +288,6 @@ class MergeAxisModel(ActionModel):
 
         self.library.add_action(action)
         self.modelChanged.emit()
-
-    @Slot(str)
-    def renameMergeAxis(self, name: str) -> None:
-        """Changes the name of the current action.
-
-        Args:
-            name: new name for this action
-        """
-        if self._data.label != name:
-            self._data.label = name
-            self.modelChanged.emit()
 
     label = Property(
         str,
@@ -423,10 +415,10 @@ class MergeAxisData(AbstractActionData):
             else:
                 return all_actions[0]
 
-    def _valid_selectors(self) -> List[str]:
+    def _valid_selectors(self) -> list[str]:
         return ["children"]
 
-    def _get_container(self, selector: str) -> List[AbstractActionData]:
+    def _get_container(self, selector: str) -> list[AbstractActionData]:
         if selector == "children":
             return self.children
 

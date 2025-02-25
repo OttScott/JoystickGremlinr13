@@ -91,28 +91,24 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
 
-        // Display the configuration options for the merging operation
-        GridLayout {
-            rows: 4
-            columns: 3
 
-            // Row 1
+        // +-------------------------------------------------------------------
+        // | Merge axis instance selection and management
+        // +-------------------------------------------------------------------
+        RowLayout {
             Label {
-                text: "Action"
+                text: "Merge axis instance"
             }
-            LabelValueComboBox
-            {
+            LabelValueComboBox {
                 id: _action_selection
 
                 model: _root.actionModel
 
-                Component.onCompleted: function()
-                {
+                Component.onCompleted: function() {
                     _root.actionModel.currentValue = _root.action.mergeAction
                 }
 
-                onSelectionChanged: function()
-                {
+                onSelectionChanged: function() {
                     _root.action.mergeAction = _root.actionModel.currentValue
                 }
             }
@@ -122,24 +118,48 @@ Item {
                     text: bsi.icons.add_new
                     font.pixelSize: 24
 
-                    onClicked: function () {
-                        _root.action.newMergeAxis()
-                    }
+                    onClicked: () => _root.action.newMergeAxis()
                 }
 
                 IconButton {
                     text: bsi.icons.rename
                     font.pixelSize: 24
 
-                    onClicked: function () {
-                        _dialog.open()
-                    }
+                    onClicked: () => _dialog.open()
                 }
             }
+        }
 
-            // Row 2
+        LayoutHorizontalSpacer {}
+
+        RowLayout {
+            Label {
+                text: "Merge operation"
+            }
+            LabelValueComboBox {
+                id: _operation_selection
+
+                model: _root.operationModel
+
+                Component.onCompleted: function() {
+                    _root.operationModel.currentValue = _root.action.operation
+                }
+
+                onSelectionChanged: function() {
+                    _root.action.operation = _root.operationModel.currentValue
+                }
+            }
+        }
+
+        // +-------------------------------------------------------------------
+        // | Axis assignments
+        // +-------------------------------------------------------------------
+        RowLayout {
+            // First axis
             Label {
                 text: "First axis"
+                font.family: "Segoe UI"
+                font.weight: 600
             }
             Label {
                 text: _root.action.firstAxis.label
@@ -147,15 +167,21 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function()
-                {
+                onClicked: function() {
                     _root.action.firstAxis = inputIdentifier
                 }
             }
 
-            // Row 3
+            LayoutHorizontalSpacer {
+                Layout.fillWidth: false
+                Layout.preferredWidth: 50
+            }
+
+            // Second axis selection
             Label {
                 text: "Second axis"
+                font.family: "Segoe UI"
+                font.weight: 600
             }
             Label {
                 text: _root.action.secondAxis.label
@@ -163,35 +189,15 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function()
-                {
+                onClicked: function() {
                     _root.action.secondAxis = inputIdentifier
-                }
-            }
-
-            // Row 4
-            Label {
-                text: "Merge operation"
-            }
-            LabelValueComboBox
-            {
-                id: _operation_selection
-
-                model: _root.operationModel
-
-                Component.onCompleted: function()
-                {
-                    _root.operationModel.currentValue = _root.action.operation
-                }
-
-                onSelectionChanged: function()
-                {
-                    _root.action.operation = _root.operationModel.currentValue
                 }
             }
         }
 
-        // Actions processing the merge result
+        // +-------------------------------------------------------------------
+        // | Child action selection
+        // +-------------------------------------------------------------------
         RowLayout {
             Label {
                 text: "Actions"
@@ -203,13 +209,12 @@ Item {
 
             ActionSelector {
                 actionNode: _root.action
-                callback: function (x) {
-                    _root.action.appendAction(x, "children");
-                }
+                callback:  (x) => _root.action.appendAction(x, "children")
             }
         }
 
         Rectangle {
+            id: _childActionDivider
             Layout.fillWidth: true
             height: 2
             color: Universal.baseLowColor
@@ -226,6 +231,14 @@ Item {
 
                 Layout.fillWidth: true
             }
+        }
+    }
+
+    // Drop action for insertion into empty/first slot of the short actions
+    ActionDragDropArea {
+        target: _childActionDivider
+        dropCallback: function(drop) {
+            modelData.dropAction(drop.text, modelData.sequenceIndex, "children");
         }
     }
 }
