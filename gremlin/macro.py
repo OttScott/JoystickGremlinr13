@@ -26,13 +26,12 @@ from threading import Event, Lock, Thread
 import uuid
 from xml.etree import ElementTree
 
-from win32security import POLICY_READ
-
 import dill
 import gremlin
 from gremlin import mode_manager, util
 from gremlin.base_classes import AbstractActionData
 from gremlin.common import SingletonDecorator
+from gremlin.config import Configuration
 from gremlin.keyboard import send_key_down, send_key_up, key_from_code, \
     key_from_name, Key
 from gremlin.sendinput import MouseMotion
@@ -60,7 +59,9 @@ class MacroManager:
         # Default delay between subsequent message dispatch. This is to get
         # around some games not picking up messages if they are sent in too
         # quick a succession.
-        self.default_delay = 0.05
+        self.default_delay = Configuration().value(
+           "action", "macro", "default-delay"
+        )
 
         self._is_executing_exclusive = False
         self._is_running = False
@@ -900,3 +901,19 @@ class HoldRepeat(AbstractRepeat):
             node XML node containing data with which to populate the instance
         """
         pass
+
+
+Configuration().register(
+    "action",
+    "macro",
+    "default-delay",
+    PropertyType.Float,
+    0.05,
+    "The default time (in seconds) the macro system waits between emitting " +
+    "subsequent actions when no pauses are present.",
+    {
+        "min": 0.0,
+        "max": 10.0
+    },
+    True
+)
