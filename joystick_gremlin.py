@@ -246,7 +246,7 @@ if __name__ == "__main__":
     # +-------------------------------------------------------------------------
 
     # Create and register backend and signal objects
-    backend = gremlin.ui.backend.Backend()
+    backend = gremlin.ui.backend.Backend(engine)
     backend.newProfile()
     engine.rootContext().setContextProperty("backend", backend)
     engine.rootContext().setContextProperty("signal", gremlin.signal.signal)
@@ -317,11 +317,10 @@ if __name__ == "__main__":
         if last_profile.is_file():
             backend.loadProfile(str(last_profile))
 
-    # if args.enable:
-    #     ui.ui.actionActivate.setChecked(True)
-    #     ui.activate(True)
-    # if args.start_minimized:
-    #     ui.setHidden(True)
+    if args.enable:
+        backend.activate_gremlin(True)
+    if args.start_minimized:
+        backend.minimize()
 
     # Run UI
     syslog.info("Gremlin UI launching")

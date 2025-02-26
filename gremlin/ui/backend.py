@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2019 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import logging
 import os
 import sys
 from typing import List
 import uuid
 
-from PySide6 import QtCore
+from PySide6 import QtCore, QtQml, QtGui
 from PySide6.QtCore import Property, Signal, Slot
 
 from gremlin import code_runner, common, config, error, event_handler, \
@@ -48,9 +49,10 @@ class Backend(QtCore.QObject):
     activityChanged = Signal()
     propertyChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, engine: QtQml.QQmlApplicationEngine, parent=None):
         super().__init__(parent)
 
+        self.engine = engine
         self.profile = profile.Profile()
         self._last_error = ""
         self._action_state = {}
@@ -124,6 +126,11 @@ class Backend(QtCore.QObject):
             #     self.ui.devices.currentWidget().refresh()
             # self.ui.tray_icon.setIcon(QtGui.QIcon("gfx/icon.ico"))
         self.activityChanged.emit()
+
+    def minimize(self) -> None:
+        """Minimizes the application to the taskbar."""
+        root_window = self.engine.rootObjects()[0]
+        root_window.setVisibility(QtGui.QWindow.Visibility.Minimized)
 
     @Slot(InputIdentifier, result=int)
     def getActionCount(self, identifier: InputIdentifier) -> int:
