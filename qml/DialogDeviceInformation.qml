@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2020 Lionel Ott
+// Copyright (C) 2019 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,132 +27,147 @@ import Gremlin.Device
 
 
 Window {
-    minimumWidth: 900
-    minimumHeight: 100
+    minimumWidth: 1000
+    minimumHeight: 300
+
     color: Universal.background
     title: "Device Information"
 
-    DeviceListModel {
-        id: deviceData
-    }
-
-    ScrollView {
-        id: scrollView
+    ColumnLayout {
         anchors.fill: parent
+        anchors.margins: 10
+        anchors.rightMargin: 0
 
-        GridLayout {
-            anchors.fill: parent
-            columns: 8
+        RowLayout {
+            Layout.preferredHeight: 50
 
-            DisplayText { text: "<b>Name</b>" }
-            DisplayText { text: "<b>Axes</b>" }
-            DisplayText { text: "<b>Buttons</b>" }
-            DisplayText { text: "<b>Hats</b>" }
-            DisplayText { text: "<b>VID</b>" }
-            DisplayText { text: "<b>PID</b>" }
-            DisplayText { text: "<b>Joystick ID</b>" }
-            DisplayText { text: "<b>GUID</b>" }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 0
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: name
-                }
+            HeaderText {
+                text: "Name"
+                Layout.fillWidth: true
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 1
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: axes
-                }
+            HeaderText {
+                text: "Axes"
+                Layout.preferredWidth: 50
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 2
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: buttons
-                }
+            HeaderText {
+                text: "Buttons"
+                Layout.preferredWidth: 75
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 3
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: hats
-                }
+            HeaderText {
+                text: "Hats"
+                Layout.preferredWidth: 50
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 4
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: vid
-                }
+            HeaderText {
+                text: "VID"
+                Layout.preferredWidth: 100
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 5
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: pid
-                }
+            HeaderText {
+                text: "PID"
+                Layout.preferredWidth: 100
             }
-
-            Repeater {
-                model: deviceData
-                DisplayText {
-                    Layout.row: index + 1
-                    Layout.column: 6
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    text: joy_id
-                }
+            HeaderText {
+                text: "Joystick ID"
+                Layout.preferredWidth: 100
             }
-
-            Repeater {
-                model: deviceData
-                TextField {
-                    Layout.row: index + 1
-                    Layout.column: 7
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: 315
-
-                    text: guid
-                    readOnly: true
-                    selectByMouse: true
-                    font.pointSize: 10
-                }
+            HeaderText {
+                text: "Device GUID"
+                Layout.preferredWidth: 320
             }
         }
 
+        ScrollView {
+            id: _view
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            ColumnLayout {
+                spacing: 0
+
+                Repeater {
+                    model: DeviceListModel {}
+
+                    delegate: Rectangle {
+                        id: _outer
+
+                        height: 40
+                        width: _view.width
+
+                        color: index % 2 === 0 ? "#C0C0C0" : Universal.background
+
+                        RowLayout {
+                            width: parent.width
+
+                            TextEntry {
+                                text: name
+                                Layout.fillWidth: true
+                                horizontalAlignment: Text.AlignLeft
+
+                            }
+                            TextEntry {
+                                text: axes
+                                Layout.preferredWidth: 50
+                            }
+                            TextEntry {
+                                text: buttons
+                                Layout.preferredWidth: 75
+                            }
+                            TextEntry {
+                                text: hats
+                                Layout.preferredWidth: 50
+                            }
+                            TextEntry {
+                                text: vid
+                                Layout.preferredWidth: 100
+                            }
+                            TextEntry {
+                                text: pid
+                                Layout.preferredWidth: 100
+                            }
+                            TextEntry {
+                                text: joy_id
+                                Layout.preferredWidth: 100
+                            }
+                            TextField {
+                                text: guid
+                                Layout.preferredWidth: 320
+                                Layout.rightMargin: 10
+
+                                readOnly: true
+                                horizontalAlignment: Text.AlignHCenter
+
+                                background: Rectangle {
+                                    anchors.fill: parent
+                                    color: _outer.color
+                                    border.width: 1
+                                    border.color: Universal.baseLowColor
+                                    opacity: 1.0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    component TextEntry : Text {
+        Layout.preferredHeight: 40
+
+        color: Universal.foreground
+        elide: Text.ElideRight
+
+        horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
+        rightPadding: 10
+    }
+
+    component HeaderText : Text {
+        Layout.preferredHeight: 40
+
+        color: Universal.foreground
+        font.weight: 600
+
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
     }
 }
