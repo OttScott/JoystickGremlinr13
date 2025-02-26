@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2017 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,17 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import annotations
+
 import ctypes
 import ctypes.wintypes
 import enum
 import math
 import threading
 import time
-from typing import Tuple
 
 from gremlin.common import SingletonDecorator
+from gremlin.event_handler import Event
 from gremlin.types import MouseButton
-from gremlin.util import deg2rad
 
 
 """Defines flags used when specifying MOUSEINPUT structures.
@@ -60,6 +61,46 @@ INPUT_MOUSE = 0
 INPUT_KEYBOARD = 1
 
 
+class Vector2:
+
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
+    @classmethod
+    def from_angle(cls, angle: float) -> Vector2:
+        """Converts an angle in degree into a 2D vector.
+
+        Args:
+            angle: angular direction in degree
+
+        Returns:
+            2D vector representing the direction
+        """
+        angle_rad = math.radians(angle)
+        return Vector2(math.cos(angle_rad), math.sin(angle_rad))
+
+    def normalize(self) -> Vector2:
+        """Returns a unit vector representation of the instance's direction.
+
+        Returns:
+            Unit length vector with the same direction
+        """
+        magnitude = math.sqrt(self.x ** 2 + self.y ** 2)
+        if magnitude < 0.00001:
+            return Vector2(0, 0)
+        return Vector2(self.x / magnitude, self.y / magnitude)
+
+    def __add__(self, other: Vector2) -> Vector2:
+        return Vector2(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other: Vector2) -> Vector2:
+        return Vector2(self.x - other.x, self.y - other.y)
+
+    def __str__(self) -> str:
+        return f"[{self.x}, {self.y}]"
+
+
 class MotionType(enum.Enum):
 
     """Mouse motion types available."""
@@ -91,7 +132,7 @@ class MouseMotion:
         self._dx_timestamp = 0
         self._dy_timestamp = 0
 
-    def __call__(self) -> Tuple[int, int]:
+    def __call__(self) -> tuple[int, int]:
         """Returns the change in x and y for this point in time.
 
         Returns:
@@ -113,7 +154,7 @@ class MouseMotion:
 
         return delta_x, delta_y
 
-    def _compute_values(self, delta: float) -> Tuple[int, float]:
+    def _compute_values(self, delta: float) -> tuple[int, float]:
         """Computes discretization values to send integer motions.
 
         Args:
@@ -172,7 +213,7 @@ class AcceleratedMouseMotion(MouseMotion):
 
     def __init__(
             self,
-            direction: int,
+            direction: Vector2,
             min_speed: float,
             max_speed: float,
             time_to_max_speed: float
@@ -180,16 +221,17 @@ class AcceleratedMouseMotion(MouseMotion):
         """Creates a new instance.
 
         Args:
-            direction: the direction of motion
+            direction: the direction of motion as a 2d vector
             min_speed: minimum speed in pixels per second
             max_speed: maximum speed in pixels per second
             time_to_max_speed: time to reach max_speed
         """
         super().__init__()
 
-        self.direction = direction - 90
+        self.direction = direction
         self.min_velocity = min_speed
         self.max_velocity = max_speed
+
         # Make sure we don't get numerical issues with acceleration computation
         if time_to_max_speed < 0.001:
             self.acceleration = 1e6
@@ -197,39 +239,25 @@ class AcceleratedMouseMotion(MouseMotion):
             self.acceleration = (max_speed - min_speed) / time_to_max_speed
 
         self.current_velocity = self.min_velocity
-        self.dx, self.dy = \
-            self._decompose_xy(self.direction, self.current_velocity)
+        self.dx = self.direction.x * self.current_velocity
+        self.dy = self.direction.y * self.current_velocity
         self._tick_dx_value, self._tick_dx_time = self._compute_values(self.dx)
         self._tick_dy_value, self._tick_dy_time = self._compute_values(self.dy)
 
-    def set_direction(self, direction: int):
+    def set_direction(self, direction: Vector2) -> None:
         """Sets the direction for which to emit position changes.
 
         Args:
             direction: new direction of travel
         """
-        self.direction = direction - 90
-        self.dx, self.dy = \
-            self._decompose_xy(self.direction, self.current_velocity)
+        self.direction = direction# - 90
+        self.dx = self.direction.x * self.current_velocity
+        self.dy = self.direction.y * self.current_velocity
         self._tick_dx_value, self._tick_dx_time = self._compute_values(self.dx)
         self._tick_dy_value, self._tick_dy_time = self._compute_values(self.dy)
 
-    def _decompose_xy(self, direction: int, value: float) -> Tuple[float, float]:
-        """Returns x and y values corresponding to a direction and value.
 
-        Args:
-            direction: direction in degrees with 0 being pure motion along
-                positive y
-            value: the length of the direction vector
-
-        Returns:
-            Motion in x and y direction corresponding to the original combined
-            velocity vector
-        """
-        return value * math.cos(deg2rad(direction)),\
-            value * math.sin(deg2rad(direction))
-
-    def __call__(self) -> Tuple[float, float]:
+    def __call__(self) -> tuple[float, float]:
         """Returns the change in x and y for this point in time.
 
         Returns:
@@ -243,8 +271,8 @@ class AcceleratedMouseMotion(MouseMotion):
             self.max_velocity,
             self.current_velocity + self.acceleration * MouseMotion.delta_t
         )
-        self.dx, self.dy = \
-            self._decompose_xy(self.direction, self.current_velocity)
+        self.dx = self.direction.x * self.current_velocity
+        self.dy = self.direction.y * self.current_velocity
         self._tick_dx_value, self._tick_dx_time = self._compute_values(self.dx)
         self._tick_dy_value, self._tick_dy_time = self._compute_values(self.dy)
 
@@ -255,12 +283,13 @@ class AcceleratedMouseMotion(MouseMotion):
 @SingletonDecorator
 class MouseController:
 
-    """Centralizes sending mouse events in a organized manner."""
+    """Centralizes sending mouse events in an organized manner."""
 
     def __init__(self):
         """Creates a new instance."""
         self._motion_type = MotionType.Fixed
         self._delta_generator = FixedMouseMotion(0, 0)
+        self._motion_commands = {}
 
         self._is_running = False
         self._thread = threading.Thread(target=self._control_loop)
@@ -290,31 +319,52 @@ class MouseController:
                 dy if dy is not None else 0
             )
 
-    def set_accelerated_motion(
+    def add_accelerated_motion(
             self,
             direction: int,
             min_speed: int,
             max_speed: int,
-            time_to_max_speed: float
+            time_to_max_speed: float,
+            event: Event
     ) -> None:
         """Configures a motion using acceleration.
 
         Args:
-            direction: the direction of motion
+            direction: the direction of motion in degree
             min_speed: minimum speed in pixels per second
             max_speed: maximum speed in pixels per second
             time_to_max_speed: time to reach max_speed
+            event: the source event of the given accelerated motion
         """
+        # Rotate by 90 deggree to line up with X, Y coordinates
+        direction -= 90
         if self._motion_type == MotionType.Accelerated:
-            self._delta_generator.set_direction(direction)
+            self._motion_commands[event] = Vector2.from_angle(direction)
+            self._delta_generator.set_direction(self._compute_direction())
         else:
+            self._motion_type = MotionType.Accelerated
+            self._motion_commands = {
+                event: Vector2.from_angle(direction)
+            }
             self._delta_generator = AcceleratedMouseMotion(
-                direction,
+                self._compute_direction(),
                 min_speed,
                 max_speed,
                 time_to_max_speed
             )
-            self._motion_type = MotionType.Accelerated
+
+    def remove_accelerated_motion(self, event: Event) -> None:
+        """Removes the motion information associated with a given event.
+
+        Args:
+            event: Event identifying the direction to remove
+        """
+        if event in self._motion_commands:
+            del self._motion_commands[event]
+            if len(self._motion_commands) == 0:
+                self.set_absolute_motion(0, 0)
+            else:
+                self._delta_generator.set_direction(self._compute_direction())
 
     def start(self) -> None:
         """Starts the thread that will send motions when required."""
@@ -337,6 +387,17 @@ class MouseController:
             if dx != 0 or dy != 0:
                 mouse_relative_motion(int(dx), int(dy))
             time.sleep(0.01)
+
+    def _compute_direction(self) -> Vector2:
+        """Computes the average direction of all the motion commands.
+
+        Returns:
+            Average motion vector derived from the list of directions
+        """
+        sum_vec = Vector2(0, 0)
+        for v in self._motion_commands.values():
+            sum_vec += v
+        return sum_vec.normalize()
 
 
 class _MOUSEINPUT(ctypes.Structure):

@@ -126,14 +126,15 @@ class MapToMouseFunctor(AbstractFunctor):
             value: potentially modified input value
         """
         if event.is_pressed:
-            self.mouse_controller.set_accelerated_motion(
+            self.mouse_controller.add_accelerated_motion(
                 self.data.direction,
                 self.data.min_speed,
                 self.data.max_speed,
-                self.data.time_to_max_speed
+                self.data.time_to_max_speed,
+                event
             )
         else:
-            self.mouse_controller.set_absolute_motion(0, 0)
+            self.mouse_controller.remove_accelerated_motion(event)
 
     def _perform_hat_motion(self, event, value):
         """Processes hat-controlled motion.
@@ -145,13 +146,14 @@ class MapToMouseFunctor(AbstractFunctor):
         if value.current == (0, 0):
             self.mouse_controller.set_absolute_motion(0, 0)
         else:
-            self.mouse_controller.set_accelerated_motion(
+            self.mouse_controller.add_accelerated_motion(
                 util.rad2deg(
                     math.atan2(-value.current[1], value.current[0])
                 ) + 90.0,
                 self.data.min_speed,
                 self.data.max_speed,
-                self.data.time_to_max_speed
+                self.data.time_to_max_speed,
+                event
             )
 
 
