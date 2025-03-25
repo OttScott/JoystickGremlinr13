@@ -28,7 +28,6 @@ from typing import List, Tuple
 
 import dill
 
-import gremlin
 from gremlin.base_classes import Value
 import gremlin.fsm
 from gremlin import audio_player, error, event_handler, input_devices, \
@@ -51,10 +50,10 @@ class VirtualButton(metaclass=ABCMeta):
         states = ["up", "down"]
         actions = ["press", "release"]
         transitions = {
-            ("up", "press"): gremlin.fsm.Transition(self._press, "down"),
-            ("up", "release"): gremlin.fsm.Transition(self._noop, "up"),
-            ("down", "release"): gremlin.fsm.Transition(self._release, "up"),
-            ("down", "press"): gremlin.fsm.Transition(self._noop, "down")
+            ("up", "press"): gremlin.fsm.Transition([self._press], "down"),
+            ("up", "release"): gremlin.fsm.Transition([self._noop], "up"),
+            ("down", "release"): gremlin.fsm.Transition([self._release], "up"),
+            ("down", "press"): gremlin.fsm.Transition([self._noop], "down")
         }
         return gremlin.fsm.FiniteStateMachine("up", states, actions, transitions)
 
@@ -164,8 +163,8 @@ class VirtualButtonFunctor:
         self._event_template = event_template
         self._event_listener = event_handler.EventListener()
 
-    def process_event(self, event: event_handler.Event, value: Value) -> None:
-        states = self._virtual_button.process_event(event)
+    def __call__(self, event: event_handler.Event, value: Value) -> None:
+        states = self._virtual_button(event)
         for state in states:
             new_event = self._event_template.clone()
             new_event.is_pressed = state
@@ -178,7 +177,7 @@ class CallbackObject:
 
     c_next_virtual_identifier = 1
 
-    def __init__(self, binding: gremlin.profile.InputItemBinding):
+    def __init__(self, binding: profile.InputItemBinding):
         """Creates a new callback instance for a specific input item.
 
         Args:
@@ -245,7 +244,7 @@ class CallbackObject:
 
         # Create virtual button instance and virtual event generator
         vb_instance = self._binding.virtual_button
-        if isinstance(vb_instance, gremlin.profile.VirtualAxisButton):
+        if isinstance(vb_instance, profile.VirtualAxisButton):
             self._functor = VirtualButtonFunctor(
                 VirtualAxisButton(
                     vb_instance.lower_limit,
@@ -254,8 +253,8 @@ class CallbackObject:
                 ),
                 virtual_event
             )
-        elif isinstance(vb_instance, gremlin.profile.VirtualHatButton):
-            self._functors = VirtualButtonFunctor(
+        elif isinstance(vb_instance, profile.VirtualHatButton):
+            self._functor = VirtualButtonFunctor(
                 VirtualHatButton(vb_instance.directions),
                 virtual_event
             )
@@ -270,20 +269,20 @@ class CallbackObject:
         # InputItemBinding instances to create another CallbackObject to
         # handle the virtual button events.
         # Create virtual InputItem instance
-        phys_item = self._binding.input_item
-        virt_item = profile.InputItem(phys_item.library)
+        virt_item = profile.InputItem(self._binding.input_item.library)
         virt_item.device_id = dill.GUID_Virtual
         virt_item.input_type = InputType.VirtualButton
         virt_item.input_id = self._virtual_identifier
-        virt_item.mode = phys_item.mode
-        virt_item.action_sequences = phys_item.action_configurations
-        virt_item.is_active = phys_item.is_active
+        virt_item.mode = self._binding.input_item.mode
+        virt_item.action_sequences = [self._binding]
+        virt_item.is_active = self._binding.input_item.is_active
+
         # Create virtual InputItemBinding instance
         virt_binding = profile.InputItemBinding(virt_item)
-        virt_binding.description = self._binding.description
-        virt_binding.library_reference = self._binding.library_reference
+        virt_binding.root_action = self._binding.root_action
         virt_binding.behavior = InputType.JoystickButton
         virt_binding.virtual_button = None
+
         # Create callback reacting to the virtual button event using the new
         # virtual binding that mirrors the original physical one
         eh = event_handler.EventHandler()
@@ -304,7 +303,7 @@ class CallbackObject:
         ]:
             value = Value(event.is_pressed)
         else:
-            raise gremlin.error.GremlinError("Invalid event type")
+            raise error.GremlinError("Invalid event type")
 
         return [value]
 
@@ -331,7 +330,7 @@ class CodeRunner:
         """
         return self._running
 
-    def start(self, profile: gremlin.profile.Profile, start_mode: str) -> None:
+    def start(self, profile: profile.Profile, start_mode: str) -> None:
         """Starts listening to events and loads all existing callbacks.
 
         Args:
@@ -349,7 +348,7 @@ class CodeRunner:
                 start_mode = settings.startup_mode
 
         # Set default macro action delay
-        gremlin.macro.MacroManager().default_delay = settings.default_delay
+        macro.MacroManager().default_delay = settings.default_delay
 
         try:
             # Process actions define in user plugins
