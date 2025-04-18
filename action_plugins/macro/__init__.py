@@ -84,15 +84,15 @@ class JoystickActionModel(AbstractActionModel):
 
     @Slot(list)
     def updateJoystick(self, data: List[event_handler.Event]) -> None:
-        """Receives the events corresponding to mouse button presses.
+        """Receives the events corresponding to joystick events.
 
-        We only expect to receive a single button press and thus store the
-        button identifier.
+        We only expect to receive a single event and thus only store the
+        information from the first event.
 
         Args:
             data: list of joystick events
         """
-        # Sort keys such that modifiers are first
+        # Extract information about first input
         self._action.device_guid = data[0].device_guid
         self._action.input_type = data[0].event_type
         self._action.input_id = data[0].identifier
@@ -107,6 +107,7 @@ class JoystickActionModel(AbstractActionModel):
     def _get_is_pressed(self) -> bool:
         if self._action.input_type == InputType.JoystickButton:
             return self._action.value
+        return False
 
     def _set_is_pressed(self, value: bool) -> None:
         if value != self._action.value:
@@ -116,6 +117,7 @@ class JoystickActionModel(AbstractActionModel):
     def _get_axis_value(self) -> float:
         if self._action.input_type == InputType.JoystickAxis:
             return self._action.value
+        return 0.0
 
     def _set_axis_value(self, value: float) -> None:
         if value != self._action.value:
@@ -125,6 +127,7 @@ class JoystickActionModel(AbstractActionModel):
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
             return HatDirection.to_string(self._action.value)
+        return HatDirection.to_string(HatDirection.Center)
 
     def _set_hat_direction(self, value: str) -> None:
         direction = HatDirection.to_enum(value)

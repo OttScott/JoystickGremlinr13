@@ -212,7 +212,7 @@ class MacroManager:
 
             # Handle continuous repeat modes
             elif type(macro.repeat) in [HoldRepeat, ToggleRepeat]:
-                while self._flags[macro.id]:
+                while self._flags.get(macro.id, False):
                     for action in macro.sequence:
                         action()
                     time.sleep(delay)

@@ -396,9 +396,9 @@ Item {
                         }
                     }
                     RowLayout {
-                        FloatSpinBox {
-                            visible: modelData.inputType === "axis"
+                        visible: modelData.inputType === "axis"
 
+                        FloatSpinBox {
                             minValue: -1.0
                             maxValue: 1.0
                             realValue: modelData.axisValue
