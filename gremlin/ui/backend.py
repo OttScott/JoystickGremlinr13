@@ -32,6 +32,7 @@ from gremlin.signal import signal
 
 from gremlin.ui.device import InputIdentifier, IODeviceManagementModel
 from gremlin.ui.profile import InputItemModel, ModeHierarchyModel
+from gremlin.ui.script import ScriptListModel
 from gremlin.audio_player import AudioPlayer
 
 
@@ -48,6 +49,7 @@ class Backend(QtCore.QObject):
     inputConfigurationChanged = Signal()
     activityChanged = Signal()
     propertyChanged = Signal()
+    scriptsChanged = Signal()
 
     def __init__(self, engine: QtQml.QQmlApplicationEngine, parent=None):
         super().__init__(parent)
@@ -61,10 +63,11 @@ class Backend(QtCore.QObject):
         self.runner = code_runner.CodeRunner()
 
         # Hookup various mode change related callbacks
-        mode_manager.ModeManager().mode_changed.connect(self._emit_change)
-        self.profileChanged.connect(mode_manager.ModeManager().reset)
+        mm = mode_manager.ModeManager()
+        mm.mode_changed.connect(self._emit_change)
+        self.profileChanged.connect(mm.reset)
         self.profileChanged.connect(
-            lambda: self._set_ui_mode(mode_manager.ModeManager().current.name)
+            lambda: self._set_ui_mode(mm.current.name)
         )
 
         event_handler.EventHandler().is_active.connect(
@@ -272,6 +275,10 @@ class Backend(QtCore.QObject):
         self._mode_hierarchy = ModeHierarchyModel(self.profile.modes, self)
         self.profileChanged.emit()
         signal.reloadUi.emit()
+
+    @Property(type=ScriptListModel, notify=scriptsChanged)
+    def scriptListModel(self) -> ScriptListModel:
+        return ScriptListModel(self.profile.scripts, self)
 
     @Property(type=ModeHierarchyModel, notify=profileChanged)
     def modeHierarchy(self) -> ModeHierarchyModel:
