@@ -125,7 +125,7 @@ class TempoFunctor(AbstractFunctor):
                 ("wait", "timeout"): T([noop], "wait"),
                 ("short", "release"): T([short_release], "wait"),
                 ("short", "timeout"): T([long_press], "long"),
-                ("long", "release"): T([long_release], "wait")
+                ("long", "release"): T([long_release, short_release], "wait")
             }
 
         return fsm.FiniteStateMachine("wait", states, actions, transitions)
