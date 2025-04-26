@@ -126,7 +126,9 @@ def edited_profile_path(
     device_swapped_profile: ElementTree,
 ) -> Iterator[str]:
     with tempfile.NamedTemporaryFile("w+", delete_on_close=False) as f:
-        f.write(ElementTree.tostring(device_swapped_profile.getroot(), encoding="unicode"))
+        f.write(
+            ElementTree.tostring(device_swapped_profile.getroot(), encoding="unicode")
+        )
         f.flush()
         yield f.name
 
@@ -255,6 +257,21 @@ class GremlinAppTester:
     ):
         self._assert_input_eventually_equals(
             lambda: dill.DILL.get_button(di_device_guid.device_guid, button_id),
+            expected,
+            min_delay,
+            max_delay,
+        )
+
+    def assert_hat_eventually_equals(
+        self,
+        di_device_guid: dill.DeviceSummary,
+        hat_id: int,
+        expected: int,
+        min_delay: float = 0,
+        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
+    ):
+        self._assert_input_eventually_equals(
+            lambda: dill.DILL.get_hat(di_device_guid.device_guid, hat_id),
             expected,
             min_delay,
             max_delay,

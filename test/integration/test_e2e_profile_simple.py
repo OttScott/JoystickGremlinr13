@@ -55,7 +55,7 @@ class TestSimpleProfile:
 
     @pytest.mark.parametrize(
         ("di_input", "vjoy_output"),
-        [(False, 0) , (True, 1), (False, 0), (True, 1)],
+        [(False, 0), (True, 1), (False, 0), (True, 1)],
     )
     def test_button(
         self,
@@ -67,3 +67,28 @@ class TestSimpleProfile:
     ):
         vjoy_control_device.button(index=1).is_pressed = di_input
         app_tester.assert_button_eventually_equals(vjoy_di_device, 3, vjoy_output)
+
+    @pytest.mark.parametrize(
+        ("di_input", "vjoy_output"),
+        [
+            ((0, 0), -1),
+            ((0, 1), 0),
+            ((1, 0), 9000),
+            ((1, 1), 4500),
+            ((-1, 0), 27000),
+            ((0, -1), 18000),
+            ((-1, -1), 22500),
+            ((-1, 1), 31500),
+            ((1, -1), 13500),
+        ],
+    )
+    def test_hat(
+        self,
+        app_tester,
+        vjoy_control_device: vjoy.VJoy,
+        vjoy_di_device: dill.DeviceSummary,
+        di_input: tuple[int, int],
+        vjoy_output: tuple[int, int],
+    ):
+        vjoy_control_device.hat(index=1).direction = di_input
+        app_tester.assert_hat_eventually_equals(vjoy_di_device, 3, vjoy_output)
