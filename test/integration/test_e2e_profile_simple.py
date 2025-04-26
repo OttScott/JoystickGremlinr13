@@ -37,8 +37,14 @@ class TestSimpleProfile:
     """Tests for a simple profile."""
 
     @pytest.mark.parametrize(
-        ("di_input", "vjoy_output"),
-        [(0.7, 22930), (0.5, 16376), (0.2, 6545), (0, -6), (1, 32763)],
+        ("di_input", "vjoy_input", "vjoy_output"),
+        [
+            (0.7, 22934, 22930),
+            (0.5, 16380, 16376),
+            (0.2, 6549, 6545),
+            (0, -2, -6),
+            (1, 32765, 32763),
+        ],
     )
     def test_axis(
         self,
@@ -46,11 +52,21 @@ class TestSimpleProfile:
         vjoy_control_device: vjoy.VJoy,
         vjoy_di_device: dill.DeviceSummary,
         di_input: float,
+        vjoy_input: int,
         vjoy_output: int,
     ):
-        vjoy_control_device.axis(linear_index=1).set_absolute_value(di_input)
+        input_axis_id = 1
+        output_axis_id = 3
+        vjoy_control_device.axis(linear_index=input_axis_id).set_absolute_value(
+            di_input
+        )
+        # There is a small discrepancy between these values, for unknown reasons
+        # (unclear if this is a Gremlin bug).
         app_tester.assert_axis_eventually_equals(
-            vjoy_di_device, 3, pytest.approx(vjoy_output, abs=1)
+            vjoy_di_device, input_axis_id, pytest.approx(vjoy_input, abs=1)
+        )
+        app_tester.assert_axis_eventually_equals(
+            vjoy_di_device, output_axis_id, pytest.approx(vjoy_output, abs=1)
         )
 
     @pytest.mark.parametrize(
@@ -65,8 +81,15 @@ class TestSimpleProfile:
         di_input: bool,
         vjoy_output: int,
     ):
-        vjoy_control_device.button(index=1).is_pressed = di_input
-        app_tester.assert_button_eventually_equals(vjoy_di_device, 3, vjoy_output)
+        input_button_id = 1
+        output_button_id = 3
+        vjoy_control_device.button(index=input_button_id).is_pressed = di_input
+        app_tester.assert_button_eventually_equals(
+            vjoy_di_device, input_button_id, vjoy_output
+        )
+        app_tester.assert_button_eventually_equals(
+            vjoy_di_device, output_button_id, vjoy_output
+        )
 
     @pytest.mark.parametrize(
         ("di_input", "vjoy_output"),
@@ -90,5 +113,12 @@ class TestSimpleProfile:
         di_input: tuple[int, int],
         vjoy_output: tuple[int, int],
     ):
-        vjoy_control_device.hat(index=1).direction = di_input
-        app_tester.assert_hat_eventually_equals(vjoy_di_device, 3, vjoy_output)
+        input_hat_id = 1
+        output_hat_id = 3
+        vjoy_control_device.hat(index=input_hat_id).direction = di_input
+        app_tester.assert_hat_eventually_equals(
+            vjoy_di_device, input_hat_id, vjoy_output
+        )
+        app_tester.assert_hat_eventually_equals(
+            vjoy_di_device, output_hat_id, vjoy_output
+        )
