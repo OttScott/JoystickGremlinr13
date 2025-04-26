@@ -143,7 +143,7 @@ def register_config_options() -> None:
     )
 
 
-if __name__ == "__main__":
+def make_gremlin_app(argv):
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -160,7 +160,7 @@ if __name__ == "__main__":
         help="Start Joystick Gremlin minimized",
         action="store_true"
     )
-    args, _ = parser.parse_known_args()
+    args, _ = parser.parse_known_args(argv)
 
     # Configure logging for system and user events
     configure_logger({
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     # Create user interface
     app_id = u"joystick.gremlin"
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-    app = QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication(argv)
     app.setWindowIcon(QtGui.QIcon("gfx/icon.png"))
     app.setApplicationDisplayName("Joystick Gremlin")
 
@@ -325,7 +325,13 @@ if __name__ == "__main__":
     # Run UI
     syslog.info("Gremlin UI launching")
     app.aboutToQuit.connect(shutdown_cleanup)
+    return app
+
+
+if __name__ == "__main__":
+    app = make_gremlin_app(sys.argv)
     app.exec()
+    syslog = logging.getLogger("system")
     syslog.info("Gremlin UI terminated")
 
     syslog.info("Terminating Gremlin")
