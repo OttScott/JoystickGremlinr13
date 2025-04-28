@@ -104,11 +104,11 @@ ColumnLayout {
                 }
 
                 FloatSpinBox {
-                    realValue: value
+                    value: value
                     minValue: properties.min
                     maxValue: properties.max
 
-                    onRealValueModified: () => value = realValue
+                    onValueModified: (newValue) => { value = newValue }
                 }
             }
         }

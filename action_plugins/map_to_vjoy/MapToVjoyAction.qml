@@ -87,12 +87,12 @@ Item {
                     visible: _relativeMode.checked
                     minValue: 0
                     maxValue: 100
-                    realValue: 1.0
+                    // realValue: 1.0
                     stepSize: 0.1
 
-                    onRealValueModified: function() {
-                        _root.action.axisScaling = realValue
-                    }
+                    // onValueModified: function() {
+                    //     _root.action.axisScaling = realValue
+                    // }
                 }
             }
         }

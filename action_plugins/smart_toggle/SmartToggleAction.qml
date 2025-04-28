@@ -49,11 +49,11 @@ Item {
             FloatSpinBox {
                 minValue: 0
                 maxValue: 100
-                realValue: _root.action.delay
+                value: _root.action.delay
                 stepSize: 0.05
 
-                onRealValueModified: function() {
-                    _root.action.delay = realValue
+                onValueModified: (newValue) => {
+                    _root.action.delay = newValue
                 }
             }
 

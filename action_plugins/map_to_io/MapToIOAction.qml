@@ -86,11 +86,11 @@ Item {
                     visible: _relativeMode.checked
                     minValue: 0
                     maxValue: 100
-                    realValue: 1.0
+                    value: 1.0
                     stepSize: 0.05
 
-                    onRealValueModified: function() {
-                        _root.action.axisScaling = realValue
+                    onValueModified: (newValue) => {
+                        _root.action.axisScaling = newValue
                     }
                 }
             }

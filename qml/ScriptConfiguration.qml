@@ -76,10 +76,10 @@ ListView {
 
                     minValue: modelData.minValue
                     maxValue: modelData.maxValue
-                    realValue: modelData.value
+                    value: modelData.value
 
-                    onRealValueModified: function () {
-                        modelData.value = realValue
+                    onValueModified: (newValue) => {
+                        modelData.value = newValue
                     }
                 }
             }
