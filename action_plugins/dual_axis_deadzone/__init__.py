@@ -87,13 +87,14 @@ class DualAxisDeadzoneFunctor(AbstractFunctor):
             # Create separate value instances and set their values before passing
             # everything on to the child functors. The event will not necessarily
             # corespond to the correct axis but that should be fine.
+            value_x = copy.deepcopy(value)
+            value_x.current = math.copysign(px, x_value)
             for functor in self.functors["first"]:
-                value_x = copy.deepcopy(value)
-                value_x.current = math.copysign(px, x_value)
                 functor(event, value_x, properties)
+
+            value_y = copy.deepcopy(value)
+            value_y.current = math.copysign(py, y_value)
             for functor in self.functors["second"]:
-                value_y = copy.deepcopy(value)
-                value_y.current = math.copysign(py, y_value)
                 functor(event, value_y, properties)
         except ZeroDivisionError:
             logging.getLogger("system").error(
