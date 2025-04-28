@@ -38,7 +38,7 @@ Item {
 
     function reload()
     {
-        if(_root.inputIdentifier.isValid) {
+        if(_root.inputIdentifier && _root.inputIdentifier.isValid) {
             _root.inputItemModel = backend.getInputItem(
                 _root.inputIdentifier,
                 inputIndex
