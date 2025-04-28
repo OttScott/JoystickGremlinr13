@@ -289,6 +289,8 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
     @Slot(int, result=str)
     def guidAtIndex(self, index: int) -> str:
+        if len(self._devices) == 0:
+            return str(dill.UUID_Invalid)
         if not(0 <= index < len(self._devices)):
             raise GremlinError("Provided index out of range")
 
