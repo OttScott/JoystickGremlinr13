@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import collections
 import copy
+import logging
 import math
 from typing import Any, TYPE_CHECKING
 from xml.etree import ElementTree
@@ -79,20 +80,26 @@ class DualAxisDeadzoneFunctor(AbstractFunctor):
         )
         upper = Vector2(self.data.outer_deadzone, self.data.outer_deadzone)
 
-        px = max(0.0, min(1.0, (abs(x_value) - lower.x) / (upper.x - lower.x)))
-        py = max(0.0, min(1.0, (abs(y_value) - lower.y) / (upper.y - lower.y)))
+        try:
+            px = max(0.0, min(1.0, (abs(x_value) - lower.x) / (upper.x - lower.x)))
+            py = max(0.0, min(1.0, (abs(y_value) - lower.y) / (upper.y - lower.y)))
 
-        # Create separate value instances and set their values before passing
-        # everything on to the child functors. The event will not necessarily
-        # corespond to the correct axis but that should be fine.
-        for functor in self.functors["first"]:
-            value_x = copy.deepcopy(value)
-            value_x.current = math.copysign(px, x_value)
-            functor(event, value_x, properties)
-        for functor in self.functors["second"]:
-            value_y = copy.deepcopy(value)
-            value_y.current = math.copysign(py, y_value)
-            functor(event, value_y, properties)
+            # Create separate value instances and set their values before passing
+            # everything on to the child functors. The event will not necessarily
+            # corespond to the correct axis but that should be fine.
+            for functor in self.functors["first"]:
+                value_x = copy.deepcopy(value)
+                value_x.current = math.copysign(px, x_value)
+                functor(event, value_x, properties)
+            for functor in self.functors["second"]:
+                value_y = copy.deepcopy(value)
+                value_y.current = math.copysign(py, y_value)
+                functor(event, value_y, properties)
+        except ZeroDivisionError:
+            logging.getLogger("system").error(
+                f"DualAxisDeadzone: ({self.data.label}) deadzone limits too " +
+                f"close to each other"
+            )
 
 
 class DualAxisDeadzoneModel(ActionModel):
@@ -335,7 +342,9 @@ class DualAxisDeadzoneData(AbstractActionData):
         return node
 
     def is_valid(self) -> bool:
-        return self.axis1.isValid and self.axis2.isValid
+        axis_valid = self.axis1.isValid and self.axis2.isValid
+        deadzone_valid = abs(self.outer_deadzone - self.inner_deadzone) >= 0.01
+        return axis_valid and deadzone_valid
 
     def _valid_selectors(self) -> list[str]:
         return ["first", "second"]
