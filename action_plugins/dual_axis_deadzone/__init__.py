@@ -185,28 +185,36 @@ class DualAxisDeadzoneModel(ActionModel):
         self._binding_model.remove_action(self.sequence_index)
         self._binding_model.rootActionChanged.emit()
 
-    def _get_inner_deadzone(self) -> float:
+    @Property(float, notify=modelChanged)
+    def innerDeadzone(self) -> float:
         return self._data.inner_deadzone
 
-    def _set_inner_deadzone(self, value: float) -> None:
+    @innerDeadzone.setter
+    def innerDeadzone(self, value: float) -> None:
         if value != self._data.inner_deadzone:
-            self._data.inner_deadzone = value
+            if (self._data.outer_deadzone - value) > 0.01:
+                self._data.inner_deadzone = value
             self.modelChanged.emit()
 
-    def _get_label(self) -> str:
+    @Property(str, notify=modelChanged)
+    def label(self) -> str:
         return self._data.label
 
-    def _set_label(self, label: str) -> None:
+    @label.setter
+    def label(self, label: str) -> None:
         if label != self._data.label:
             self._data.label = label
             self.modelChanged.emit()
 
-    def _get_outer_deadzone(self) -> float:
+    @Property(float, notify=modelChanged)
+    def outerDeadzone(self) -> float:
         return self._data.outer_deadzone
 
-    def _set_outer_deadzone(self, value: float) -> None:
+    @outerDeadzone.setter
+    def outerDeadzone(self, value: float) -> None:
         if value != self._data.outer_deadzone:
-            self._data.outer_deadzone = value
+            if (value - self._data.inner_deadzone) > 0.01:
+                self._data.outer_deadzone = value
             self.modelChanged.emit()
 
     axis1 = Property(
@@ -230,26 +238,6 @@ class DualAxisDeadzoneModel(ActionModel):
         notify=modelChanged
     )
 
-    innerDeadzone = Property(
-        float,
-        fget=_get_inner_deadzone,
-        fset=_set_inner_deadzone,
-        notify=modelChanged
-    )
-
-    label = Property(
-        str,
-        fget=_get_label,
-        fset=_set_label,
-        notify=modelChanged
-    )
-
-    outerDeadzone = Property(
-        float,
-        fget=_get_outer_deadzone,
-        fset=_set_outer_deadzone,
-        notify=modelChanged
-    )
 
 class DualAxisDeadzoneData(AbstractActionData):
 
@@ -278,7 +266,7 @@ class DualAxisDeadzoneData(AbstractActionData):
 
         self.label = ""
         self.inner_deadzone = 0.0
-        self.outer_deadzone = 0.0
+        self.outer_deadzone = 1.0
         self.axis1 = InputIdentifier()
         self.axis2 = InputIdentifier()
 
