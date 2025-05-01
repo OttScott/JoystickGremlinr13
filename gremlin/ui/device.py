@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2019 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,11 +31,13 @@ from PySide6.QtCore import Property, Signal, Slot
 import dill
 
 from gremlin import common, event_handler, joystick_handling, shared_state, util
+from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.intermediate_output import IntermediateOutput
+from gremlin.signal import signal
 from gremlin.types import InputType, PropertyType
-from gremlin.common import SingletonDecorator
+
 
 
 QML_IMPORT_NAME = "Gremlin.Device"
@@ -265,12 +267,11 @@ class DeviceListModel(QtCore.QAbstractListModel):
     def update_model(self) -> None:
         """Updates the model if the connected devices change."""
         old_count = len(self._devices)
-        self._devices = joystick_handling.joystick_devices()
+        self._devices = joystick_handling.physical_devices()
         new_count = len(self._devices)
 
-        # Remove everything and then add it back to force a model update
-        self.rowsRemoved.emit(self.parent(), 0, new_count)
-        self.rowsInserted.emit(self.parent(), 0, new_count)
+        # Ensure the entire model is refreshed
+        self.modelReset.emit()
 
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self._devices)
@@ -343,6 +344,7 @@ class Device(QtCore.QAbstractListModel):
 
         self._device: dill.DeviceSummary | None = None
         self._device_mapping: Dict[str, str] | None = None
+        self._mode = "Default"
 
     @Slot(int)
     def refreshInput(self, index: int) -> None:
@@ -355,6 +357,11 @@ class Device(QtCore.QAbstractListModel):
             self.createIndex(index, 0),
             self.createIndex(index, 0)
         )
+
+    @Slot(str)
+    def setMode(self, mode: str) -> None:
+        self._mode = mode
+        self.modelReset.emit()
 
     def _get_guid(self) -> str:
         if self._device is None:
@@ -392,21 +399,19 @@ class Device(QtCore.QAbstractListModel):
                 return self._name(self._convert_index(index.row()))
             case "actionCount":
                 input_info = self._convert_index(index.row())
-                # FIXME: retrieve currently selected mode
                 return shared_state.current_profile.get_input_count(
                     self._device.device_guid.uuid,
                     input_info[0],
                     input_info[1],
-                    "Default"
+                    self._mode
                 )
             case "description":
                 input_info = self._convert_index(index.row())
-                # FIXME: retrieve currently selected mode
                 item = shared_state.current_profile.get_input_item(
                     self._device.device_guid.uuid,
                     input_info[0],
                     input_info[1],
-                    "Default"
+                    self._mode
                 )
                 if item and len(item.action_sequences) > 0:
                     labels = filter(
@@ -416,6 +421,8 @@ class Device(QtCore.QAbstractListModel):
                     return " / ".join(labels)
                 else:
                     return ""
+            case _:
+                return ""
 
     @Slot(int, result=InputIdentifier)
     def inputIdentifier(self, index: int) -> InputIdentifier:
@@ -475,7 +482,8 @@ class Device(QtCore.QAbstractListModel):
     guid = Property(
         str,
         fget=_get_guid,
-        fset=_set_guid
+        fset=_set_guid,
+        notify=deviceChanged
     )
 
 
