@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2023 Lionel Ott
+// Copyright (C) 2020 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,45 +30,17 @@ import Gremlin.Profile
 Item {
     id: _root
 
-    property InputIdentifier inputIdentifier
     property InputItemModel inputItemModel
     property int inputIndex
 
-    signal contentChanged
+    Connections {
+        target: uiState
 
-    function reload()
-    {
-        if(_root.inputIdentifier && _root.inputIdentifier.isValid) {
+        function onInputChanged() {
             _root.inputItemModel = backend.getInputItem(
-                _root.inputIdentifier,
-                inputIndex
+                uiState.currentInput,
+                uiState.currentInputIndex
             )
-        }
-        contentChanged()
-    }
-
-    // Reload UI when the identifier is changed externally
-    onInputIdentifierChanged: {
-        reload()
-    }
-
-    // Reload UI when the model to display changes
-    // FIXME: Currently nothing emits this event
-    Connections {
-        target: backend
-
-        function onInputConfigurationChanged()
-        {
-            reload()
-        }
-    }
-
-    Connections {
-        target: signal
-
-        function onReloadCurrentInputItem()
-        {
-            reload()
         }
     }
 

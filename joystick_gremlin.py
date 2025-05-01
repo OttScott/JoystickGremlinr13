@@ -249,6 +249,7 @@ if __name__ == "__main__":
     backend = gremlin.ui.backend.Backend(engine)
     backend.newProfile()
     engine.rootContext().setContextProperty("backend", backend)
+    engine.rootContext().setContextProperty("uiState", backend.ui_state)
     engine.rootContext().setContextProperty("signal", gremlin.signal.signal)
 
     # Load plugin code and UI elements

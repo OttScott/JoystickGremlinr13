@@ -33,13 +33,15 @@ Item {
     id: _root
 
     property DeviceListModel deviceListModel
-    property string deviceGuid: deviceListModel.guidAtIndex(0)
-    property alias currentIndex: _deviceList.currentIndex
 
     DeviceTabBar {
         id: _deviceList
 
         anchors.fill: parent
+
+        Component.onCompleted: {
+            currentIndex: 0
+        }
 
         Repeater {
             id: _physicalInputs
@@ -49,15 +51,13 @@ Item {
                 id: _button
 
                 text: name
-
                 width: _metric.width + 50
+                checked: uiState.currentTab === "physical" &&
+                    uiState.currentDevice === model.guid
 
-                onClicked: function() {
-                    _deviceList.currentIndex = model.index
-                    _root.deviceGuid = Qt.binding(
-                        function() { return model.guid }
-                    )
-                    showIntermediateOutput(false)
+                onClicked: () => {
+                    uiState.setCurrentTab("physical")
+                    uiState.setCurrentDevice(model.guid)
                 }
 
                 TextMetrics {
@@ -74,9 +74,11 @@ Item {
 
             text: "Intermediate Output"
             width: _metricIO.width + 50
+            checked: uiState.currentTab === "intermediate"
 
-            onClicked: function() {
-                showIntermediateOutput(true)
+            onClicked: () => {
+                uiState.setCurrentTab("intermediate")
+                uiState.setCurrentDevice("f0af472f-8e17-493b-a1eb-7333ee8543f2")
             }
 
             TextMetrics {
@@ -86,5 +88,29 @@ Item {
                 text: _ioButton.text
             }
         }
+
+        // Empty item to push the script tab to the right
+        JGTabButton {
+            Layout.fillWidth: true
+            height: 0
+        }
+
+        JGTabButton {
+            id: _scriptButton
+
+            text: "Scripts"
+            width: _metricScripts.width + 50
+            checked: uiState.currentTab === "scripts"
+
+            onClicked: () => { uiState.setCurrentTab("scripts") }
+
+            TextMetrics {
+                id: _metricScripts
+
+                font: _scriptButton.font
+                text: _scriptButton.text
+            }
+        }
+
     }
 }
