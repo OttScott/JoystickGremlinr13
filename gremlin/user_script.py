@@ -24,6 +24,7 @@ from collections.abc import Sequence
 import importlib
 import inspect
 import logging
+import numbers
 import os
 from pathlib import Path
 import random
@@ -218,6 +219,8 @@ class AbstractVariable(ABC):
         self._from_xml(node)
 
     def to_xml(self) -> ElementTree.Element:
+        if not self._is_valid():
+            return None
         node = ElementTree.Element("variable")
         node.set("type", self.xml_tag)
         util.append_property_nodes(
@@ -228,6 +231,10 @@ class AbstractVariable(ABC):
         )
         self._to_xml(node)
         return node
+
+    @abstractmethod
+    def _is_valid(self) -> bool:
+        pass
 
     @abstractmethod
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -379,6 +386,9 @@ class BoolVariable(AbstractVariable):
     def value(self, value: bool) -> None:
         self._value = value
 
+    def _is_valid(self) -> bool:
+        return self._value in [True, False]
+
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.Bool)
 
@@ -422,6 +432,9 @@ class FloatVariable(AbstractVariable):
     @property
     def max_value(self) -> float:
         return self._max_value
+
+    def _is_valid(self) -> bool:
+        return isinstance(self._value, numbers.Integral)
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.Float)
@@ -467,6 +480,9 @@ class IntegerVariable(AbstractVariable):
     def max_value(self) -> int:
         return self._max_value
 
+    def _is_valid(self) -> bool:
+        return isinstance(self._value, int)
+
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.Int)
 
@@ -498,6 +514,9 @@ class ModeVariable(AbstractVariable):
     def value(self, value: str) -> None:
         self._mode = value
 
+    def _is_valid(self) -> bool:
+        return self._mode in shared_state.current_profile.modes.mode_names()
+
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._mode = util.read_property(node, "value", PropertyType.String)
 
@@ -516,7 +535,7 @@ class SelectionVariable(AbstractVariable):
             name: str,
             description: str,
             is_optional: bool,
-            option_list: Sequence[str],
+            option_list: list[str],
             default_index: int=0
     ):
         super().__init__(name, description, is_optional)
@@ -535,6 +554,9 @@ class SelectionVariable(AbstractVariable):
     @value.setter
     def value(self, value: str) -> None:
         self._current_index = self._option_list.index(value)
+
+    def _is_valid(self) -> bool:
+        return True
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._current_index = util.read_property(
@@ -569,6 +591,9 @@ class StringVariable(AbstractVariable):
     @value.setter
     def value(self, value: str) -> None:
         self._value = value
+
+    def _is_valid(self) -> bool:
+        return isinstance(self._value, str)
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.String)
@@ -624,6 +649,13 @@ class PhysicalInputVariable(AbstractVariable):
         self._device_guid = value[0]
         self._input_type = value[1]
         self._input_id = value[2]
+
+    def _is_valid(self) -> bool:
+        return (
+            self._device_guid is not None
+            and self._input_type in self._valid_types
+            and isinstance(self._input_id, int)
+        )
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._device_guid = util.read_property(
@@ -686,6 +718,13 @@ class VirtualInputVariable(AbstractVariable):
     @property
     def valid_types(self) -> list[InputType]:
         return self._valid_types
+
+    def _is_valid(self) -> bool:
+        return (
+            self._vjoy_id is not None
+            and self._input_type in self._valid_types
+            and isinstance(self._input_id, int)
+        )
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._vjoy_id = util.read_property(node, "vjoy-id", PropertyType.Int)
