@@ -434,7 +434,7 @@ class FloatVariable(AbstractVariable):
         return self._max_value
 
     def _is_valid(self) -> bool:
-        return isinstance(self._value, numbers.Integral)
+        return isinstance(self._value, numbers.Number)
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.Float)
@@ -593,7 +593,7 @@ class StringVariable(AbstractVariable):
         self._value = value
 
     def _is_valid(self) -> bool:
-        return isinstance(self._value, str)
+        return isinstance(self._value, str) and len(self._value) > 0
 
     def _from_xml(self, node: ElementTree.Element) -> None:
         self._value = util.read_property(node, "value", PropertyType.String)

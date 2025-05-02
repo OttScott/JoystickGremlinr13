@@ -39,7 +39,7 @@ class AbstractVariableModel(QtCore.QObject):
 
     """Exposes a single variable to the QML UI."""
 
-    # changed = Signal()
+    validityChanged = Signal()
 
     def __init__(self, variable: user_script.AbstractVariable, parent=None):
         super().__init__(parent)
@@ -58,6 +58,17 @@ class AbstractVariableModel(QtCore.QObject):
     def type(self) -> str:
         return self._variable.xml_tag
 
+    @Property(bool, constant=True)
+    def isOptional(self) -> bool:
+        return self._variable.is_optional
+
+    @Property(bool, notify=validityChanged)
+    def isValid(self) -> bool:
+        return self._variable._is_valid()
+
+    def evaluate_validity(self) -> None:
+        self.validityChanged.emit()
+
 
 @QtQml.QmlElement
 class BoolVariableModel(AbstractVariableModel):
@@ -74,6 +85,7 @@ class BoolVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     value = Property(
         bool,
@@ -98,6 +110,7 @@ class FloatVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     @Property(float, constant=True)
     def maxValue(self) -> float:
@@ -130,6 +143,7 @@ class IntegerVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     @Property(float, constant=True)
     def maxValue(self) -> float:
@@ -162,6 +176,7 @@ class ModeVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     value = Property(
         str,
@@ -186,6 +201,7 @@ class SelectionVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     @Property(list, constant=True)
     def options(self) -> list:
@@ -214,6 +230,7 @@ class StringVariableModel(AbstractVariableModel):
         if new_value != self._variable.value:
             self._variable.value = new_value
             self.changed.emit()
+            self.evaluate_validity()
 
     value = Property(
         str,
@@ -259,6 +276,7 @@ class PhysicalInputVariableModel(AbstractVariableModel):
             data[0].identifier
         )
         self.changed.emit()
+        self.evaluate_validity()
 
 
 @QtQml.QmlElement
@@ -289,6 +307,7 @@ class VirtualInputVariableModel(AbstractVariableModel):
         if self._variable.input_type != input_type:
             self._variable._input_type = input_type
             self.changed.emit()
+            self.evaluate_validity()
 
     def _get_input_id(self) -> int:
         return self._variable.input_id
@@ -297,6 +316,7 @@ class VirtualInputVariableModel(AbstractVariableModel):
         if self._variable.input_id != index:
             self._variable._input_id = index
             self.changed.emit()
+            self.evaluate_validity()
 
     def _get_vjoy_id(self) -> int:
         return self._variable.vjoy_id
@@ -305,6 +325,7 @@ class VirtualInputVariableModel(AbstractVariableModel):
         if self._variable.vjoy_id != index:
             self._variable._vjoy_id = index
             self.changed.emit()
+            self.evaluate_validity()
 
     inputType = Property(
         str,

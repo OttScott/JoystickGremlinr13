@@ -38,6 +38,8 @@ ListView {
             roleValue: "bool"
 
             RowLayout {
+                id: _layout
+
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.margins: 10
@@ -45,6 +47,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 Switch {
@@ -69,6 +72,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 FloatSpinBox {
@@ -96,6 +100,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 SpinBox {
@@ -123,6 +128,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 ComboBox {
@@ -155,6 +161,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 ComboBox {
@@ -184,6 +191,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 JGTextInput {
@@ -210,6 +218,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 InputListener {
@@ -234,6 +243,7 @@ ListView {
                 DescriptiveText {
                     text: modelData.name
                     description: modelData.description
+                    isValid: modelData.isValid
                 }
 
                 VJoySelector {
@@ -256,24 +266,40 @@ ListView {
 
     }
 
-    component DescriptiveText : Text {
+    component DescriptiveText : RowLayout {
+        property string text: ""
         property alias description: _tooltip.text
+        property bool isValid: false
 
-        Layout.minimumWidth: 150
-        Layout.preferredWidth: 150
+        Rectangle {
+            id: _marker
 
-        font.pointSize: 11
-        font.family: "Segoe UI"
-
-        ToolTip {
-            id: _tooltip
-            visible: _hoverHandler.hovered
-            delay: 500
+            width: 5
+            Layout.fillHeight: true
+            color: parent.isValid ? "transparent" : "red"
         }
 
-        HoverHandler {
-            id: _hoverHandler
-            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        Text {
+            id: _text
+
+            text: `${parent.text} ${modelData.isOptional ? '(req)' : ''}`
+
+            Layout.minimumWidth: 150
+            Layout.preferredWidth: 150
+
+            font.pointSize: 11
+            font.family: "Segoe UI"
+
+            ToolTip {
+                id: _tooltip
+                visible: _hoverHandler.hovered
+                delay: 500
+            }
+
+            HoverHandler {
+                id: _hoverHandler
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            }
         }
     }
 }
