@@ -28,11 +28,11 @@ from xml.etree import ElementTree
 from PySide6 import QtCore, QtGui, QtQml
 from PySide6.QtCore import Property, Signal, Slot, QCborTag
 
-from gremlin import event_handler, input_devices, spline, util
+from gremlin import event_handler, spline, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.error import GremlinError, ProfileError
 from gremlin.input_cache import Joystick
-from gremlin.joystick_handling import select_first_valid_vjoy_input
+from gremlin.input_devices import select_first_valid_vjoy_input
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, InputType, PropertyType
 from gremlin.util import clamp

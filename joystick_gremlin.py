@@ -60,7 +60,7 @@ gremlin.util.setup_userprofile()
 
 import gremlin.config
 import gremlin.error
-import gremlin.joystick_handling
+import gremlin.input_devices
 import gremlin.plugin_manager
 import gremlin.types
 import gremlin.signal
@@ -114,7 +114,7 @@ def shutdown_cleanup() -> None:
     backend.runner.stop()
 
     # Relinquish control over all VJoy devices used
-    gremlin.joystick_handling.VJoyProxy.reset()
+    gremlin.input_devices.VJoyProxy.reset()
 
 
 def register_config_options() -> None:
@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     # Ensure joystick devices are correctly setup
     dill.DILL.init()
-    gremlin.joystick_handling.joystick_devices_initialization()
+    gremlin.input_devices.joystick_devices_initialization()
 
     # Create application and UI engine
     engine = QtQml.QQmlApplicationEngine(parent=app)
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     # try:
     #     syslog.info("Checking vJoy installation")
     #     vjoy_working = len([
-    #         dev for dev in gremlin.joystick_handling.joystick_devices()
+    #         dev for dev in gremlin.input_devices.joystick_devices()
     #         if dev.is_virtual
     #     ]) != 0
     #
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     #     error_display.show()
     #     app.exec_()
     #
-    #     gremlin.joystick_handling.VJoyProxy.reset()
+    #     gremlin.input_devices.VJoyProxy.reset()
     #     event_listener = gremlin.event_handler.EventListener()
     #     event_listener.terminate()
     #     sys.exit(0)

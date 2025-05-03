@@ -31,8 +31,7 @@ import dill
 from gremlin.base_classes import Value
 import gremlin.fsm
 from gremlin import audio_player, error, event_handler, input_devices, \
-    joystick_handling, macro, mode_manager, profile, sendinput, user_script, \
-    util
+    macro, mode_manager, profile, sendinput, user_script, util
 from gremlin.types import ActionProperty, AxisButtonDirection, HatDirection, \
     InputType
 
@@ -373,7 +372,7 @@ class CodeRunner:
 
             # Set vJoy axis default values
             for vid, data in settings.vjoy_initial_values.items():
-                vjoy_proxy = joystick_handling.VJoyProxy()[vid]
+                vjoy_proxy = input_devices.VJoyProxy()[vid]
                 for aid, value in data.items():
                     vjoy_proxy.axis(linear_index=aid).set_absolute_value(value)
 
@@ -429,7 +428,7 @@ class CodeRunner:
         sendinput.MouseController().stop()
 
         # Remove all claims on VJoy devices
-        joystick_handling.VJoyProxy.reset()
+        input_devices.VJoyProxy.reset()
 
         # Remove other possibly long-running aspects
         audio_player.AudioPlayer().stop()
