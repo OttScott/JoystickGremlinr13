@@ -16,8 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import xml.etree
-import xml.etree.ElementTree
 
 sys.path.append(".")
 
@@ -32,17 +30,19 @@ from xml.etree import ElementTree
 from PySide6 import QtWidgets
 import pytest
 
+from action_plugins import map_to_vjoy
 import dill
 import gremlin.error
 import gremlin.joystick_handling
+import gremlin.profile
 import gremlin.ui.backend
 import joystick_gremlin
 from vjoy import vjoy
 
 _InputTypeT = TypeVar("_InputTypeT", int, float, bool)
 
-_ASSERT_EVENTUALLY_MAX_DELAY = 1
-_ASSERT_EVENTUALLY_RETRY_DELAY = 0.01
+_ASSERT_EVENTUALLY_MAX_DELAY = 1  # Seconds
+_ASSERT_EVENTUALLY_RETRY_DELAY = 0.01  # Seconds
 
 
 # +-------------------------------------------------------------------------
@@ -92,22 +92,33 @@ def vjoy_control_device_id(vjoy_ids_or_skip: list[int]) -> vjoy.VJoy:
 
 
 @pytest.fixture(scope="module")
-def device_swapped_profile(
+def profile_for_testing(
     vjoy_control_device: vjoy.VJoy,
     vjoy_di_device: dill.DeviceSummary,
     profile_path: str,
-) -> ElementTree:
-    """Returns profile XML with inputs and outputs swapped with "real" devices.
+) -> gremlin.profile.Profile:
+    """Returns a Gremlin profile for testing the current module.
+    
+    This implementation mutates the profile specified by 'profile_path', with
+    inputs and outputs swapped with "real" devices. Alternatively, you can
+    override this fixture in test modules to use a generated profile.
 
-    Where "real" means actual vJoy devices on this system.
+    (Where "real" means actual vJoy devices on this system.)
     """
-    xml_profile = ElementTree.parse(profile_path)
-    for input_node in xml_profile.getroot().findall("./inputs/input"):
-        input_node.find("device-id").text = str(vjoy_di_device.device_guid)
-    for library_node in xml_profile.getroot().findall("./library/action/property"):
-        if library_node.find("name").text == "vjoy-device-id":
-            library_node.find("value").text = str(vjoy_control_device.vjoy_id)
-    return xml_profile
+    profile = gremlin.profile.Profile()
+    profile.from_xml(profile_path)
+    # Replace the (only) input device.
+    assert len(profile.inputs) == 1
+    _, input_items = profile.inputs.popitem()
+    profile.inputs[vjoy_di_device.device_guid.uuid] = input_items
+    for input_item in input_items:
+      input_item.device_id = vjoy_di_device.device_guid.uuid
+
+    # Replace the output device(s) with the single vJoy control device.
+    for action in profile.library.actions_by_type(map_to_vjoy.MapToVjoyData):
+        action.vjoy_device_id = vjoy_control_device.vjoy_id
+
+    return profile
 
 
 # +-------------------------------------------------------------------------
@@ -123,14 +134,12 @@ def profile_path(profile_name: str) -> str:
 
 @pytest.fixture(scope="module")
 def edited_profile_path(
-    device_swapped_profile: ElementTree,
+    profile_for_testing: gremlin.profile.Profile
 ) -> Iterator[str]:
-    with tempfile.NamedTemporaryFile("w+", delete_on_close=False) as f:
-        f.write(
-            ElementTree.tostring(device_swapped_profile.getroot(), encoding="unicode")
-        )
-        f.flush()
-        yield f.name
+    with tempfile.NamedTemporaryFile(delete_on_close=False) as f:
+      f.close()
+      profile_for_testing.to_xml(f.name)
+      yield f.name
 
 
 @pytest.fixture(scope="module", params=None)
