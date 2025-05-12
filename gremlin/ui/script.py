@@ -64,7 +64,7 @@ class AbstractVariableModel(QtCore.QObject):
 
     @Property(bool, notify=validityChanged)
     def isValid(self) -> bool:
-        return self._variable._is_valid()
+        return self._variable.is_valid()
 
     def evaluate_validity(self) -> None:
         self.validityChanged.emit()

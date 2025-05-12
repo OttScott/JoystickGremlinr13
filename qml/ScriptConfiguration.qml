@@ -282,7 +282,7 @@ ListView {
         Text {
             id: _text
 
-            text: `${parent.text} ${modelData.isOptional ? '(req)' : ''}`
+            text: `${parent.text} ${modelData.isOptional ? '' : '(req)'}`
 
             Layout.minimumWidth: 150
             Layout.preferredWidth: 150
