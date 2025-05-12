@@ -802,7 +802,10 @@ class VJoyDevices(QtCore.QObject):
         try:
             self._set_input_index(self._input_items.index(input_label))
         except ValueError:
-            raise GremlinError(f"No input named \"{input_label}\" present")
+            logging.getLogger("system").warning(
+                f"No input named \"{input_label}\" present"
+            )
+            self._set_input_index(0)
 
     @Property(type="QVariantList", notify=deviceModelChanged)
     def deviceModel(self):
