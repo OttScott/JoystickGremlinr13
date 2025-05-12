@@ -658,9 +658,9 @@ class JoystickDecorator:
 
 
 def _input_callback(
+        input_id: int,
         device_guid: uuid.UUID,
         input_type: InputType,
-        input_id: int,
         mode: str
 ):
     """Decorator for a specific input on a physical device.
@@ -671,6 +671,10 @@ def _input_callback(
         input_id: identifier of the axis, button, or hat being decorated
         mode: name of the mode the callback is active in
     """
+
+    # The order of the input arguments has to be this specific one as otherwise
+    # the positional argument part of the decorator breaks.
+
     def wrap(callback):
 
         @functools.wraps(callback)
