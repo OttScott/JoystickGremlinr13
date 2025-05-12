@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2019 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import copy
 import importlib
 import inspect
 import logging
@@ -33,22 +34,93 @@ from typing import Any
 import uuid
 from xml.etree import ElementTree
 
+import dill
+
 from gremlin.types import InputType, PropertyType
-from gremlin import common, error, joystick_handling, shared_state, util
+from gremlin import common, error, input_devices, shared_state, util
+
+
+class ScriptVariableRegistry:
+
+    def __init__(self):
+        self._registry = {}
+
+    def clear(self):
+        """Clears all registry entries."""
+        self._registry = {}
+
+    def register_script(self, script: Script) -> None:
+        """Registers all variables of a script.
+
+        This will forcibly overwrite existing entries for the same script.
+
+        Args:
+            script: the Script instance to register
+        """
+        self._registry[script.id] = {}
+        for variable in script.variables.values():
+            self._registry[script.id][variable.name] = variable
+
+    def remove_script(self, script: Script) -> None:
+        """Removes the specified script's variables.
+
+        Args:
+            script: the script to remove variables for
+        """
+        if script.id in self._registry:
+            del self._registry[script.id]
+
+    def set(self, script_id: uuid.UUID, variable: AbstractVariable) -> None:
+        """Stores a variable in the registry.
+
+        Args:
+            script_id: unique identifier of the script
+            variable: the variable to register
+        """
+        if script_id not in self._registry:
+            self._registry[script_id] = {}
+        self._registry[script_id][variable.name] = variable
+
+    def get(self, script_id: uuid.UUID, name: str) -> AbstractVariable|None:
+        """Returns a variable from the registry.
+
+        Args:
+            script_id: unique identifier of the script
+            name: the name of the variable to retrieve
+
+        Returns:
+            Variable instance corresponding to the script and name
+        """
+        if script_id not in self._registry:
+            return None
+        return self._registry[script_id].get(name, None)
 
 
 class Script:
 
     """Represents the prototype of a script."""
 
+    variable_registry = ScriptVariableRegistry()
+
     def __init__(self, path: Path=Path(), name: str=""):
         """Creates a new Script."""
+        self._id = uuid.uuid4()
         self.path = path
         self.name = name
         self.variables: dict[str, AbstractVariable] = {}
 
         if self.path.is_file():
             self._retrieve_variable_definitions()
+            self.variable_registry.register_script(self)
+
+    @property
+    def id(self) -> uuid.UUID:
+        """Returns the UUID of the script.
+
+        Returns:
+            Unique identifier of this script.
+        """
+        return self._id
 
     @property
     def is_configured(self) -> bool:
@@ -58,8 +130,7 @@ class Script:
             True if the instance is fully configured, False otherwise
         """
         return all([
-            var.value is not None for var in self.variables.values()
-            if not var.is_optional
+            var.is_valid() for var in self.variables.values() if not var.is_optional
         ])
 
     def has_variable(self, name: str) -> bool:
@@ -105,6 +176,9 @@ class Script:
         Args:
             node: XML node containing this instance's configuration
         """
+        # Remove information of this script in case the ID changes
+        Script.variable_registry.remove_script(self)
+
         lookup = {
             "bool": BoolVariable,
             "float": FloatVariable,
@@ -116,6 +190,7 @@ class Script:
             "vjoy": VirtualInputVariable,
         }
 
+        self._id = util.read_uuid(node, "script", "id")
         self.path = Path(util.read_property(node, "path", PropertyType.String))
         self.name = util.read_property(node, "name", PropertyType.String)
 
@@ -125,7 +200,6 @@ class Script:
         # Populate variables with data from the XML if they are present
         for entry in node.iter("variable"):
             name = util.read_property(entry, "name", PropertyType.String)
-            print(name)
             # Don't parse variables that don't exist anymore, they will be
             # removed upon the next save
             if name not in self.variables:
@@ -141,6 +215,9 @@ class Script:
                 )
             self.variables[name].from_xml(entry)
 
+        # Store script values in the registry
+        Script.variable_registry.register_script(self)
+
     def to_xml(self) -> ElementTree.Element:
         """Returns an XML node representing this instance.
 
@@ -154,11 +231,17 @@ class Script:
                 ("name", str(self.name), PropertyType.String),
             ]
         )
+        node.set("id", util.safe_format(self._id, uuid.UUID))
         for entry in self.variables.values():
             variable_node = entry.to_xml()
             if variable_node is not None:
                 node.append(variable_node)
         return node
+
+    def reload(self):
+        Script.variable_registry.register_script(self)
+        self.module._script_id = self.id
+        self.spec.loader.exec_module(self.module)
 
     def _retrieve_variable_definitions(self):
         """Returns all variable definitions used in the provided script.
@@ -173,20 +256,21 @@ class Script:
         if not self.path.is_file():
             raise error.GremlinError(f"Invalid script file '{self.path}'")
 
-        spec = importlib.util.spec_from_file_location(
+        self.spec = importlib.util.spec_from_file_location(
             "".join(random.choices(string.ascii_lowercase, k=16)),
             str(self.path)
         )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        self.module = importlib.util.module_from_spec(self.spec)
+        self.module._script_id = self.id
+        self.spec.loader.exec_module(self.module)
 
-        for key, value in module.__dict__.items():
+        for key, value in self.module.__dict__.items():
             if isinstance(value, AbstractVariable):
                 if value.name in self.variables:
                     logging.getLogger("system").error(
                         f"Script: Duplicate label {value.label} present in {path}"
                     )
-                self.variables[value.name] = value
+                self.variables[value.name] = copy.deepcopy(value)
 
 
 class AbstractVariable(ABC):
@@ -219,7 +303,7 @@ class AbstractVariable(ABC):
         self._from_xml(node)
 
     def to_xml(self) -> ElementTree.Element:
-        if not self._is_valid():
+        if not self.is_valid():
             return None
         node = ElementTree.Element("variable")
         node.set("type", self.xml_tag)
@@ -233,7 +317,7 @@ class AbstractVariable(ABC):
         return node
 
     @abstractmethod
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         pass
 
     @abstractmethod
@@ -244,123 +328,25 @@ class AbstractVariable(ABC):
     def _to_xml(self, node: ElementTree.Element) -> None:
         pass
 
+    @abstractmethod
+    def _assign_value_from(self, other: AbstractVariable) -> None:
+        pass
 
-# class ScriptVariable:
-#
-#     """A single variable of a user script instance."""
-#
-#     to_property_type = {
-#         ScriptVariableType.Int: PropertyType.Int,
-#         ScriptVariableType.Float: PropertyType.Float,
-#         ScriptVariableType.String: PropertyType.String,
-#         ScriptVariableType.Bool: PropertyType.Bool,
-#         ScriptVariableType.Selection: PropertyType.String,
-#         ScriptVariableType.Mode: PropertyType.String
-#     }
-#
-#     def __init__(self, parent: Script):
-#         """Creates a new instance.
-#
-#         Args:
-#             parent: The parent object of this script
-#         """
-#         self.parent = parent
-#         self.name : str|None = None
-#         self.type : ScriptVariableType|None = None
-#         self.value : Any = None
-#         self.is_optional : bool = False
-#
-#     def from_xml(self, node: ElementTree.Element) -> None:
-#         """Initializes the contents of this instance.
-#
-#         Args:
-#             node: XML node containing this instance's configuration
-#         """
-#         self.name = util.read_property(node, "name", PropertyType.String)
-#         self.type = util.read_property(
-#             node, "type", PropertyType.ScriptVariableType
-#         )
-#         self.is_optional = util.read_property(
-#             node, "is-optional", PropertyType.Bool
-#         )
-#
-#         match self.type:
-#             case ScriptVariableType.PhysicalInput:
-#                 self.value = {
-#                     "device_guid": util.read_property(
-#                         node, "device-guid", PropertyType.UUID
-#                     ),
-#                     "input_id": util.read_property(
-#                         node, "input-id", PropertyType.Int
-#                     ),
-#                     "input_type": util.read_property(
-#                         node, "input-type", PropertyType.InputType
-#                     )
-#                 }
-#             case ScriptVariableType.VirtualInput:
-#                 self.value = {
-#                     "vjoy_id": util.read_property(
-#                         node, "vjoy-id", PropertyType.Int
-#                     ),
-#                     "input_id": util.read_property(
-#                         node, "input-id", PropertyType.Int
-#                     ),
-#                     "input_type": util.read_property(
-#                         node, "input-type", PropertyType.InputType
-#                     )
-#                 }
-#             case _:
-#                 self.value = util.read_property(
-#                     node, "value", ScriptVariable.to_property_type[self.type]
-#                 )
-#
-#     def to_xml(self) -> ElementTree.Element|None:
-#         """Returns an XML node representing this instance.
-#
-#         Returns:
-#             XML node representing this instance
-#         """
-#         if self.value is None:
-#             return None
-#
-#         node = ElementTree.Element("variable")
-#         util.append_property_nodes(
-#             node,
-#             [
-#                 ["name", self.name, PropertyType.String],
-#                 ["type", self.type, PropertyType.ScriptVariableType],
-#                 ["is-optional", self.is_optional, PropertyType.Bool],
-#             ]
-#         )
-#
-#         # Write out content based on the type
-#         match self.type:
-#             case ScriptVariableType.PhysicalInput:
-#                 util.append_property_nodes(
-#                     node,
-#                     [
-#                         ("device-guid", self.value["device_guid"], PropertyType.UUID),
-#                         ("input-id", self.value["input_id"], PropertyType.Int),
-#                         ("input-type", self.value["input_type"], PropertyType.InputType),
-#                     ]
-#                 )
-#             case ScriptVariableType.VirtualInput:
-#                 util.append_property_nodes(
-#                     node,
-#                     [
-#                         ("vjoy-id", self.value["vjoy_id"], PropertyType.Int),
-#                         ("input-id", self.value["input_id"], PropertyType.Int),
-#                         ("input-type", self.value["input_type"], PropertyType.InputType),
-#                     ]
-#                 )
-#             case _:
-#                 node.append(util.create_property_node(
-#                     "value",
-#                     self.value,
-#                     ScriptVariable.to_property_type[self.type]
-#                 ))
-#
-#         return node
+    def _get_script_id(self) -> uuid.UUID|None:
+        for frame in inspect.stack():
+            identifier = frame.frame.f_locals.get(
+                "_script_id",
+                None
+            )
+            if isinstance(identifier, uuid.UUID):
+                return identifier
+        return None
+
+    def _initialize_from_registry(self) -> None:
+        idx = self._get_script_id()
+        var = Script.variable_registry.get(idx, self.name)
+        if isinstance(var, AbstractVariable):
+            self._assign_value_from(var)
 
 
 class BoolVariable(AbstractVariable):
@@ -377,6 +363,7 @@ class BoolVariable(AbstractVariable):
         super().__init__(name, description, is_optional)
 
         self._value = initial_value
+        self._initialize_from_registry()
 
     @property
     def value(self) -> bool:
@@ -386,7 +373,7 @@ class BoolVariable(AbstractVariable):
     def value(self, value: bool) -> None:
         self._value = value
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return self._value in [True, False]
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -396,6 +383,9 @@ class BoolVariable(AbstractVariable):
         node.append(util.create_property_node(
             "value", self.value, PropertyType.Bool
         ))
+
+    def _assign_value_from(self, other: BoolVariable) -> None:
+        self._value = other.value
 
 
 class FloatVariable(AbstractVariable):
@@ -416,6 +406,7 @@ class FloatVariable(AbstractVariable):
         self._value = initial_value
         self._min_value = min_value
         self._max_value = max_value
+        self._initialize_from_registry()
 
     @property
     def value(self) -> float:
@@ -433,7 +424,7 @@ class FloatVariable(AbstractVariable):
     def max_value(self) -> float:
         return self._max_value
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return isinstance(self._value, numbers.Number)
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -443,6 +434,9 @@ class FloatVariable(AbstractVariable):
         node.append(util.create_property_node(
             "value", self._value, PropertyType.Float
         ))
+
+    def _assign_value_from(self, other: FloatVariable) -> None:
+        self._value = other.value
 
 
 class IntegerVariable(AbstractVariable):
@@ -463,6 +457,7 @@ class IntegerVariable(AbstractVariable):
         self._value = initial_value
         self._min_value = min_value
         self._max_value = max_value
+        self._initialize_from_registry()
 
     @property
     def value(self) -> int:
@@ -480,7 +475,7 @@ class IntegerVariable(AbstractVariable):
     def max_value(self) -> int:
         return self._max_value
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return isinstance(self._value, int)
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -490,6 +485,9 @@ class IntegerVariable(AbstractVariable):
         node.append(util.create_property_node(
             "value", self._value, PropertyType.Int
         ))
+
+    def _assign_value_from(self, other: IntegerVariable) -> None:
+        self._value = other.value
 
 
 class ModeVariable(AbstractVariable):
@@ -505,6 +503,7 @@ class ModeVariable(AbstractVariable):
         super().__init__(name, description, is_optional)
 
         self._mode = shared_state.current_profile.modes.first_mode
+        self._initialize_from_registry()
 
     @property
     def value(self) -> str:
@@ -514,7 +513,7 @@ class ModeVariable(AbstractVariable):
     def value(self, value: str) -> None:
         self._mode = value
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return self._mode in shared_state.current_profile.modes.mode_names()
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -524,6 +523,9 @@ class ModeVariable(AbstractVariable):
         node.append(util.create_property_node(
             "value", self._mode, PropertyType.String
         ))
+
+    def _assign_value_from(self, other: ModeVariable) -> None:
+        self._mode = other.value
 
 
 class SelectionVariable(AbstractVariable):
@@ -542,6 +544,7 @@ class SelectionVariable(AbstractVariable):
 
         self._option_list = option_list
         self._current_index = default_index
+        self._initialize_from_registry()
 
     @property
     def options(self) -> list[str]:
@@ -555,7 +558,7 @@ class SelectionVariable(AbstractVariable):
     def value(self, value: str) -> None:
         self._current_index = self._option_list.index(value)
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return True
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -567,6 +570,9 @@ class SelectionVariable(AbstractVariable):
         node.append(util.create_property_node(
             "index", self._current_index, PropertyType.Int
         ))
+
+    def _assign_value_from(self, other: SelectionVariable) -> None:
+        self._current_index = other._current_index
 
 
 class StringVariable(AbstractVariable):
@@ -583,6 +589,7 @@ class StringVariable(AbstractVariable):
         super().__init__(name, description, is_optional)
 
         self._value = initial_value
+        self._initialize_from_registry()
 
     @property
     def value(self) -> str:
@@ -592,7 +599,7 @@ class StringVariable(AbstractVariable):
     def value(self, value: str) -> None:
         self._value = value
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         return isinstance(self._value, str) and len(self._value) > 0
 
     def _from_xml(self, node: ElementTree.Element) -> None:
@@ -602,6 +609,9 @@ class StringVariable(AbstractVariable):
         node.append(util.create_property_node(
             "value", self._value, PropertyType.String
         ))
+
+    def _assign_value_from(self, other: StringVariable) -> None:
+        self._value = other.value
 
 
 class PhysicalInputVariable(AbstractVariable):
@@ -615,7 +625,7 @@ class PhysicalInputVariable(AbstractVariable):
             name: str,
             description: str,
             is_optional: bool,
-            valid_types: Sequence[InputType],
+            valid_types: list[InputType],
     ):
         super().__init__(name, description, is_optional)
 
@@ -623,6 +633,7 @@ class PhysicalInputVariable(AbstractVariable):
         self._device_guid = None
         self._input_type = valid_types[0]
         self._input_id = 1
+        self._initialize_from_registry()
 
     @property
     def device_guid(self) -> uuid.UUID:
@@ -650,7 +661,33 @@ class PhysicalInputVariable(AbstractVariable):
         self._input_type = value[1]
         self._input_id = value[2]
 
-    def _is_valid(self) -> bool:
+    def decorator(self, mode: ModeVariable) -> Callable:
+        dec = self.create_decorator(mode.value)
+        match self._input_type:
+            case InputType.JoystickButton:
+                return dec.button(self._input_id)
+            case InputType.JoystickAxis:
+                return dec.axis(self._input_id)
+            case InputType.JoystickHat:
+                return dec.hat(self._input_id)
+            case _:
+                raise error.GremlinError(
+                    f"Received invalid input type '{self._input_type}'"
+                )
+
+    def create_decorator(self, mode: str):
+        if not self.is_valid():
+            return input_devices.JoystickDecorator(
+                "", str(dill.GUID_Invalid), ""
+            )
+        else:
+            return input_devices.JoystickDecorator(
+                "device name",
+                str(self._device_guid),
+                mode
+            )
+
+    def is_valid(self) -> bool:
         return (
             self._device_guid is not None
             and self._input_type in self._valid_types
@@ -676,6 +713,12 @@ class PhysicalInputVariable(AbstractVariable):
             ]
         )
 
+    def _assign_value_from(self, other: PhysicalInputVariable) -> None:
+        self._valid_types = other._valid_types
+        self._device_guid = other.device_guid
+        self._input_type = other.input_type
+        self._input_id = other.input_id
+
 
 class VirtualInputVariable(AbstractVariable):
 
@@ -686,7 +729,7 @@ class VirtualInputVariable(AbstractVariable):
             name: str,
             description: str,
             is_optional: bool,
-            valid_types: Sequence[InputType],
+            valid_types: list[InputType],
     ):
         super().__init__(name, description, is_optional)
 
@@ -694,6 +737,7 @@ class VirtualInputVariable(AbstractVariable):
         self._vjoy_id = 1
         self._input_type = valid_types[0]
         self._input_id = 1
+        self._initialize_from_registry()
 
     @property
     def value(self) -> bool:
@@ -719,7 +763,21 @@ class VirtualInputVariable(AbstractVariable):
     def valid_types(self) -> list[InputType]:
         return self._valid_types
 
-    def _is_valid(self) -> bool:
+    def remap(self, value: float|bool|Tuple[int, int]) -> None:
+        device = input_devices.VJoyProxy().vjoy_devices[self._vjoy_id]
+        match self._input_type:
+            case InputType.JoystickButton:
+                device.button(self._input_id).is_pressed = value
+            case InputType.JoystickAxis:
+                device.axis(self._input_id).value = value
+            case InputType.JoystickHat:
+                device.hat(self._input_id).direction = value
+            case _:
+                raise error.GremlinError(
+                    f"Received invalid input type '{self._input_type}'"
+                )
+
+    def is_valid(self) -> bool:
         return (
             self._vjoy_id is not None
             and self._input_type in self._valid_types
@@ -742,6 +800,12 @@ class VirtualInputVariable(AbstractVariable):
                 ["input-id", self._input_id, PropertyType.Int],
             ]
         )
+
+    def _assign_value_from(self, other: VirtualInputVariable) -> None:
+        self._valid_types = other._valid_types
+        self._vjoy_id = other.vjoy_id
+        self._input_type = other.input_type
+        self._input_id = other.input_id
 
 
 def clamp_value(value: float, min_val: float, max_val: float) -> float:

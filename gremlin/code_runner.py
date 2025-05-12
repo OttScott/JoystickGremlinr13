@@ -363,6 +363,20 @@ class CodeRunner:
                     lambda x: x
                 )
 
+            # Create callbacks fom the user code
+            callback_count = 0
+            for dev_id, modes in input_devices.callback_registry.registry.items():
+                for mode, events in modes.items():
+                    for event, callback_list in events.items():
+                        for callback in callback_list.values():
+                            self.event_handler.add_callback(
+                                dev_id,
+                                mode,
+                                event,
+                                callback
+                            )
+                            callback_count += 1
+
             # Process action sequences defined via the UI
             self._setup_profile()
 
@@ -441,11 +455,12 @@ class CodeRunner:
         input_devices.ButtonReleaseActions().reset()
 
     def _setup_user_scripts(self):
-        """Handles loading and configuring of user scripts.."""
-        # Retrieve list of current paths searched by Python
+        """Handles loading and configuring of user scripts."""
+        # Retrieve the list of current paths searched by Python
         system_paths = [os.path.normcase(os.path.abspath(p)) for p in sys.path]
 
-        # Populate custom module variable registry
+        # Populate custom module variable registry <-- nope
+        # Update system path for the user scripts
         for script in self._profile.scripts.scripts:
             if not script.is_configured:
                 continue
@@ -455,19 +470,10 @@ class CodeRunner:
             if script_folder not in system_paths:
                 system_paths.append(script_folder)
 
-            # Load module specification so we can later create multiple
-            # instances if desired
-            spec = importlib.util.spec_from_file_location(
-                "".join(random.choices(string.ascii_lowercase, k=16)),
-                str(script.path)
-            )
+            # Ensure script has up to date variable content
+            script.reload()
 
-            # Load the modules
-            tmp = importlib.util.module_from_spec(spec)
-            tmp.__gremlin_identifier = (str(script.path), script.name)
-            spec.loader.exec_module(tmp)
-
-        # Update system path list searched by Python in order to locate the
+        # Update the system path list searched by Python in order to locate the
         # plugins properly
         sys.path = system_paths
 

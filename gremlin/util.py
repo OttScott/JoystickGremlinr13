@@ -497,6 +497,36 @@ def read_action_id(node: ElementTree.Element) -> uuid.UUID:
         )
 
 
+def read_uuid(node: ElementTree.Element, tag: str, key: str) -> uuid.UUID:
+    """Returns the id associated with the given action element.
+
+    Args:
+        node: XML element which contains the id attribute
+        tag: expected tag of the node element
+        key: key under which the id is stored
+
+    Returns:
+        UUID associated with this element
+    """
+    if node.tag not in [tag]:
+        raise error.ProfileError(
+            f"Attempted to read id from unexpected element '{node.tag}'."
+        )
+
+    id_value = node.get(key)
+    if id_value is None:
+        raise error.ProfileError(
+            f"Reading id entry failed due to it not being present."
+        )
+
+    try:
+        return uuid.UUID(id_value)
+    except Exception:
+        raise error.ProfileError(
+            f"Failed parsing id from value: '{id_value}'."
+        )
+
+
 def read_subelement(node: ElementTree.Element, name: str) -> Any:
     """Returns the value of a subelement of the given element node.
 
