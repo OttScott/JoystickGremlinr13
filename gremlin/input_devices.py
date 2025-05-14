@@ -35,7 +35,7 @@ from vjoy import vjoy
 import gremlin.common
 import gremlin.keyboard
 
-from gremlin import common, error, event_handler, mode_manager
+from gremlin import common, error, event_handler, mode_manager, util
 from gremlin.input_cache import Joystick, Keyboard
 from gremlin.types import InputType
 
