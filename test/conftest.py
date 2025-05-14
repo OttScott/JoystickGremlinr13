@@ -1,18 +1,21 @@
 import sys
+
+import gremlin.device_initialization
+
 sys.path.append(".")
 
 import pytest
 
 import dill
 
+import gremlin.device_initialization
 import gremlin.event_handler
-import gremlin.input_devices
 
 
 @pytest.fixture(scope="session", autouse=True)
 def joystick_init():
     dill.DILL.init()
-    gremlin.input_devices.joystick_devices_initialization()
+    gremlin.device_initialization.joystick_devices_initialization()
 
 
 @pytest.fixture(scope="session", autouse=True)
