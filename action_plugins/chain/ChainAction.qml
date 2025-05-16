@@ -49,11 +49,11 @@ Item {
             FloatSpinBox {
                 minValue: 0
                 maxValue: 3600
-                realValue: _root.action.timeout
+                value: _root.action.timeout
                 stepSize: 5
 
-                onRealValueModified: {
-                    _root.action.timeout = realValue
+                onValueModified: (newValue) => {
+                    _root.action.timeout = newValue
                 }
             }
 

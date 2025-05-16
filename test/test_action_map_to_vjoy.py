@@ -24,7 +24,6 @@ from xml.etree import ElementTree
 
 import dill
 from gremlin.error import GremlinError
-import gremlin.joystick_handling
 import gremlin.types as types
 from gremlin.profile import Library
 

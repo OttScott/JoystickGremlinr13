@@ -25,6 +25,7 @@ import QtQuick.Window
 import Gremlin.Config
 import Gremlin.Device
 import Gremlin.Profile
+import Gremlin.UI
 
 import "helpers.js" as Helpers
 
@@ -307,6 +308,7 @@ ApplicationWindow {
 
             ComboBox {
                 id: _modeSelector
+
                 model: _toolbar.modes.modeList
                 textRole: "name"
 
@@ -333,11 +335,6 @@ ApplicationWindow {
                 //     }
                 //     highlighted: _modeSelector.highlightedIndex === index
                 // }
-
-                onActivated: function(index) {
-                    backend.uiMode = textAt(index)
-                }
-
             }
         }
     }
@@ -379,6 +376,8 @@ ApplicationWindow {
 
     Device {
         id: _deviceModel
+
+        guid: uiState.currentDevice
     }
 
     BootstrapIcons {
@@ -387,78 +386,12 @@ ApplicationWindow {
     }
 
     Connections {
-        target: signal
+        target: uiState
 
-        // Forces a full refresh of the UI
-        function onReloadUi() {
-            let currentDeviceIndex = _devicePanel.currentIndex
-            _deviceModel.modelReset()
-            _deviceListModel.modelReset()
-            _inputConfigurationPanel.reload()
-            _devicePanel.currentIndex = currentDeviceIndex
+        function onModeChanged() {
+            _deviceModel.setMode(uiState.currentMode)
+            _modeSelector.currentIndex = _modeSelector.find(uiState.currentMode)
         }
-
-        // Updates a single input item button
-        function onInputItemChanged(index) {
-            _deviceModel.refreshInput(index)
-        }
-
-        // function onReloadCurrentInputItem() {
-        //     _inputConfigurationPanel.reload()
-        // }
-    }
-
-    Connections {
-        target: backend
-
-        function onUiModeChanged() {
-            _deviceModel.modelReset()
-            _inputConfigurationPanel.reload()
-        }
-
-        function onProfileChanged() {
-            _scriptManager.scriptListModel = Qt.binding(
-                () => backend.scriptListModel
-            )
-        }
-    }
-
-    function showIntermediateOutput(state)
-    {
-        // Show the appropriate input list
-        _ioDeviceList.visible = state
-        _deviceInputList.visible = !state
-        _inputConfigurationPanel.visible = true
-
-        // Hide the plugin manager
-        _scriptManager.visible = false
-        _btnPluginManager.checked = false
-
-        // Ensure the actions for the active input are shown
-        if(state)
-        {
-            _inputConfigurationPanel.inputIndex = _ioDeviceList.inputIndex
-            _inputConfigurationPanel.inputIdentifier =
-                _ioDeviceList.inputIdentifier
-        }
-        else
-        {
-            _inputConfigurationPanel.inputIndex = _deviceInputList.inputIndex
-            _inputConfigurationPanel.inputIdentifier =
-                _deviceInputList.inputIdentifier
-        }
-    }
-
-    function showScriptManager()
-    {
-        // Show the appropriate input list
-        _ioDeviceList.visible = false
-        _deviceInputList.visible = false
-        _deviceInputList.visible = false
-        _ioDeviceList.visible = false
-        _inputConfigurationPanel.visible = false
-
-        _scriptManager.visible = true
     }
 
     // Main window content
@@ -474,39 +407,15 @@ ApplicationWindow {
 
             // Horizontal list of "tabs" listing all detected devices
             DeviceList {
-                id: _devicePanel
+                id: _deviceList
 
                 Layout.minimumHeight: 50
                 Layout.maximumHeight: 50
                 Layout.fillWidth: true
 
                 deviceListModel: _deviceListModel
-
-                // Trigger a model update on the DeviceInputList
-                onDeviceGuidChanged: function()
-                {
-                    _deviceModel.guid = deviceGuid
-                }
-
-                Component.onCompleted: {
-                    // Ensure the physical input panel is shown and the first
-                    // device is highlighted
-                    currentIndex = 0
-                    showIntermediateOutput(false)
-                }
-            }
-
-            JGTabButton {
-                id: _btnPluginManager
-
-                text: "Scripts"
-
-                onClicked: () => {
-                    showScriptManager()
-                }
             }
         }
-
 
         // Main UI which contains the active device's inputs on the left and
         // actions assigned to the currently selected input on the right.
@@ -520,41 +429,36 @@ ApplicationWindow {
             clip: true
             orientation: Qt.Horizontal
 
-            // List of the inputs of the currently selected device
+            // List of the currently selected device's inputs
             DeviceInputList {
                 id: _deviceInputList
 
-                visible: true
+                visible: uiState.currentTab === "physical"
                 SplitView.minimumWidth: 200
 
                 device: _deviceModel
-
-                // Trigger a model update on the InputConfiguration
-                onInputIdentifierChanged: {
-                    _inputConfigurationPanel.inputIndex = inputIndex
-                    _inputConfigurationPanel.inputIdentifier = inputIdentifier
-                }
             }
 
-            // List of the inputs of the intermediate output device
+            // List of intermediate output device inputs
             IntermediateOutputDevice {
                 id: _ioDeviceList
 
-                visible: false
+                visible: uiState.currentTab === "intermediate"
                 SplitView.minimumWidth: 200
 
                 device: backend.getIODeviceManagementModel()
 
                 // Trigger a model update on the InputConfiguration
-                onInputIdentifierChanged: {
-                    _inputConfigurationPanel.inputIndex = inputIndex
-                    _inputConfigurationPanel.inputIdentifier = inputIdentifier
+                onInputIdentifierChanged: () => {
+                    uiState.setCurrentInput(inputIdentifier, inputIndex)
                 }
             }
 
             // List of the actions associated with the currently selected input
             InputConfiguration {
                 id: _inputConfigurationPanel
+
+                visible: uiState.currentTab !== "scripts"
 
                 SplitView.fillWidth: true
                 SplitView.fillHeight: true
@@ -567,10 +471,13 @@ ApplicationWindow {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            scriptListModel: backend.scriptListModel
+
             // Without this the height bugs out
             Layout.verticalStretchFactor: 10
 
-            visible: false
+            visible: uiState.currentTab === "scripts"
         }
     }
 

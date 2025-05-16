@@ -26,7 +26,7 @@ from xml.etree import ElementTree
 from PySide6 import QtCore
 from PySide6.QtCore import Property, Signal
 
-from gremlin import error, event_handler, input_devices, joystick_handling, util
+from gremlin import error, event_handler, input_devices, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
     Value
 from gremlin.profile import Library
@@ -64,7 +64,7 @@ class MapToVjoyFunctor(AbstractFunctor):
 
         if self.data.vjoy_input_type == InputType.JoystickAxis:
             if self.data.axis_mode == AxisMode.Absolute:
-                joystick_handling.VJoyProxy()[self.data.vjoy_device_id] \
+                input_devices.VJoyProxy()[self.data.vjoy_device_id] \
                     .axis(self.data.vjoy_input_id).value = value.current
             else:
                 self.should_stop_thread = abs(event.value) < 0.05
@@ -83,7 +83,7 @@ class MapToVjoyFunctor(AbstractFunctor):
             is_pressed = value.current
             if self.data.button_inverted:
                 is_pressed = not is_pressed
-            joystick_handling.VJoyProxy()[self.data.vjoy_device_id] \
+            input_devices.VJoyProxy()[self.data.vjoy_device_id] \
                 .button(self.data.vjoy_input_id).is_pressed = is_pressed
 
             if is_pressed and ActionProperty.DisableAutoRelease not in properties:
@@ -94,12 +94,12 @@ class MapToVjoyFunctor(AbstractFunctor):
                 )
 
         elif self.data.vjoy_input_type == InputType.JoystickHat:
-            joystick_handling.VJoyProxy()[self.data.vjoy_device_id] \
+            input_devices.VJoyProxy()[self.data.vjoy_device_id] \
                 .hat(self.data.vjoy_input_id).direction = value.current
 
     def relative_axis_thread(self) -> None:
         self.thread_running = True
-        vjoy_dev = joystick_handling.VJoyProxy()[self.data.vjoy_device_id]
+        vjoy_dev = input_devices.VJoyProxy()[self.data.vjoy_device_id]
         self.axis_value = vjoy_dev.axis(self.data.vjoy_input_id).value
         while self.thread_running:
             # Abort if the vJoy device is no longer valid
@@ -286,7 +286,7 @@ class MapToVjoyData(AbstractActionData):
         super().__init__(behavior_type)
 
         # Select an initially valid vJoy input
-        device = joystick_handling.vjoy_devices()[0]
+        device = input_devices.vjoy_devices()[0]
         vjoy_id = device.vjoy_id
         input_id = 1
         if behavior_type == InputType.JoystickAxis:
@@ -302,7 +302,7 @@ class MapToVjoyData(AbstractActionData):
 
     @classmethod
     def can_create(cls) -> bool:
-        return len(joystick_handling.vjoy_devices()) > 0
+        return len(input_devices.vjoy_devices()) > 0
 
     def _from_xml(self, node: ElementTree.Element, library: Library) -> None:
         self._id = util.read_action_id(node)

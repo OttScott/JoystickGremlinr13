@@ -28,7 +28,7 @@ from xml.etree import ElementTree
 
 import dill
 import gremlin
-from gremlin import mode_manager, util
+from gremlin import input_devices, mode_manager, util
 from gremlin.base_classes import AbstractActionData
 from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
@@ -706,7 +706,7 @@ class VJoyAction(AbstractAction):
         return VJoyAction(1, InputType.JoystickButton, 1, False)
 
     def __call__(self) -> None:
-        vjoy = gremlin.joystick_handling.VJoyProxy()[self.vjoy_id]
+        vjoy = gremlin.input_devices.VJoyProxy()[self.vjoy_id]
         if self.input_type == InputType.JoystickAxis:
             if self.axis_mode == AxisMode.Absolute:
                 vjoy.axis(self.input_id).value = self.value

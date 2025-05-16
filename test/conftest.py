@@ -6,13 +6,13 @@ import pytest
 import dill
 
 import gremlin.event_handler
-import gremlin.joystick_handling
+import gremlin.input_devices
 
 
 @pytest.fixture(scope="session", autouse=True)
 def joystick_init():
     dill.DILL.init()
-    gremlin.joystick_handling.joystick_devices_initialization()
+    gremlin.input_devices.joystick_devices_initialization()
 
 
 @pytest.fixture(scope="session", autouse=True)

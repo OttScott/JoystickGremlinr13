@@ -30,7 +30,7 @@ from PySide6 import QtCore
 import dill
 
 import gremlin.keyboard
-from gremlin import common, config, error, joystick_handling, mode_manager, \
+from gremlin import common, config, error, input_devices, mode_manager, \
     profile, util, shared_state, windows_event_hook
 from gremlin.input_cache import Joystick, Keyboard
 from gremlin.types import InputType
@@ -292,7 +292,7 @@ class EventListener(QtCore.QObject):
 
     def _run_device_list_update(self) -> None:
         """Performs the update of the devices connected."""
-        joystick_handling.joystick_devices_initialization()
+        input_devices.joystick_devices_initialization()
         self._init_joysticks()
         self.device_change_event.emit()
 
@@ -384,7 +384,7 @@ class EventListener(QtCore.QObject):
         Loads calibration data for the joystick.
         """
         cfg = config.Configuration()
-        for dev_info in joystick_handling.joystick_devices():
+        for dev_info in input_devices.joystick_devices():
             for entry in dev_info.axis_map:
                 self.reload_calibration(
                     dev_info.device_guid,

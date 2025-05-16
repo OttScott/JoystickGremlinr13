@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2019 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,12 +30,14 @@ from PySide6.QtCore import Property, Signal, Slot
 
 import dill
 
-from gremlin import common, event_handler, joystick_handling, shared_state, util
+from gremlin import common, event_handler, input_devices, shared_state, util
+from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.intermediate_output import IntermediateOutput
+from gremlin.signal import signal
 from gremlin.types import InputType, PropertyType
-from gremlin.common import SingletonDecorator
+
 
 
 QML_IMPORT_NAME = "Gremlin.Device"
@@ -256,7 +258,7 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._devices = joystick_handling.physical_devices()
+        self._devices = input_devices.physical_devices()
 
         event_handler.EventListener().device_change_event.connect(
             self.update_model
@@ -265,12 +267,11 @@ class DeviceListModel(QtCore.QAbstractListModel):
     def update_model(self) -> None:
         """Updates the model if the connected devices change."""
         old_count = len(self._devices)
-        self._devices = joystick_handling.joystick_devices()
+        self._devices = input_devices.physical_devices()
         new_count = len(self._devices)
 
-        # Remove everything and then add it back to force a model update
-        self.rowsRemoved.emit(self.parent(), 0, new_count)
-        self.rowsInserted.emit(self.parent(), 0, new_count)
+        # Ensure the entire model is refreshed
+        self.modelReset.emit()
 
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self._devices)
@@ -289,6 +290,8 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
     @Slot(int, result=str)
     def guidAtIndex(self, index: int) -> str:
+        if len(self._devices) == 0:
+            return str(dill.UUID_Invalid)
         if not(0 <= index < len(self._devices)):
             raise GremlinError("Provided index out of range")
 
@@ -306,11 +309,11 @@ class DeviceListModel(QtCore.QAbstractListModel):
             types: the type of devices to list
         """
         if types == "physical":
-            self._devices = joystick_handling.physical_devices()
+            self._devices = input_devices.physical_devices()
         elif types == "virtual":
-            self._devices = joystick_handling.vjoy_devices()
+            self._devices = input_devices.vjoy_devices()
         elif types == "all":
-            self._devices = joystick_handling.joystick_devices()
+            self._devices = input_devices.joystick_devices()
 
         # Remove everything and then add it back to force a model update
         new_count = len(self._devices)
@@ -341,6 +344,7 @@ class Device(QtCore.QAbstractListModel):
 
         self._device: dill.DeviceSummary | None = None
         self._device_mapping: Dict[str, str] | None = None
+        self._mode = "Default"
 
     @Slot(int)
     def refreshInput(self, index: int) -> None:
@@ -353,6 +357,11 @@ class Device(QtCore.QAbstractListModel):
             self.createIndex(index, 0),
             self.createIndex(index, 0)
         )
+
+    @Slot(str)
+    def setMode(self, mode: str) -> None:
+        self._mode = mode
+        self.modelReset.emit()
 
     def _get_guid(self) -> str:
         if self._device is None:
@@ -390,21 +399,19 @@ class Device(QtCore.QAbstractListModel):
                 return self._name(self._convert_index(index.row()))
             case "actionCount":
                 input_info = self._convert_index(index.row())
-                # FIXME: retrieve currently selected mode
                 return shared_state.current_profile.get_input_count(
                     self._device.device_guid.uuid,
                     input_info[0],
                     input_info[1],
-                    "Default"
+                    self._mode
                 )
             case "description":
                 input_info = self._convert_index(index.row())
-                # FIXME: retrieve currently selected mode
                 item = shared_state.current_profile.get_input_item(
                     self._device.device_guid.uuid,
                     input_info[0],
                     input_info[1],
-                    "Default"
+                    self._mode
                 )
                 if item and len(item.action_sequences) > 0:
                     labels = filter(
@@ -414,6 +421,8 @@ class Device(QtCore.QAbstractListModel):
                     return " / ".join(labels)
                 else:
                     return ""
+            case _:
+                return ""
 
     @Slot(int, result=InputIdentifier)
     def inputIdentifier(self, index: int) -> InputIdentifier:
@@ -473,7 +482,8 @@ class Device(QtCore.QAbstractListModel):
     guid = Property(
         str,
         fget=_get_guid,
-        fset=_set_guid
+        fset=_set_guid,
+        notify=deviceChanged
     )
 
 
@@ -729,7 +739,7 @@ class VJoyDevices(QtCore.QObject):
         super().__init__(parent)
 
         self._devices = sorted(
-            joystick_handling.vjoy_devices(),
+            input_devices.vjoy_devices(),
             key=lambda x: x.vjoy_id
         )
 
@@ -792,7 +802,10 @@ class VJoyDevices(QtCore.QObject):
         try:
             self._set_input_index(self._input_items.index(input_label))
         except ValueError:
-            raise GremlinError(f"No input named \"{input_label}\" present")
+            logging.getLogger("system").warning(
+                f"No input named \"{input_label}\" present"
+            )
+            self._set_input_index(0)
 
     @Property(type="QVariantList", notify=deviceModelChanged)
     def deviceModel(self):

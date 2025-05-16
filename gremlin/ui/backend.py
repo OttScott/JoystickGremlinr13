@@ -25,8 +25,10 @@ import uuid
 from PySide6 import QtCore, QtQml, QtGui
 from PySide6.QtCore import Property, Signal, Slot
 
+import dill
+
 from gremlin import code_runner, common, config, error, event_handler, \
-    mode_manager, profile, shared_state, types
+    input_devices, mode_manager, profile, shared_state, types
 from gremlin.intermediate_output import IntermediateOutput
 from gremlin.signal import signal
 
@@ -36,6 +38,121 @@ from gremlin.ui.script import ScriptListModel
 from gremlin.audio_player import AudioPlayer
 
 
+QML_IMPORT_NAME = "Gremlin.UI"
+QML_IMPORT_MAJOR_VERSION = 1
+
+
+@QtQml.QmlElement
+class UIState(QtCore.QObject):
+
+    """Holds the state of the UI to simplify complex interactions.
+
+    The various UI elements retrieve the state they should be in from this
+    instance while being able to set state only via method calls.
+    """
+
+    deviceChanged = Signal()
+    inputChanged = Signal()
+    modeChanged = Signal()
+    tabChanged = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._current_device = dill.UUID_Invalid
+        self._current_input = {}
+        self._current_mode = "Default"
+        self._current_tab = "physical"
+
+        event_handler.EventListener().device_change_event.connect(
+            self._device_change
+        )
+        signal.profileChanged.connect(self._device_change)
+
+    def _device_change(self):
+        # We only care about this in case we've selected a physical device
+        if self._current_tab != "physical":
+            return
+
+        devices = input_devices.physical_devices()
+        selection_valid = False
+        for dev in devices:
+            if dev.device_guid.uuid == self._current_device:
+                selection_valid = True
+                break
+
+        if not selection_valid:
+            if len(devices) > 0:
+                self.setCurrentDevice(str(devices[0].device_guid))
+            else:
+                self.setCurrentDevice(str(dill.UUID_Invalid))
+                self.setCurrentTab("intermediate")
+
+
+    @Slot(str)
+    def setCurrentDevice(self, device_name: str) -> None:
+        device_uuid = uuid.UUID(device_name)
+        if device_uuid != self._current_device:
+            self._current_device = device_uuid
+            self.deviceChanged.emit()
+            self.inputChanged.emit()
+
+    @Slot(InputIdentifier, int)
+    def setCurrentInput(self, input: InputIdentifier, index: int) -> None:
+        value = (input, index)
+        if value != self._current_input.get(input.device_guid, None):
+            self._current_input[input.device_guid] = value
+            self.inputChanged.emit()
+
+    @Slot(str)
+    def setCurrentMode(self, mode_name: str) -> None:
+        if mode_name != self._current_mode:
+            self._current_mode = mode_name
+            self.modeChanged.emit()
+            self.deviceChanged.emit()
+            self.inputChanged.emit()
+
+    @Slot(str)
+    def setCurrentTab(self, tab: str) -> None:
+        if tab != self._current_tab:
+            self._current_tab = tab
+            self.tabChanged.emit()
+
+    @Property(str, notify=deviceChanged)
+    def currentDevice(self) -> str:
+        return str(self._current_device).upper()
+
+    @Property(InputIdentifier, notify=inputChanged)
+    def currentInput(self) -> InputIdentifier:
+        return self._current_input.get(
+            self._current_device,
+            (InputIdentifier(), 0)
+        )[0]
+
+    @Property(int, notify=inputChanged)
+    def currentInputIndex(self) -> int:
+        return self._current_input.get(
+            self._current_device,
+            (InputIdentifier(), 0)
+        )[1]
+
+    @Property(str, notify=modeChanged)
+    def currentMode(self) -> str:
+        return self._current_mode
+
+    @Property(str, notify=tabChanged)
+    def currentTab(self) -> str:
+        return self._current_tab
+
+    def __str__(self) -> str:
+        cur_input = self._current_input.get(
+            self._current_device,
+            (InputIdentifier(), 0)
+        )
+        return f"{self._current_device} {cur_input[0].input_id} " + \
+            f"{cur_input[1]}  {self._current_tab}"
+
+
 @common.SingletonDecorator
 class Backend(QtCore.QObject):
 
@@ -43,13 +160,12 @@ class Backend(QtCore.QObject):
 
     windowTitleChanged = Signal()
     profileChanged = Signal()
-    uiModeChanged = Signal()
     recentProfilesChanged = Signal()
     lastErrorChanged = Signal()
     inputConfigurationChanged = Signal()
     activityChanged = Signal()
     propertyChanged = Signal()
-    scriptsChanged = Signal()
+    uiChanged = Signal()
 
     def __init__(self, engine: QtQml.QQmlApplicationEngine, parent=None):
         super().__init__(parent)
@@ -59,15 +175,15 @@ class Backend(QtCore.QObject):
         self._last_error = ""
         self._action_state = {}
         self._mode_hierarchy = ModeHierarchyModel(self.profile.modes, self)
-        self._ui_mode = self.profile.modes.first_mode
         self.runner = code_runner.CodeRunner()
+        self.ui_state = UIState(self)
 
         # Hookup various mode change related callbacks
         mm = mode_manager.ModeManager()
         mm.mode_changed.connect(self._emit_change)
         self.profileChanged.connect(mm.reset)
         self.profileChanged.connect(
-            lambda: self._set_ui_mode(mm.current.name)
+            lambda: self.ui_state.setCurrentMode(mm.current.name)
         )
 
         event_handler.EventHandler().is_active.connect(
@@ -77,6 +193,10 @@ class Backend(QtCore.QObject):
     def _emit_change(self) -> None:
         """Emits the signal required for property changes to propagate."""
         self.propertyChanged.emit()
+
+    @Property(UIState, notify=uiChanged)
+    def uiState(self) -> UIState:
+        return self.ui_state
 
     @Property(bool, notify=activityChanged)
     def gremlinPaused(self) -> bool:
@@ -154,7 +274,7 @@ class Backend(QtCore.QObject):
                 identifier.device_guid,
                 identifier.input_type,
                 identifier.input_id,
-                self._ui_mode,
+                self.ui_state.currentMode,
                 False
             )
             return len(item.action_sequences)
@@ -183,7 +303,7 @@ class Backend(QtCore.QObject):
                 identifier.device_guid,
                 identifier.input_type,
                 identifier.input_id,
-                self._ui_mode,
+                self.ui_state.currentMode,
                 True
             )
             return InputItemModel(item, enumeration_index, self)
@@ -275,8 +395,9 @@ class Backend(QtCore.QObject):
         self._mode_hierarchy = ModeHierarchyModel(self.profile.modes, self)
         self.profileChanged.emit()
         signal.reloadUi.emit()
+        signal.profileChanged.emit()
 
-    @Property(type=ScriptListModel, notify=scriptsChanged)
+    @Property(type=ScriptListModel, notify=profileChanged)
     def scriptListModel(self) -> ScriptListModel:
         return ScriptListModel(self.profile.scripts, self)
 
@@ -377,19 +498,3 @@ class Backend(QtCore.QObject):
             self.display_error(
                 f"Failed to load the profile {fpath} due to:\n\n{e}"
             )
-
-    def _get_ui_mode(self) -> str:
-        return self._ui_mode
-
-    def _set_ui_mode(self, mode: str) -> None:
-        if mode != self._ui_mode:
-            self._ui_mode = mode
-            self.uiModeChanged.emit()
-            #signal.reloadUi.emit()
-
-    uiMode = Property(
-        str,
-        fget=_get_ui_mode,
-        fset=_set_ui_mode,
-        notify=uiModeChanged
-    )

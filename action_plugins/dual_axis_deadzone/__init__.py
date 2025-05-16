@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import collections
 import copy
+import logging
 import math
 from typing import Any, TYPE_CHECKING
 from xml.etree import ElementTree
@@ -27,11 +28,11 @@ from xml.etree import ElementTree
 from PySide6 import QtCore, QtGui, QtQml
 from PySide6.QtCore import Property, Signal, Slot, QCborTag
 
-from gremlin import event_handler, input_devices, spline, util
+from gremlin import event_handler, spline, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.error import GremlinError, ProfileError
 from gremlin.input_cache import Joystick
-from gremlin.joystick_handling import select_first_valid_vjoy_input
+from gremlin.input_devices import select_first_valid_vjoy_input
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, InputType, PropertyType
 from gremlin.util import clamp
@@ -79,20 +80,27 @@ class DualAxisDeadzoneFunctor(AbstractFunctor):
         )
         upper = Vector2(self.data.outer_deadzone, self.data.outer_deadzone)
 
-        px = max(0.0, min(1.0, (abs(x_value) - lower.x) / (upper.x - lower.x)))
-        py = max(0.0, min(1.0, (abs(y_value) - lower.y) / (upper.y - lower.y)))
+        try:
+            px = max(0.0, min(1.0, (abs(x_value) - lower.x) / (upper.x - lower.x)))
+            py = max(0.0, min(1.0, (abs(y_value) - lower.y) / (upper.y - lower.y)))
 
-        # Create separate value instances and set their values before passing
-        # everything on to the child functors. The event will not necessarily
-        # corespond to the correct axis but that should be fine.
-        for functor in self.functors["first"]:
+            # Create separate value instances and set their values before passing
+            # everything on to the child functors. The event will not necessarily
+            # corespond to the correct axis but that should be fine.
             value_x = copy.deepcopy(value)
             value_x.current = math.copysign(px, x_value)
-            functor(event, value_x, properties)
-        for functor in self.functors["second"]:
+            for functor in self.functors["first"]:
+                functor(event, value_x, properties)
+
             value_y = copy.deepcopy(value)
             value_y.current = math.copysign(py, y_value)
-            functor(event, value_y, properties)
+            for functor in self.functors["second"]:
+                functor(event, value_y, properties)
+        except ZeroDivisionError:
+            logging.getLogger("system").error(
+                f"DualAxisDeadzone: ({self.data.label}) deadzone limits too " +
+                f"close to each other"
+            )
 
 
 class DualAxisDeadzoneModel(ActionModel):
@@ -185,28 +193,36 @@ class DualAxisDeadzoneModel(ActionModel):
         self._binding_model.remove_action(self.sequence_index)
         self._binding_model.rootActionChanged.emit()
 
-    def _get_inner_deadzone(self) -> float:
+    @Property(float, notify=modelChanged)
+    def innerDeadzone(self) -> float:
         return self._data.inner_deadzone
 
-    def _set_inner_deadzone(self, value: float) -> None:
+    @innerDeadzone.setter
+    def innerDeadzone(self, value: float) -> None:
         if value != self._data.inner_deadzone:
-            self._data.inner_deadzone = value
+            if (self._data.outer_deadzone - value) > 0.01:
+                self._data.inner_deadzone = value
             self.modelChanged.emit()
 
-    def _get_label(self) -> str:
+    @Property(str, notify=modelChanged)
+    def label(self) -> str:
         return self._data.label
 
-    def _set_label(self, label: str) -> None:
+    @label.setter
+    def label(self, label: str) -> None:
         if label != self._data.label:
             self._data.label = label
             self.modelChanged.emit()
 
-    def _get_outer_deadzone(self) -> float:
+    @Property(float, notify=modelChanged)
+    def outerDeadzone(self) -> float:
         return self._data.outer_deadzone
 
-    def _set_outer_deadzone(self, value: float) -> None:
+    @outerDeadzone.setter
+    def outerDeadzone(self, value: float) -> None:
         if value != self._data.outer_deadzone:
-            self._data.outer_deadzone = value
+            if (value - self._data.inner_deadzone) > 0.01:
+                self._data.outer_deadzone = value
             self.modelChanged.emit()
 
     axis1 = Property(
@@ -230,26 +246,6 @@ class DualAxisDeadzoneModel(ActionModel):
         notify=modelChanged
     )
 
-    innerDeadzone = Property(
-        float,
-        fget=_get_inner_deadzone,
-        fset=_set_inner_deadzone,
-        notify=modelChanged
-    )
-
-    label = Property(
-        str,
-        fget=_get_label,
-        fset=_set_label,
-        notify=modelChanged
-    )
-
-    outerDeadzone = Property(
-        float,
-        fget=_get_outer_deadzone,
-        fset=_set_outer_deadzone,
-        notify=modelChanged
-    )
 
 class DualAxisDeadzoneData(AbstractActionData):
 
@@ -278,7 +274,7 @@ class DualAxisDeadzoneData(AbstractActionData):
 
         self.label = ""
         self.inner_deadzone = 0.0
-        self.outer_deadzone = 0.0
+        self.outer_deadzone = 1.0
         self.axis1 = InputIdentifier()
         self.axis2 = InputIdentifier()
 
@@ -347,7 +343,9 @@ class DualAxisDeadzoneData(AbstractActionData):
         return node
 
     def is_valid(self) -> bool:
-        return self.axis1.isValid and self.axis2.isValid
+        axis_valid = self.axis1.isValid and self.axis2.isValid
+        deadzone_valid = abs(self.outer_deadzone - self.inner_deadzone) >= 0.01
+        return axis_valid and deadzone_valid
 
     def _valid_selectors(self) -> list[str]:
         return ["first", "second"]

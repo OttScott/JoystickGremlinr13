@@ -46,10 +46,10 @@ Item {
             minValue: -1.0
             maxValue: _upper.value
             stepSize: 0.05
-            realValue: _root.comparator.lowerLimit
+            value: _root.comparator.lowerLimit
 
-            onRealValueModified: function() {
-                _root.comparator.lowerLimit = realValue
+            onValueModified: (newValue) => {
+                _root.comparator.lowerLimit = newValue
             }
         }
 
@@ -63,10 +63,10 @@ Item {
             minValue: _lower.value
             maxValue: 1.0
             stepSize: 0.05
-            realValue: _root.comparator.upperLimit
+            value: _root.comparator.upperLimit
 
-            onRealValueModified: function() {
-                _root.comparator.upperLimit = realValue
+            onValueModified: (newValue) => {
+                _root.comparator.upperLimit = newValue
             }
         }
     }

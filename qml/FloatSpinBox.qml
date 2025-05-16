@@ -26,59 +26,52 @@ Item {
     property real minValue: -10.0
     property real maxValue: 10.0
     property real stepSize: 0.1
-    property real realValue: 0.0
+    property real value: 0.0
     property int decimals: 2
 
-    signal realValueModified
+    readonly property int decimalFactor: Math.pow(10, _root.decimals)
+
+    signal valueModified(real value)
 
     implicitWidth: _spinbox.width
     implicitHeight: _spinbox.height
 
 
+    function toFloat(value) {
+        return value / decimalFactor
+    }
+
+    function toInt(value) {
+        return value * decimalFactor
+    }
+
     SpinBox {
         id: _spinbox
 
-        value: _root.realValue * (10 ** _root.decimals)
-        from: _root.minValue * (10 ** _root.decimals)
-        to: _root.maxValue * (10 ** _root.decimals)
-        stepSize: _root.stepSize * (10 ** _root.decimals)
+        value: toInt(_root.value)
+        from: toInt(_root.minValue)
+        to: toInt(_root.maxValue)
+        stepSize: toInt(_root.stepSize)
         editable: true
-
-        contentItem: TextInput {
-            z: 2
-            text: _spinbox.textFromValue(_spinbox.value, _spinbox.locale)
-
-            font: _spinbox.font
-            horizontalAlignment: Qt.AlignHCenter
-            verticalAlignment: Qt.AlignVCenter
-
-            readOnly: !_spinbox.editable
-            validator: _spinbox.validator
-            selectByMouse: true
-            inputMethodHints: Qt.ImhFormattedNumbersOnly
-        }
 
         validator: DoubleValidator {
             bottom: Math.min(_spinbox.from, _spinbox.to)
             top:  Math.max(_spinbox.from, _spinbox.to)
+            decimals: _root.decimals
+            notation: DoubleValidator.StandardNotation
         }
 
         textFromValue: function(value, locale) {
-            return Number(value / (10 ** _root.decimals)).toLocaleString(locale, "f", _root.decimals)
+            return Number(value / decimalFactor)
+                .toLocaleString(locale, "f", _root.decimals)
         }
 
         valueFromText: function(text, locale) {
-            return Number.fromLocaleString(locale, text) * (10 ** _root.decimals)
+            return Number.fromLocaleString(locale, text) * decimalFactor
         }
 
-        onValueModified: {
-            _root.realValueModified()
-        }
-
-        Component.onCompleted: {
-            _root.realValue = Qt.binding(
-                () => {return value / (10 ** _root.decimals)}
-            )
+        onValueChanged: {
+            _root.valueModified(toFloat(value))
         }
     }
 }

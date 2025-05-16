@@ -29,7 +29,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Property, Signal, Slot
 
 from gremlin import error, event_handler, input_devices, \
-    joystick_handling, mode_manager, shared_state, util
+    mode_manager, shared_state, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
     Value
 from gremlin.profile import Library

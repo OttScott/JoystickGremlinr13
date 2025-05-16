@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2023 Lionel Ott
+// Copyright (C) 2019 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,19 +32,18 @@ Item {
     id: _root
 
     property Device device
-    property int inputIndex
-    property InputIdentifier inputIdentifier
     property int minimumWidth: _inputList.minimumWidth
-    property alias currentIndex: _inputList.currentIndex
 
     // Sychronize input selection when the underlying device changes
     Connections {
-        target: device
+        target: uiState
 
         function onDeviceChanged()
         {
-            inputIndex = _inputList.currentIndex
-            inputIdentifier = device.inputIdentifier(inputIndex)
+            // Forcibly refresh the selected input
+            let tmp = uiState.currentInputIndex
+            _inputList.currentIndex = -1
+            _inputList.currentIndex = tmp
         }
     }
 
@@ -59,8 +58,10 @@ Item {
         delegate: _deviceDelegate
 
         onCurrentIndexChanged: {
-            inputIndex = currentIndex
-            inputIdentifier = device.inputIdentifier(currentIndex)
+            uiState.setCurrentInput(
+                device.inputIdentifier(currentIndex),
+                currentIndex
+            )
         }
 
         // Make it behave like a sensible scrolling container

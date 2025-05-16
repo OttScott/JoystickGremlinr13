@@ -108,12 +108,12 @@ Item {
             FloatSpinBox {
                 visible: ["count", "toggle", "hold"].includes(_repeatMode.currentValue)
 
-                realValue: _root.action.repeatDelay
+                value: _root.action.repeatDelay
                 minValue: 0.0
                 maxValue: 3600.0
 
-                onRealValueModified: function () {
-                    _root.action.repeatDelay = realValue
+                onValueModified: (newValue) => {
+                    _root.action.repeatDelay = newValue
                 }
             }
 
@@ -201,10 +201,10 @@ Item {
 
                         minValue: -1.0
                         maxValue: 1.0
-                        realValue: modelData.axisValue
+                        value: modelData.axisValue
 
-                        onRealValueModified: function () {
-                            modelData.axisValue = realValue
+                        onValueModified: (newValue) => {
+                            modelData.axisValue = newValue
                         }
                     }
                     ComboBox {
@@ -347,10 +347,10 @@ Item {
                     FloatSpinBox {
                         minValue: 0.0
                         maxValue: 10.0
-                        realValue: modelData.duration
+                        value: modelData.duration
 
-                        onRealValueModified: function () {
-                            modelData.duration = realValue
+                        onValueModified: (newValue) => {
+                            modelData.duration = newValue
                         }
                     }
                     Label {
@@ -401,10 +401,10 @@ Item {
                         FloatSpinBox {
                             minValue: -1.0
                             maxValue: 1.0
-                            realValue: modelData.axisValue
+                            value: modelData.axisValue
 
-                            onRealValueModified: () => {
-                                modelData.axisValue = realValue
+                            onValueModified: (newValue) => {
+                                modelData.axisValue = newValue
                             }
                         }
                         Label {

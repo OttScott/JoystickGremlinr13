@@ -137,11 +137,15 @@ Item {
                 }
 
                 FloatSpinBox {
-                    realValue: _root.action.innerDeadzone
+                    id: _innerValue
+
+                    value: _root.action.innerDeadzone
                     minValue: 0.0
                     maxValue: 1.0
 
-                    onRealValueModified: () => _root.action.innerDeadzone = realValue
+                    onValueModified: (newValue) => {
+                        _root.action.innerDeadzone = newValue
+                    }
                 }
 
                 Text {
@@ -149,11 +153,16 @@ Item {
                 }
 
                 FloatSpinBox {
-                    realValue: _root.action.outerDeadzone
+                    id: _outerValue
+
+                    value: _root.action.outerDeadzone
                     minValue: 0.0
                     maxValue: 1.0
 
-                    onRealValueModified: () => _root.action.outerDeadzone = realValue
+                    onValueModified: (newValue) => {
+                        _root.action.outerDeadzone = newValue
+
+                    }
                 }
             }
         }

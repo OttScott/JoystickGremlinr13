@@ -159,12 +159,12 @@ Item {
             FloatSpinBox {
                 minValue: 0
                 maxValue: 30
-                realValue: _root.action.timeToMaxSpeed
+                value: _root.action.timeToMaxSpeed
                 stepSize: 1.0
                 decimals: 1
 
-                onRealValueModified: function() {
-                    _root.action.timeToMaxSpeed = realValue
+                onValueModified: (newValue) => {
+                    _root.action.timeToMaxSpeed = newValue
                 }
             }
 
@@ -324,12 +324,12 @@ Item {
             FloatSpinBox {
                 minValue: 0
                 maxValue: 30
-                realValue: _root.action.timeToMaxSpeed
+                value: _root.action.timeToMaxSpeed
                 stepSize: 1.0
                 decimals: 1
 
-                onRealValueModified: function() {
-                    _root.action.timeToMaxSpeed = realValue
+                onValueModified: (newValue) => {
+                    _root.action.timeToMaxSpeed = newValue
                 }
             }
         }
