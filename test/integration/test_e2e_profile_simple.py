@@ -28,6 +28,7 @@ import dill
 from gremlin import types
 from test.integration import app_tester
 from vjoy import vjoy
+from vjoy import vjoy_interface
 
 
 @pytest.fixture(scope="module")
@@ -138,6 +139,50 @@ class TestSimpleProfile:
         vjoy_control_device.hat(index=input_hat_id).direction = di_input.value
         tester.assert_hat_eventually_equals(
             vjoy_di_device.device_guid, input_hat_id, vjoy_output
+        )
+        tester.assert_cached_hat_eventually_equals(
+            vjoy_di_device.device_guid.uuid, input_hat_id, cached_value
+        )
+        tester.assert_cached_hat_eventually_equals(
+            vjoy_di_device.device_guid.uuid, output_hat_id, cached_value
+        )
+        tester.assert_hat_eventually_equals(
+            vjoy_di_device.device_guid, output_hat_id, vjoy_output
+        )
+
+    @pytest.mark.parametrize(
+        ("di_input", "vjoy_output", "cached_value"),
+        [
+            (678, -1, types.HatDirection.Center.value),
+            (1234, -1, types.HatDirection.Center.value),
+            (12340, -1, types.HatDirection.Center.value),
+        ],
+    )
+    def test_hat_analog_values(
+        self,
+        tester: app_tester.GremlinAppTester,
+        vjoy_control_device: vjoy.VJoy,
+        vjoy_di_device: dill.DeviceSummary,
+        di_input: int,
+        vjoy_output: int,
+        cached_value: types.HatDirection | None,
+    ):
+        """Tests the scenario where the input device has analog hat values."""
+        input_hat_id = 1
+        output_hat_id = 3
+        if (
+            vjoy_control_device.hat(index=input_hat_id).hat_type
+            != vjoy.HatType.Continuous
+        ):
+            pytest.skip(
+                "Skipping analog hat values test - vJoy device needs to be configured as such."
+            )
+        # Use the vJoy device directly to set an analog value.
+        vjoy_interface.VJoyInterface.SetContPov(
+            di_input, vjoy_control_device.vjoy_id, input_hat_id
+        )
+        tester.assert_hat_eventually_equals(
+            vjoy_di_device.device_guid, input_hat_id, di_input
         )
         tester.assert_cached_hat_eventually_equals(
             vjoy_di_device.device_guid.uuid, input_hat_id, cached_value
