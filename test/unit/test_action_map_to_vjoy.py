@@ -46,7 +46,7 @@ def test_actions():
     l = Library()
     a = MapToVjoyData(types.InputType.JoystickButton)
     a.from_xml(ElementTree.fromstring(
-        open("test/xml/action_map_to_vjoy_button.xml").read()),
+        open("test/unit/xml/action_map_to_vjoy_button.xml").read()),
         l
     )
 
@@ -62,7 +62,7 @@ def test_from_xml():
     l = Library()
     r = MapToVjoyData(types.InputType.JoystickButton)
     r.from_xml(ElementTree.fromstring(
-        open("test/xml/action_map_to_vjoy_button.xml").read()),
+        open("test/unit/xml/action_map_to_vjoy_button.xml").read()),
         l
     )
     assert r.vjoy_device_id == 1
@@ -73,7 +73,7 @@ def test_from_xml():
 
     r = MapToVjoyData(types.InputType.JoystickButton)
     r.from_xml(ElementTree.fromstring(
-        open("test/xml/action_map_to_vjoy_axis.xml").read()),
+        open("test/unit/xml/action_map_to_vjoy_axis.xml").read()),
         l
     )
     assert r.vjoy_device_id == 2

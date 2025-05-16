@@ -40,7 +40,7 @@ def test_ctor():
 
 def test_from_xml():
     p = Profile()
-    p.from_xml("test/xml/profile_hierarchy.xml")
+    p.from_xml("test/unit/xml/profile_hierarchy.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 
@@ -52,7 +52,7 @@ def test_from_xml():
 
 def test_action_methods():
     p = Profile()
-    p.from_xml("test/xml/profile_hierarchy.xml")
+    p.from_xml("test/unit/xml/profile_hierarchy.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 

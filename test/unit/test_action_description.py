@@ -50,7 +50,7 @@ def test_actions():
     a = DescriptionData()
     a.from_xml(
         ElementTree.fromstring(
-            open("test/xml/action_description_simple.xml").read(),
+            open("test/unit/xml/action_description_simple.xml").read(),
         ),
         l
     )
@@ -92,7 +92,7 @@ def test_model_from_xml():
     a = DescriptionData()
     a.from_xml(
         ElementTree.fromstring(
-            open("test/xml/action_description_simple.xml").read(),
+            open("test/unit/xml/action_description_simple.xml").read(),
         ),
         l
     )

@@ -44,7 +44,7 @@ def test_ctor():
 
 def test_from_xml():
     p = Profile()
-    p.from_xml("test/xml/action_merge_axis.xml")
+    p.from_xml("test/unit/xml/action_merge_axis.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 

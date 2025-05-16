@@ -46,21 +46,6 @@ _ASSERT_EVENTUALLY_RETRY_DELAY = 0.01  # Seconds
 
 
 # +-------------------------------------------------------------------------
-# | Overriden parent fixtures.
-# +-------------------------------------------------------------------------
-
-
-@pytest.fixture(scope="session", autouse=True)
-def joystick_init():
-    """Override this fixture from the parent conftest."""
-
-
-@pytest.fixture(scope="session", autouse=True)
-def terminate_event_listener():
-    """Override this fixture from the parent conftest."""
-
-
-# +-------------------------------------------------------------------------
 # | Common fixtures, override in modules as needed.
 # +-------------------------------------------------------------------------
 
@@ -129,7 +114,7 @@ def profile_for_testing(
 @pytest.fixture(scope="module")
 def profile_path(profile_name: str) -> str:
     """Returns profile path. Requires test modules to define the profile_name fixture."""
-    return os.path.join(os.path.dirname(__file__), "..", "xml", profile_name)
+    return os.path.join(os.path.dirname(__file__), "xml", profile_name)
 
 
 @pytest.fixture(scope="module")
