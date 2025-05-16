@@ -5,8 +5,8 @@ import pytest
 
 import dill
 
-import gremlin.event_handler
 import gremlin.input_devices
+import gremlin.event_handler
 
 
 @pytest.fixture(scope="session", autouse=True)
