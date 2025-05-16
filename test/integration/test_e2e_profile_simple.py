@@ -25,6 +25,8 @@ sys.path.append(".")
 import pytest
 
 import dill
+from gremlin import types
+from test.integration import app_tester
 from vjoy import vjoy
 
 
@@ -37,28 +39,27 @@ class TestSimpleProfile:
     """Tests for a simple profile."""
 
     @pytest.mark.parametrize(
-        ("di_input", "vjoy_input", "vjoy_output"),
+        "di_input",
         [
-            (0.7, 22934, 22930),
-            (0.5, 16380, 16376),
-            (0.2, 6549, 6545),
-            (0, -2, -6),
-            (1, 32765, 32763),
-            (-0.2, -6556, -6576),
-            (-0.5, -16386, -16434),
-            (-0.7, -22940, -23004),
-            (-1, -32768, -32768),
+            0.7,
+            0.5,
+            0.2,
+            0,
+            1,
+            -0.2,
+            -0.5,
+            -0.7,
+            -1,
         ],
     )
     def test_axis(
         self,
-        app_tester,
+        tester: app_tester.GremlinAppTester,
         vjoy_control_device: vjoy.VJoy,
         vjoy_di_device: dill.DeviceSummary,
         di_input: float,
-        vjoy_input: int,
-        vjoy_output: int,
     ):
+        axis_value_int = tester.AXIS_MAX_INT * di_input
         input_axis_id = 1
         output_axis_id = 3
         vjoy_control_device.axis(linear_index=input_axis_id).set_absolute_value(
@@ -66,64 +67,84 @@ class TestSimpleProfile:
         )
         # There is a small discrepancy between these values, for unknown reasons
         # (unclear if this is a Gremlin bug).
-        app_tester.assert_axis_eventually_equals(
-            vjoy_di_device, input_axis_id, pytest.approx(vjoy_input, abs=1)
+        tester.assert_axis_eventually_equals(
+            vjoy_di_device.device_guid, input_axis_id, axis_value_int
         )
-        app_tester.assert_axis_eventually_equals(
-            vjoy_di_device, output_axis_id, pytest.approx(vjoy_output, abs=1)
+        tester.assert_cached_axis_eventually_equals(
+            vjoy_di_device.device_guid.uuid, input_axis_id, di_input
+        )
+        tester.assert_cached_axis_eventually_equals(
+            vjoy_di_device.device_guid.uuid, output_axis_id, di_input
+        )
+        tester.assert_axis_eventually_equals(
+            vjoy_di_device.device_guid, output_axis_id, axis_value_int
         )
 
     @pytest.mark.parametrize(
-        ("di_input", "vjoy_output"),
-        [(False, 0), (True, 1), (False, 0), (True, 1)],
+        ("di_input", "vjoy_output", "cached_value"),
+        [(False, 0, None), (True, 1, True), (False, 0, False), (True, 1, True)],
     )
     def test_button(
         self,
-        app_tester,
+        tester: app_tester.GremlinAppTester,
         vjoy_control_device: vjoy.VJoy,
         vjoy_di_device: dill.DeviceSummary,
         di_input: bool,
         vjoy_output: int,
+        cached_value: bool | None,
     ):
         input_button_id = 1
         output_button_id = 3
         vjoy_control_device.button(index=input_button_id).is_pressed = di_input
-        app_tester.assert_button_eventually_equals(
-            vjoy_di_device, input_button_id, vjoy_output
+        tester.assert_button_eventually_equals(
+            vjoy_di_device.device_guid, input_button_id, vjoy_output
         )
-        app_tester.assert_button_eventually_equals(
-            vjoy_di_device, output_button_id, vjoy_output
+        tester.assert_cached_button_eventually_equals(
+            vjoy_di_device.device_guid.uuid, input_button_id, cached_value
+        )
+        tester.assert_cached_button_eventually_equals(
+            vjoy_di_device.device_guid.uuid, output_button_id, cached_value
+        )
+        tester.assert_button_eventually_equals(
+            vjoy_di_device.device_guid, output_button_id, vjoy_output
         )
 
     @pytest.mark.parametrize(
-        ("di_input", "vjoy_output"),
+        ("di_input", "vjoy_output", "cached_value"),
         [
-            ((0, 0), -1),
-            ((0, 1), 0),
-            ((1, 1), 4500),
-            ((1, 0), 9000),
-            ((1, -1), 13500),
-            ((0, -1), 18000),
-            ((-1, -1), 22500),
-            ((-1, 0), 27000),
-            ((-1, 1), 31500),
-            ((0, 1), 0),
+            (types.HatDirection.Center, -1, None),
+            (types.HatDirection.North, 0, types.HatDirection.North.value),
+            (types.HatDirection.NorthEast, 4500, types.HatDirection.NorthEast.value),
+            (types.HatDirection.East, 9000, types.HatDirection.East.value),
+            (types.HatDirection.SouthEast, 13500, types.HatDirection.SouthEast.value),
+            (types.HatDirection.South, 18000, types.HatDirection.South.value),
+            (types.HatDirection.SouthWest, 22500, types.HatDirection.SouthWest.value),
+            (types.HatDirection.West, 27000, types.HatDirection.West.value),
+            (types.HatDirection.NorthWest, 31500, types.HatDirection.NorthWest.value),
+            (types.HatDirection.North, 0, types.HatDirection.North.value),
         ],
     )
     def test_hat(
         self,
-        app_tester,
+        tester: app_tester.GremlinAppTester,
         vjoy_control_device: vjoy.VJoy,
         vjoy_di_device: dill.DeviceSummary,
-        di_input: tuple[int, int],
-        vjoy_output: tuple[int, int],
+        di_input: types.HatDirection,
+        vjoy_output: int,
+        cached_value: types.HatDirection | None,
     ):
         input_hat_id = 1
         output_hat_id = 3
-        vjoy_control_device.hat(index=input_hat_id).direction = di_input
-        app_tester.assert_hat_eventually_equals(
-            vjoy_di_device, input_hat_id, vjoy_output
+        vjoy_control_device.hat(index=input_hat_id).direction = di_input.value
+        tester.assert_hat_eventually_equals(
+            vjoy_di_device.device_guid, input_hat_id, vjoy_output
         )
-        app_tester.assert_hat_eventually_equals(
-            vjoy_di_device, output_hat_id, vjoy_output
+        tester.assert_cached_hat_eventually_equals(
+            vjoy_di_device.device_guid.uuid, input_hat_id, cached_value
+        )
+        tester.assert_cached_hat_eventually_equals(
+            vjoy_di_device.device_guid.uuid, output_hat_id, cached_value
+        )
+        tester.assert_hat_eventually_equals(
+            vjoy_di_device.device_guid, output_hat_id, vjoy_output
         )

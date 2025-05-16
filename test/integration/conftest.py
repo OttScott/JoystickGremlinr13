@@ -19,13 +19,10 @@ import sys
 
 sys.path.append(".")
 
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 import logging
 import os.path
 import tempfile
-import time
-from typing import TypeVar
-from xml.etree import ElementTree
 
 from PySide6 import QtWidgets
 import pytest
@@ -39,10 +36,8 @@ import joystick_gremlin
 from vjoy import vjoy
 from action_plugins import map_to_vjoy
 
-_InputTypeT = TypeVar("_InputTypeT", int, float, bool)
-
-_ASSERT_EVENTUALLY_MAX_DELAY = 1  # Seconds
-_ASSERT_EVENTUALLY_RETRY_DELAY = 0.01  # Seconds
+pytest.register_assert_rewrite("test.integration.app_tester")
+from test.integration import app_tester
 
 
 # +-------------------------------------------------------------------------
@@ -118,13 +113,11 @@ def profile_path(profile_name: str) -> str:
 
 
 @pytest.fixture(scope="module")
-def edited_profile_path(
-    profile_for_testing: gremlin.profile.Profile
-) -> Iterator[str]:
+def edited_profile_path(profile_for_testing: gremlin.profile.Profile) -> Iterator[str]:
     with tempfile.NamedTemporaryFile(delete_on_close=False) as f:
-      f.close()
-      profile_for_testing.to_xml(f.name)
-      yield f.name
+        f.close()
+        profile_for_testing.to_xml(f.name)
+        yield f.name
 
 
 @pytest.fixture(scope="module", params=None)
@@ -171,7 +164,7 @@ def vjoy_ids_or_skip() -> list[int]:
 
 
 # Do not use directly, see app_tester fixture instead.
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 def _gremlin_app() -> Iterator[QtWidgets.QApplication]:
     """Yields the Gremlin app."""
     argv = [sys.argv[0]]
@@ -197,81 +190,6 @@ def _activate_gremlin(edited_profile_path: str) -> Iterator[None]:
 # +-------------------------------------------------------------------------
 
 
-class GremlinAppTester:
-    """Helper class for assertions in integration tests."""
-
-    def __init__(self, app: QtWidgets.QApplication):
-        self.app = app
-
-    def _assert_input_eventually_equals(
-        self,
-        fresh_input_cb: Callable[[], _InputTypeT],
-        expected: _InputTypeT,
-        min_delay: float = 0,
-        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
-    ):
-        start_t = time.monotonic()
-        last_exception = None
-        while time.monotonic() - start_t < max_delay:
-            try:
-                self.app.processEvents()
-                assert fresh_input_cb() == expected
-            except AssertionError as e:
-                last_exception = e
-                time.sleep(_ASSERT_EVENTUALLY_RETRY_DELAY)
-            else:
-                assert time.monotonic() - start_t >= min_delay
-                return
-        else:
-            if last_exception is not None:
-                raise last_exception
-
-    def assert_axis_eventually_equals(
-        self,
-        di_device_guid: dill.DeviceSummary,
-        axis_id: int,
-        expected: int,
-        min_delay: float = 0,
-        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
-    ):
-        self._assert_input_eventually_equals(
-            lambda: dill.DILL.get_axis(di_device_guid.device_guid, axis_id),
-            expected,
-            min_delay,
-            max_delay,
-        )
-
-    def assert_button_eventually_equals(
-        self,
-        di_device_guid: dill.DeviceSummary,
-        button_id: int,
-        expected: bool,
-        min_delay: float = 0,
-        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
-    ):
-        self._assert_input_eventually_equals(
-            lambda: dill.DILL.get_button(di_device_guid.device_guid, button_id),
-            expected,
-            min_delay,
-            max_delay,
-        )
-
-    def assert_hat_eventually_equals(
-        self,
-        di_device_guid: dill.DeviceSummary,
-        hat_id: int,
-        expected: int,
-        min_delay: float = 0,
-        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
-    ):
-        self._assert_input_eventually_equals(
-            lambda: dill.DILL.get_hat(di_device_guid.device_guid, hat_id),
-            expected,
-            min_delay,
-            max_delay,
-        )
-
-
 @pytest.fixture
-def app_tester(_gremlin_app: QtWidgets.QApplication) -> GremlinAppTester:
-    return GremlinAppTester(_gremlin_app)
+def tester(_gremlin_app: QtWidgets.QApplication) -> app_tester.GremlinAppTester:
+    return app_tester.GremlinAppTester(_gremlin_app)

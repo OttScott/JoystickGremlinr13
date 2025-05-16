@@ -33,10 +33,10 @@ Each module in this directory should consist of tests against a single profile. 
 that each profile contain tightly scoped functionality to make it easier to track down failures.
 
 Each module should define a fixture `profile_name`, that returns the name of the profile in the
-[`xml`](../xml/) directory. It is recommended to use a class to organize tests. Each test would
+[`xml`](./xml/) directory. It is recommended to use a class to organize tests. Each test would
 typically use three fixtures:
 
-1.   `app_tester` to run assertions.
+1.   `tester` to run assertions.
 2.   `vjoy_control_device` as the vJoy device that will have control inputs written to.
 3.   `vjoy_di_device` as the vJoy device that will have mapped outputs read and verified.
      1.   In most tests, these can be the same device, but they are instances of different
@@ -55,7 +55,7 @@ Typically the steps would be:
     1.   Map DirectInput device axes 1-4 to vJoy axes 5-7.
     2.   Map DirectInput buttons 1-16 to vJoy buttons 17-32.
     3.   Map DirectInput POVs 1-2 to vJoy POVs 3-4.
-3.  Save the profile to the [`xml`](../xml/) directory.
+3.  Save the profile to the [`xml`](./xml/) directory.
 
 ## Running
 
