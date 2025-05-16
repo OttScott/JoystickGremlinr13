@@ -30,14 +30,14 @@ from xml.etree import ElementTree
 from PySide6 import QtWidgets
 import pytest
 
-from action_plugins import map_to_vjoy
 import dill
 import gremlin.error
-import gremlin.joystick_handling
+import gremlin.input_devices
 import gremlin.profile
 import gremlin.ui.backend
 import joystick_gremlin
 from vjoy import vjoy
+from action_plugins import map_to_vjoy
 
 _InputTypeT = TypeVar("_InputTypeT", int, float, bool)
 
@@ -129,18 +129,18 @@ def edited_profile_path(
 
 @pytest.fixture(scope="module", params=None)
 def vjoy_control_device(vjoy_control_device_id: int) -> Iterator[vjoy.VJoy]:
-    vjoy_control = gremlin.joystick_handling.VJoyProxy()[vjoy_control_device_id]
+    vjoy_control = gremlin.input_devices.VJoyProxy()[vjoy_control_device_id]
     try:
         yield vjoy_control
     finally:
         vjoy_control.invalidate()
-        gremlin.joystick_handling.VJoyProxy.reset()
+        gremlin.input_devices.VJoyProxy.reset()
 
 
 @pytest.fixture(scope="session")
 def vjoy_di_devices_or_skip() -> list[dill.DeviceSummary]:
     """Returns list of DirectInput vJoy devices summaries if any, else skips dependent tests."""
-    vjoy_devices = gremlin.joystick_handling.vjoy_devices()
+    vjoy_devices = gremlin.input_devices.vjoy_devices()
     if len(vjoy_devices) == 0:
         pytest.skip("No vJoy input devices found")
     return vjoy_devices
@@ -153,9 +153,9 @@ def vjoy_ids_or_skip() -> list[int]:
     We return IDs instead of the control devices to not acquire vJoy devices a
     test might not actually use.
     """
-    # TODO: Share this functionality with joystick_handling.py
+    # TODO: Share this functionality with input_devices.py
     vjoy_ids = []
-    vjoy_proxy = gremlin.joystick_handling.VJoyProxy()
+    vjoy_proxy = gremlin.input_devices.VJoyProxy()
     for i in range(1, 17):
         if vjoy.device_exists(i):
             try:
