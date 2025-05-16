@@ -167,7 +167,7 @@ class TestSimpleProfile:
         vjoy_output: int,
         cached_value: types.HatDirection | None,
     ):
-        """Tests the scenario where the input device has analog hat values."""
+        """Tests the scenario where the input device has non-enum hat values."""
         input_hat_id = 1
         output_hat_id = 3
         if (
@@ -177,7 +177,7 @@ class TestSimpleProfile:
             pytest.skip(
                 "Skipping analog hat values test - vJoy device needs to be configured as such."
             )
-        # Use the vJoy device directly to set an analog value.
+        # Use the vJoy device directly to set a non-enum continuous value.
         vjoy_interface.VJoyInterface.SetContPov(
             di_input, vjoy_control_device.vjoy_id, input_hat_id
         )
