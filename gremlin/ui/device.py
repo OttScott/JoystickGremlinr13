@@ -259,7 +259,7 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._devices = evice_initialization.physical_devices()
+        self._devices = device_initialization.physical_devices()
 
         event_handler.EventListener().device_change_event.connect(
             self.update_model
