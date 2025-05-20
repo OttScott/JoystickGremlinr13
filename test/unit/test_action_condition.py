@@ -38,7 +38,7 @@ import action_plugins.condition as condition
 
 def test_from_xml():
     p = Profile()
-    p.from_xml("test/xml/action_condition_simple.xml")
+    p.from_xml("test/unit/xml/action_condition_simple.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 
@@ -58,7 +58,7 @@ def test_from_xml():
 
 def test_from_xml_complex():
     p = Profile()
-    p.from_xml("test/xml/action_condition_complex.xml")
+    p.from_xml("test/unit/xml/action_condition_complex.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 
@@ -148,7 +148,7 @@ def test_to_xml():
 
 def test_action_methods():
     p = Profile()
-    p.from_xml("test/xml/action_condition_simple.xml")
+    p.from_xml("test/unit/xml/action_condition_simple.xml")
 
     a = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
 

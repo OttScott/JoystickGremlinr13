@@ -37,14 +37,14 @@ import action_plugins.tempo
 def test_constructor_invalid():
     p = Profile()
     with pytest.raises(ValueError):
-        p.from_xml("test/xml/profile_invalid.xml")
+        p.from_xml("test/unit/xml/profile_invalid.xml")
 
 
 def test_simple_action():
     gremlin.plugin_manager.PluginManager()
 
     p = Profile()
-    p.from_xml("test/xml/profile_simple.xml")
+    p.from_xml("test/unit/xml/profile_simple.xml")
 
     guid = uuid.UUID("{af3d9175-30a7-4d77-aed5-e1b5e0b71efc}")
 
@@ -76,7 +76,7 @@ def test_hierarchy():
 
     c = Configuration()
     p = Profile()
-    p.from_xml("test/xml/profile_hierarchy.xml")
+    p.from_xml("test/unit/xml/profile_hierarchy.xml")
 
     root = p.library.get_action(uuid.UUID("ac905a47-9ad3-4b65-b702-fbae1d133609"))
     assert len(root.get_actions()[0]) == 3
@@ -99,7 +99,7 @@ def test_hierarchy():
 
 def test_mode_hierarchy():
     p = Profile()
-    p.from_xml("test/xml/profile_mode_hierarchy.xml")
+    p.from_xml("test/unit/xml/profile_mode_hierarchy.xml")
 
     assert p.modes.mode_names() == ["Child", "Deep", "Default", "Levels", "Separate", "Three"]
     assert p.modes.first_mode == "Default"

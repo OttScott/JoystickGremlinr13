@@ -108,7 +108,7 @@ class TestModeHierarchy:
 
     def test_complex_modifications(self):
         p = Profile()
-        p.from_xml("test/xml/profile_realistic.xml")
+        p.from_xml("test/unit/xml/profile_realistic.xml")
         mh = p.modes
 
         assert set(mh.mode_names()) == set(["Default", "Second", "Child"])
