@@ -92,11 +92,14 @@ class Configuration:
             for group, grp_data in sec_data.items():
                 for name, entry in grp_data.items():
                     data_type = PropertyType.to_enum(entry["data_type"])
+                    value = entry["value"]
+
+                    # Only parse types for which there is a conversion
+                    if data_type in util._property_to_string:
+                        value =  util.property_from_string(data_type, value)
+
                     self._data[(section, group, name)] = {
-                        "value": util.property_from_string(
-                            data_type,
-                            entry["value"]
-                        ),
+                        "value": value,
                         "data_type": data_type,
                         "description": entry["description"],
                         "properties": entry["properties"],
@@ -119,11 +122,16 @@ class Configuration:
                 json_data[section] = {}
             if group not in json_data[section]:
                 json_data[section][group] = {}
+
+            # Only convert values which we can. Certain types such as a list
+            # can be stored directly, and we don't want to convert them to a
+            # string representation
+            value = entry["value"]
+            if entry["data_type"] in util._property_to_string:
+                value = util.property_to_string(entry["data_type"], value)
+
             json_data[section][group][name] = {
-                "value": util.property_to_string(
-                    entry["data_type"],
-                    entry["value"],
-                ),
+                "value": value,
                 "data_type": PropertyType.to_string(entry["data_type"]),
                 "description": entry["description"],
                 "properties": entry["properties"],
@@ -449,8 +457,7 @@ class Configuration:
             Tuple containing calibration data
         """
         if self.exists("calibration", str(uuid).upper(), str(axis_id)):
-            data = self.value("calibration", str(uuid).upper(), str(axis_id))
-            return [int(v) for v in data[:-1]] + [util.parse_bool(data[-1])]
+            return self.value("calibration", str(uuid).upper(), str(axis_id))
         else:
             return [-32768, 0, 0, 32767, True]
 
