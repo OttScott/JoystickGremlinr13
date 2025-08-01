@@ -74,6 +74,8 @@ class ConfigGroupModel(QtCore.QAbstractListModel):
     list model.
     """
 
+    changed = Signal()
+
     roles = {
         QtCore.Qt.UserRole + 1: QtCore.QByteArray("groupName".encode()),
         QtCore.Qt.UserRole + 2: QtCore.QByteArray("entryModel".encode()),
@@ -84,6 +86,10 @@ class ConfigGroupModel(QtCore.QAbstractListModel):
 
         self._config = gremlin.config.Configuration()
         self._section_name = section
+
+    @Property(str, notify=changed)
+    def sectionName(self) -> str:
+        return self._section_name
 
     def rowCount(self, parent: Optional[QtCore.QModelIndex]) -> int:
         return len(self._config.groups(self._section_name))

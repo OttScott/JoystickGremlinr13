@@ -62,6 +62,7 @@ gremlin.util.setup_userprofile()
 import gremlin.config
 import gremlin.error
 import gremlin.device_initialization
+import gremlin.event_handler
 import gremlin.plugin_manager
 import gremlin.types
 import gremlin.signal
@@ -142,6 +143,35 @@ def register_config_options() -> None:
         "Directory containing additional action plugins", {},
         True
     )
+    cfg.register(
+        "global", "general", "action_priorities",
+        PropertyType.List, [],
+        "Priority order of the actions", {},
+        True
+
+    )
+
+
+def update_action_priorities():
+    cfg = gremlin.config.Configuration()
+    key = ["global", "general", "action_priorities"]
+    priorities = []
+    if cfg.exists(*key):
+        priorities = cfg.value(*key)
+    priorities_tags = [v[0] for v in priorities]
+    plugin_tags = gremlin.plugin_manager.PluginManager().repository.keys()
+
+    for tag in plugin_tags:
+        if tag not in priorities_tags:
+            priorities.append((tag, True))
+    to_delete = []
+    for i, tag in enumerate(priorities_tags):
+        if tag not in plugin_tags:
+            to_delete.append(i)
+    for idx in reversed(to_delete):
+        del priorities[idx]
+
+    cfg.set(*key, priorities)
 
 
 def make_gremlin_app(argv):
@@ -257,9 +287,10 @@ def make_gremlin_app(argv):
     syslog.info("Initializing plugins")
     gremlin.plugin_manager.PluginManager()
 
-    # Purgre configuration options that have not been registered
+    # Purgre configuration options that have not been registered and update
+    # the action priority information
     cfg.purge_unused()
-
+    update_action_priorities()
 
     # +-------------------------------------------------------------------------
     # | Start Gremlin UI

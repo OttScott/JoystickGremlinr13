@@ -22,6 +22,7 @@ from typing import List, Optional, Tuple, TYPE_CHECKING
 from PySide6 import QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot
 
+import gremlin.config
 from gremlin import input_cache
 from gremlin.error import MissingImplementationError, GremlinError
 from gremlin.plugin_manager import PluginManager
@@ -344,3 +345,40 @@ class ActionModel(QtCore.QObject):
         fset=_set_activate_on_release,
         notify=actionChanged
     )
+
+
+class ActionPriorityListModel(QtCore.QAbstractListModel):
+
+    # TODO: Needs to be treated as a normal action property type and then
+    #       rendered in the UI
+
+    roles = {
+        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
+        QtCore.Qt.UserRole + 2: QtCore.QByteArray("visible".encode()),
+    }
+
+    def __init__(self, parent: QtCore.QObject=...) -> None:
+        super().__init__(parent)
+        self._config = gremlin.config.Configuration()
+        self._cfg_key = ["global", "general", "action_priorities"]
+
+    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+        return len(self._config.value(*self._cfg_key))
+
+    def data(self, index: QtCore.QModelIndex, role: int=...) -> int:
+        if role in ActionPriorityListModel.roles:
+            role_name = ActionPriorityListModel.roles[role].data().decode()
+            data = self._config.value(*self._cfg_key)[index.row()]
+            match role_name:
+                case "name":
+                    return data[0]
+                case "visible":
+                    return data[1]
+                case _:
+                    raise GremlinError(f"Unknown role name {role_name}")
+
+        else:
+            raise GremlinError("Invalid role encountered")
+
+    def roleNames(self) -> Dict:
+        return ActionPriorityListModel.roles

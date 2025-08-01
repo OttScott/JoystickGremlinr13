@@ -22,7 +22,7 @@ import os
 import re
 import uuid
 
-from typing import Any
+from typing import Any, List, Tuple
 
 from PySide6 import QtCore
 
@@ -205,7 +205,7 @@ class Configuration:
                 logging.getLogger("system").warning(
                     f"Data type for parameter '{key}' changed, updating from " +
                     f"'{self._data[key]["data_type"]}' to '{data_type}'")
-                self._data.key["data_type"] = data_type
+                self._data[key]["data_type"] = data_type
 
             if description != self._data[key]["description"]:
                 self._data[key]["description"] = description
@@ -446,7 +446,7 @@ class Configuration:
             self,
             uuid: uuid.UUID,
             axis_id: int
-    ) -> list[int, int, int, int, bool]:
+    ) -> tuple[int, int, int, int, bool]:
         """Returns the calibration data of a given axis.
 
         Args:
@@ -459,13 +459,13 @@ class Configuration:
         if self.exists("calibration", str(uuid).upper(), str(axis_id)):
             return self.value("calibration", str(uuid).upper(), str(axis_id))
         else:
-            return [-32768, 0, 0, 32767, True]
+            return (-32768, 0, 0, 32767, True)
 
     def set_calibration(
             self,
             uuid: uuid.UUID,
             axis_id: int,
-            data: list[int, int, int, int, bool]
+            data: Tuple[int, int, int, int, bool]
     ) -> None:
         self.set("calibration", str(uuid).upper(), str(axis_id), data)
 

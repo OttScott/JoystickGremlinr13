@@ -277,7 +277,7 @@ class DeviceListModel(QtCore.QAbstractListModel):
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self._devices)
 
-    def data(self, index:QtCore.QModelIndex, role:int=...) -> Any:
+    def data(self, index: QtCore.QModelIndex, role: int=...) -> Any:
         if role in DeviceListModel.roles:
             role_name = DeviceListModel.roles[role].data().decode()
             return DeviceListModel.role_query[role_name](
