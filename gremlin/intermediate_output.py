@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2023 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ class IntermediateOutput:
 
         """General input class, base class for all other inputs."""
 
-        def __init__(self, label: str, index: uuid.UUID):
+        def __init__(self, label: str, index: uuid.UUID) -> None:
             """Creates a new Input instance.
 
             Args:
@@ -66,51 +66,54 @@ class IntermediateOutput:
             return self._input_type()
 
         @property
-        def suffix(self):
+        def suffix(self) -> str:
             return str(self._guid).split("-")[0]
 
-        def _input_type(self):
+        def _input_type(self) -> InputType:
             raise MissingImplementationError("Input._input_type not implemented")
 
 
     class Axis(Input):
 
-        def __init__(self, label: str, index: uuid.UUID):
+        def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
 
-        def _input_type(self):
+        def _input_type(self) -> InputType:
             return InputType.JoystickAxis
 
         @property
         def value(self) -> float:
+            assert isinstance(self._value, float)
             return self._value
 
     class Button(Input):
 
-        def __init__(self, label: str, index: uuid.UUID):
+        def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
 
-        def _input_type(self):
+        def _input_type(self) -> InputType:
             return InputType.JoystickButton
 
         @property
         def is_pressed(self) -> bool:
+            assert isinstance(self._value, bool)
             return self._value
 
     class Hat(Input):
 
-        def __init__(self, label: str, index: uuid.UUID):
+        def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
 
-        def _input_type(self):
+        def _input_type(self) -> InputType:
             return InputType.JoystickHat
 
         @property
         def direction(self) -> HatDirection:
+            assert isinstance(self._value, HatDirection)
             return self._value
 
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._inputs = {}
         self._label_lookup = {}
 
@@ -158,7 +161,7 @@ class IntermediateOutput:
         self._inputs[guid] = do_create[type](label, guid)
         self._label_lookup[label] = guid
 
-    def reset(self):
+    def reset(self) -> None:
         """Resets the IO system to contain no entries."""
         self._inputs = {}
         self._label_lookup = {}
@@ -258,29 +261,6 @@ class IntermediateOutput:
     @property
     def hat_count(self) -> int:
         return len(self.inputs_of_type([InputType.JoystickHat]))
-
-    def _get_input(
-            self,
-            type: InputType,
-            key: uuid.UUID | str
-    ) -> Axis | Button | Hat:
-        """Returns the input instance corresponding to the given type and key.
-
-        Args:
-            type: InputType of the input to return
-            key: the index or label associated with the input to return
-
-        Returns:
-            Input instance matching the type and key specification
-        """
-        try:
-            if isinstance(key, uuid.UUID):
-                key = self._index_lookup[(type, key)]
-            return self._inputs[type][key]
-        except KeyError:
-            raise GremlinError(
-                f"No input with key '{key} for type {InputType.to_string(type)}"
-            )
 
     def _identifier_to_guid(self, identifier: str | uuid.UUID) -> uuid.UUID:
         """Returns the guid for the provided identifier.
