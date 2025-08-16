@@ -18,13 +18,16 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from PySide6 import QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot
 
 import gremlin.config
 from gremlin.types import PropertyType
+
+if TYPE_CHECKING:
+    import gremlin.ui.type_aliases as ta
 
 
 QML_IMPORT_NAME = "Gremlin.Config"
@@ -37,8 +40,8 @@ class ConfigSectionModel(QtCore.QAbstractListModel):
     """Exposes the sections present in the configuration as a list model."""
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("groupModel".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"groupModel"),
     }
 
     def __init__(self, parent: Optional[QtCore.QObject]=None) -> None:
@@ -46,25 +49,29 @@ class ConfigSectionModel(QtCore.QAbstractListModel):
 
         self._config = gremlin.config.Configuration()
 
-    def rowCount(self, parent: Optional[QtCore.QModelIndex]) -> int:
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         return len(self._config.sections())
 
-    def data(self, index: QtCore.QModelIndex, role: int) -> Any:
-        if role not in ConfigSectionModel.roles:
+    def data(
+            self,
+            index: ta.ModelIndex,
+            role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        if role not in self.roles:
             return None
 
         sections = self._config.sections()
         if index.row() >= len(sections):
             return None
 
-        role_name = ConfigSectionModel.roles[role].data().decode()
-        if role_name == "name":
-            return sections[index.row()]
-        elif role_name == "groupModel":
-            return ConfigGroupModel(sections[index.row()])
+        match self.roles[role]:
+            case "name":
+                return sections[index.row()]
+            case "groupModel":
+                return ConfigGroupModel(sections[index.row()])
 
     def roleNames(self) -> Dict[int, QtCore.QByteArray]:
-        return ConfigSectionModel.roles
+        return self.roles
 
 
 @QtQml.QmlElement
@@ -77,8 +84,8 @@ class ConfigGroupModel(QtCore.QAbstractListModel):
     changed = Signal()
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("groupName".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("entryModel".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"groupName"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"entryModel"),
     }
 
     def __init__(self, section: str, parent: Optional[QtCore.QObject]=None) -> None:
@@ -87,26 +94,32 @@ class ConfigGroupModel(QtCore.QAbstractListModel):
         self._config = gremlin.config.Configuration()
         self._section_name = section
 
-    @Property(str, notify=changed)
+    @Property(str, notify=changed) # type: ignore
     def sectionName(self) -> str:
         return self._section_name
 
-    def rowCount(self, parent: Optional[QtCore.QModelIndex]) -> int:
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         return len(self._config.groups(self._section_name))
 
-    def data(self, index: QtCore.QModelIndex, role: int) -> Any:
+    def data(
+            self,
+            index: ta.ModelIndex,
+            role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
         groups = self._config.groups(self._section_name)
         if index.row() < len(groups):
-            role_name = ConfigGroupModel.roles[role].data().decode()
-            if role_name == "entryModel":
-                return ConfigEntryModel(self._section_name, groups[index.row()])
-            elif role_name == "groupName":
-                return groups[index.row()]
+            match self.roles[role]:
+                case "entryModel":
+                    return ConfigEntryModel(
+                        self._section_name, groups[index.row()]
+                    )
+                case "groupName":
+                    return groups[index.row()]
         else:
             return None
 
     def roleNames(self) -> Dict[int, QtCore.QByteArray]:
-        return ConfigGroupModel.roles
+        return self.roles
 
 
 @QtQml.QmlElement
@@ -115,10 +128,10 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
     """Exposes the entries in a section's group as a list model."""
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("data_type".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("value".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("description".encode()),
-        QtCore.Qt.UserRole + 4: QtCore.QByteArray("properties".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"data_type"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"value"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"description"),
+        QtCore.Qt.ItemDataRole.UserRole + 4: QtCore.QByteArray(b"properties"),
     }
 
     def __init__(
@@ -133,16 +146,22 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
         self._section_name = section
         self._group_name = group
 
-    def rowCount(self, parent: QtCore.QModelIndex) -> int:
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         return len(self._config.entries(self._section_name, self._group_name))
 
-    def data(self, index: QtCore.QModelIndex, role: int) -> Any:
+    def data(
+            self,
+            index: ta.ModelIndex,
+            role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
         entries = self._config.entries(self._section_name, self._group_name)
         if not index.isValid() or index.row() >= len(entries):
             return None
 
-        if role in ConfigEntryModel.roles:
-            role_name = ConfigEntryModel.roles[role].data().decode()
+        if role in self.roles:
+            role_name = bytes(self.roles[role].data()).decode()
+
+            # Special handling
             value = self._config.get(
                 self._section_name,
                 self._group_name,
@@ -154,13 +173,17 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
             return value
         return None
 
-    def setData(self, index: QtCore.QModelIndex, value: Any, role: int) -> bool:
+    def setData(
+            self,
+            index: ta.ModelIndex,
+            value: Any,
+            role: int=QtCore.Qt.ItemDataRole.EditRole
+    ) -> bool:
         entries = self._config.entries(self._section_name, self._group_name)
         if not index.isValid() or index.row() >= len(entries):
             return False
 
-        role_name = ConfigEntryModel.roles[role].data().decode()
-        if role_name == "value":
+        if self.roles[role] == "value":
             self._config.set(
                 self._section_name,
                 self._group_name,
@@ -172,8 +195,8 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
             return True
         return False
 
-    def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
-        return super().flags(index) | QtCore.Qt.ItemIsEditable
+    def flags(self, index: ta.ModelIndex) -> QtCore.Qt.ItemFlag:
+        return super().flags(index) | QtCore.Qt.ItemFlag.ItemIsEditable
 
     def roleNames(self) -> Dict[int, QtCore.QByteArray]:
-        return ConfigEntryModel.roles
+        return self.roles
