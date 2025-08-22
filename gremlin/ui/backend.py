@@ -29,10 +29,10 @@ import dill
 
 from gremlin import code_runner, common, config, device_initialization, error, \
     event_handler, mode_manager, profile, shared_state, types
-from gremlin.intermediate_output import IntermediateOutput
+from gremlin.logical_device import LogicalDevice
 from gremlin.signal import signal
 
-from gremlin.ui.device import InputIdentifier, IODeviceManagementModel
+from gremlin.ui.device import InputIdentifier, LogicalDeviceManagementModel
 from gremlin.ui.profile import InputItemModel, ModeHierarchyModel
 from gremlin.ui.script import ScriptListModel
 from gremlin.audio_player import AudioPlayer
@@ -310,9 +310,9 @@ class Backend(QtCore.QObject):
         except error.ProfileError as e:
             print(e)
 
-    @Slot(result=IODeviceManagementModel)
-    def getIODeviceManagementModel(self) -> IODeviceManagementModel:
-        return IODeviceManagementModel(self)
+    @Slot(result=LogicalDeviceManagementModel)
+    def getLogicalDeviceManagementModel(self) -> LogicalDeviceManagementModel:
+        return LogicalDeviceManagementModel(self)
 
     @Slot(str, int, result=bool)
     def isActionExpanded(self, uuid_str: str, index: int) -> bool:
@@ -462,7 +462,7 @@ class Backend(QtCore.QObject):
         try:
             # self.profile = profile.Profile()
             # self.profile.from_xml(fpath)
-            IntermediateOutput().reset()
+            LogicalDevice().reset()
             new_profile = profile.Profile()
             profile_was_converted = new_profile.from_xml(fpath)
 

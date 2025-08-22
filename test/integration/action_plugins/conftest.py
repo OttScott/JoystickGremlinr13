@@ -26,9 +26,10 @@ from gremlin.ui import backend
 @pytest.fixture(scope="module", autouse=True)
 def _activate_gremlin(profile_setup: None) -> Iterator[None]:
     """Activates Gremlin using the profile created by profile_setup.
-    
-    profile_setup is a fixture that should be created by individual tests, creating
-    the necessary IntermediateOutput objects, actions, and InputItemBindings.
+
+    profile_setup is a fixture that should be created by individual tests,
+    creating the necessary LogicalDevice objects, actions, and
+    InputItemBindings.
     """
     backend_ = backend.Backend()
     backend_.activate_gremlin(True)

@@ -30,7 +30,7 @@ import pytest
 import dill
 import gremlin.device_initialization
 import gremlin.error
-import gremlin.intermediate_output
+import gremlin.logical_device
 import gremlin.profile
 import gremlin.ui.backend
 import joystick_gremlin
@@ -79,14 +79,14 @@ def profile_for_testing(
     profile_path: pathlib.Path,
 ) -> gremlin.profile.Profile:
     """Returns a Gremlin profile for testing the current module.
-    
+
     This implementation mutates the profile specified by 'profile_path', with
     inputs and outputs swapped with "real" devices. Alternatively, you can
     override this fixture in test modules to use a generated profile.
 
     (Where "real" means actual vJoy devices on this system.)
     """
-    gremlin.intermediate_output.IntermediateOutput().reset()
+    gremlin.logical_device.LogicalDevice().reset()
     profile = gremlin.profile.Profile()
     profile.from_xml(profile_path)
     # Replace the (only) input device.

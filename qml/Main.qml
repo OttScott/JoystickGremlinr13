@@ -440,13 +440,13 @@ ApplicationWindow {
             }
 
             // List of intermediate output device inputs
-            IntermediateOutputDevice {
-                id: _ioDeviceList
+            LogicalDevice {
+                id: _logicalDeviceList
 
                 visible: uiState.currentTab === "intermediate"
                 SplitView.minimumWidth: 200
 
-                device: backend.getIODeviceManagementModel()
+                device: backend.getLogicalDeviceManagementModel()
 
                 // Trigger a model update on the InputConfiguration
                 onInputIdentifierChanged: () => {

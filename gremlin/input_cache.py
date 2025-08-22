@@ -23,9 +23,9 @@ import uuid
 
 from PySide6 import QtCore
 
-from dill import DILL, GUID, UUID_IntermediateOutput
+from dill import DILL, GUID, UUID_LogicalDevice
 from gremlin.common import SingletonDecorator
-from gremlin import error, intermediate_output, keyboard, types
+from gremlin import error, keyboard, logical_device, types
 
 
 class JoystickWrapper:
@@ -296,8 +296,8 @@ class Joystick:
         """
         if device_guid not in self.devices:
             # Handle the intermediate output device first
-            if device_guid == UUID_IntermediateOutput:
-                self.devices[device_guid] = intermediate_output.IntermediateOutput()
+            if device_guid == UUID_LogicalDevice:
+                self.devices[device_guid] = logical_device.LogicalDevice()
             else:
                 # If the device exists add process it and add it, otherwise
                 # throw an exception

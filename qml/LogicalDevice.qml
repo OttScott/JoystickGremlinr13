@@ -25,11 +25,11 @@ import QtQuick.Controls.Universal
 import Gremlin.Device
 
 // Visualizes the inputs and information about their associated actions
-// contained in the IntermediateOutput system.
+// contained in the LogicalDevice system.
 Item {
     id: _root
 
-    property IODeviceManagementModel device
+    property LogicalDeviceManagementModel device
     property int inputIndex
     property InputIdentifier inputIdentifier
 

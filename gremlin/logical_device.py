@@ -27,13 +27,13 @@ from gremlin.types import InputType, HatDirection
 
 
 @SingletonDecorator
-class IntermediateOutput:
+class LogicalDevice:
 
     """Implements a device like system for arbitrary amonuts of intermediate
     outputs that can be used to combine and further modify inputs before
     ultimately feeding them to a vJoy device."""
 
-    device_guid = dill.UUID_IntermediateOutput
+    device_guid = dill.UUID_LogicalDevice
 
     class Input:
 
@@ -125,7 +125,7 @@ class IntermediateOutput:
             type: InputType,
             input_id: Optional[uuid.UUID]=None,
             label: Optional[str]=None
-    ) -> None:
+    ) -> Input:
         """Creates a new input instance of the given type.
 
         Args:
@@ -144,14 +144,14 @@ class IntermediateOutput:
 
         # Use provided input id and verify it is unique otherwise generte one
         guid = uuid.uuid4()
-        if input_id != None:
+        if input_id is not None:
             if input_id in self._inputs:
                 raise GremlinError(f"IO item with duplicate id {input_id}.")
             else:
                 guid = input_id
 
         # Generate a valid label if none has been provided
-        if label == None:
+        if label is None:
             # Create a key and check it is valid and if not, make it valid
             suffix = str(guid).split("-")[0]
             label = f"{InputType.to_string(type).capitalize()} {suffix}"
@@ -160,6 +160,7 @@ class IntermediateOutput:
 
         self._inputs[guid] = do_create[type](label, guid)
         self._label_lookup[label] = guid
+        return self._inputs[guid]
 
     def reset(self) -> None:
         """Resets the IO system to contain no entries."""
@@ -245,7 +246,7 @@ class IntermediateOutput:
         inputs = self.inputs_of_type([type])
         if len(inputs) <= offset:
             raise GremlinError(
-                f"Attempting to access an input item of type " +
+                "Attempting to access an input item of type " +
                 f"{InputType.to_string(type)} with invalid offset {offset}"
             )
         return inputs[offset]

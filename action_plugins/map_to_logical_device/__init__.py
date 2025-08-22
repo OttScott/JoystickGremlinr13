@@ -30,9 +30,9 @@ from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
     Value
 from gremlin.error import GremlinError
 from gremlin.event_handler import Event, EventListener
-from gremlin.intermediate_output import IntermediateOutput
+from gremlin.logical_device import LogicalDevice
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, DataCreationMode
+from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 
@@ -41,11 +41,11 @@ if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
 
 
-class MapToIOFunctor(AbstractFunctor):
+class MapToLogicalDeviceFunctor(AbstractFunctor):
 
-    def __init__(self, instance: MapToIOData):
+    def __init__(self, instance: MapToLogicalDeviceData) -> None:
         super().__init__(instance)
-        self._io = IntermediateOutput()
+        self._logical = LogicalDevice()
         self._cache = input_cache.Joystick()
         self._event_listener = EventListener()
 
@@ -58,35 +58,35 @@ class MapToIOFunctor(AbstractFunctor):
         if not self._should_execute(value):
             return
 
-        # Emit an event with the IO guid and the rest of the system will
+        # Emit an event with the LD guid and the rest of the system will
         # then take care of executing it
-        io_input = self._io[self.data.io_input_guid]
+        logical_input = self._logical[self.data.logical_input_guid]
 
         # Determine correct event values and update the input cache
         is_pressed = None
         input_value = None
-        match io_input.type:
+        match logical_input.type:
             case InputType.JoystickAxis:
                 input_value = value.current
-                self._cache[self._io.device_guid][io_input.guid] \
+                self._cache[self._logical.device_guid][logical_input.guid] \
                     .update(input_value)
             case InputType.JoystickButton:
                 is_pressed = value.current
                 if self.data.button_inverted:
                     is_pressed = not is_pressed
-                self._cache[self._io.device_guid][io_input.guid] \
+                self._cache[self._logical.device_guid][logical_input.guid] \
                     .update(is_pressed)
             case InputType.JoystickHat:
                 input_vaue = value.current
-                self._cache[self._io.device_guid][io_input.guid] \
+                self._cache[self._logical.device_guid][logical_input.guid] \
                     .update(input_value)
 
         # Emit the event
         self._event_listener.joystick_event.emit(
             Event(
-                event_type=io_input.type,
-                identifier=io_input.guid,
-                device_guid=self._io.device_guid,
+                event_type=logical_input.type,
+                identifier=logical_input.guid,
+                device_guid=self._logical.device_guid,
                 mode=mode_manager.ModeManager().current.name,
                 value=input_value,
                 is_pressed=is_pressed,
@@ -95,7 +95,7 @@ class MapToIOFunctor(AbstractFunctor):
         )
 
 
-class MapToIOModel(ActionModel):
+class MapToLogicalDeviceModel(ActionModel):
 
     ioInputGuidChanged = Signal()
     ioInputTypeChanged = Signal()
@@ -110,12 +110,12 @@ class MapToIOModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
         return "file:///" + QtCore.QFile(
-            "core_plugins:map_to_io/MapToIOAction.qml"
+            "core_plugins:map_to_logical_device/MapToLogicalDeviceAction.qml"
         ).fileName()
 
     def _action_behavior(self) -> str:
@@ -123,27 +123,27 @@ class MapToIOModel(ActionModel):
             self._parent_sequence_index.index
         ).actionBehavior
 
-    def _get_io_input_guid(self) -> str:
-        return str(self._data.io_input_guid)
+    def _get_logical_input_guid(self) -> str:
+        return str(self._data.logical_input_guid)
 
-    def _set_io_input_guid(self, guid_str: str) -> None:
+    def _set_logical_input_guid(self, guid_str: str) -> None:
         try:
             guid = uuid.UUID(guid_str)
-            if guid != self._data.io_input_guid:
-                self._data.io_input_guid = guid
+            if guid != self._data.logical_input_guid:
+                self._data.logical_input_guid = guid
                 self.ioInputGuidChanged.emit()
         except ValueError:
             pass
 
-    def _get_io_input_type(self) -> str:
-        return InputType.to_string(self._data.io_input_type)
+    def _get_logical_input_type(self) -> str:
+        return InputType.to_string(self._data.logical_input_type)
 
-    def _set_io_input_type(self, input_type: str) -> None:
+    def _set_logical_input_type(self, input_type: str) -> None:
         input_type_tmp = InputType.to_enum(input_type)
-        if input_type_tmp == self._data.io_input_type:
+        if input_type_tmp == self._data.logical_input_type:
             return
-        self._data.io_input_type = input_type_tmp
-        self.ioInputTypeChanged.emit()
+        self._data.logical_input_type = input_type_tmp
+        self.logicalInputTypeChanged.emit()
 
     def _get_axis_mode(self) -> str:
         return AxisMode.to_string(self._data.axis_mode)
@@ -173,16 +173,16 @@ class MapToIOModel(ActionModel):
         self._data.button_inverted = button_inverted
         self.buttonInvertedChanged.emit()
 
-    ioInputGuid = Property(
+    logicalInputGuid = Property(
         str,
-        fget=_get_io_input_guid,
-        fset=_set_io_input_guid,
+        fget=_get_logical_input_guid,
+        fset=_set_logical_input_guid,
         notify=ioInputGuidChanged
     )
-    ioInputType = Property(
+    logicalInputType = Property(
         str,
-        fget=_get_io_input_type,
-        fset=_set_io_input_type,
+        fget=_get_logical_input_type,
+        fset=_set_logical_input_type,
         notify=ioInputTypeChanged
     )
     axisMode = Property(
@@ -204,17 +204,17 @@ class MapToIOModel(ActionModel):
         notify=buttonInvertedChanged
     )
 
-class MapToIOData(AbstractActionData):
+class MapToLogicalDeviceData(AbstractActionData):
 
     """Action propagating data to the intermediate output inputs."""
 
     version = 1
-    name  = "Map to IO"
-    tag = "map-to-io"
+    name  = "Map to Logical Device"
+    tag = "map-to-logical-device"
     icon = "\uF6E7"
 
-    functor = MapToIOFunctor
-    model = MapToIOModel
+    functor = MapToLogicalDeviceFunctor
+    model = MapToLogicalDeviceModel
 
     properties = [
         ActionProperty.ActivateOnBoth
@@ -229,60 +229,60 @@ class MapToIOData(AbstractActionData):
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
-        # Select an initially valid IO input
-        io = IntermediateOutput()
+        # Select an initially valid logical input
+        logical = LogicalDevice()
         try:
-            io_input = io.inputs_of_type([behavior_type])[0]
+            logical_input = logical.inputs_of_type([behavior_type])[0]
         except (GremlinError, IndexError):
-            io.create(behavior_type)
-            io_input = io.inputs_of_type([behavior_type])[0]
+            logical.create(behavior_type)
+            logical_input = logical.inputs_of_type([behavior_type])[0]
 
         # Model variables
-        self.io_input_guid = io_input.guid
-        self.io_input_type = behavior_type
+        self.logical_input_guid = logical_input.guid
+        self.logical_input_type = behavior_type
         self.axis_mode = AxisMode.Absolute
         self.axis_scaling = 1.0
         self.button_inverted = False
 
     def _from_xml(self, node: ElementTree.Element, library: Library) -> None:
         self._id = util.read_action_id(node)
-        self.io_input_guid = util.read_property(
-            node, "io-input-guid", PropertyType.UUID
+        self.logical_input_guid = util.read_property(
+            node, "logical-input-guid", PropertyType.UUID
         )
-        self.io_input_type = util.read_property(
-            node, "io-input-type", PropertyType.InputType
+        self.logical_input_type = util.read_property(
+            node, "logical-input-type", PropertyType.InputType
         )
-        if self.io_input_type == InputType.JoystickAxis:
+        if self.logical_input_type == InputType.JoystickAxis:
             self.axis_mode = util.read_property(
                 node, "axis-mode", PropertyType.AxisMode
             )
             self.axis_scaling = util.read_property(
                 node, "axis-scaling", PropertyType.Float
             )
-        if self.io_input_type == InputType.JoystickButton:
+        if self.logical_input_type == InputType.JoystickButton:
             self.button_inverted = util.read_property(
                 node, "button-inverted", PropertyType.Bool
             )
 
     def _to_xml(self) -> ElementTree.Element:
-        node = util.create_action_node(MapToIOData.tag, self._id)
+        node = util.create_action_node(MapToLogicalDeviceData.tag, self._id)
         node.append(util.create_property_node(
-            "io-input-guid", self.io_input_guid, PropertyType.UUID
+            "logical-input-guid", self.logical_input_guid, PropertyType.UUID
         ))
         node.append(util.create_property_node(
-            "io-input-type", self.io_input_type, PropertyType.InputType
+            "logical-input-type", self.logical_input_type, PropertyType.InputType
         ))
-        if self.io_input_type == InputType.JoystickAxis:
+        if self.logical_input_type == InputType.JoystickAxis:
             node.append(util.create_property_node(
                 "axis-mode", self.axis_mode, PropertyType.AxisMode
             ))
             node.append(util.create_property_node(
                 "axis-scaling", self.axis_scaling, PropertyType.Float
             ))
-        if self.io_input_type == InputType.JoystickButton:
+        if self.logical_input_type == InputType.JoystickButton:
             node.append(util.create_property_node(
                 "button-inverted", self.button_inverted, PropertyType.Bool
             ))
@@ -302,7 +302,7 @@ class MapToIOData(AbstractActionData):
         old_behavior: InputType,
         new_behavior: InputType
     ) -> None:
-        self._io_input_type = new_behavior
+        self._logical_input_type = new_behavior
 
 
-create = MapToIOData
+create = MapToLogicalDeviceData

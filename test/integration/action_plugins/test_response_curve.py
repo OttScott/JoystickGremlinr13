@@ -24,11 +24,11 @@ import pytest
 
 from action_plugins import response_curve
 from action_plugins import root
-from action_plugins import map_to_io
+from action_plugins import map_to_logical_device
 import dill
 from gremlin.ui import backend
 from gremlin import event_handler
-from gremlin import intermediate_output
+from gremlin import logical_device
 from gremlin import plugin_manager
 from gremlin import profile
 from gremlin import shared_state
@@ -48,7 +48,7 @@ def profile_setup() -> None:
     shared_state.current_profile = pr
 
     # Create intermediate output axis for both input and output.
-    io = intermediate_output.IntermediateOutput()
+    io = logical_device.LogicalDevice()
     io.reset()
     io.create(types.InputType.JoystickAxis, label=_INPUT_IO_AXIS_LABEL)
     io.create(types.InputType.JoystickAxis, label=_OUTPUT_IO_AXIS_LABEL)
@@ -62,18 +62,20 @@ def profile_setup() -> None:
 
     # Create intermediate output mapping action.
     map_to_io_action = p_manager.create_instance(
-        map_to_io.MapToIOData.name,
+        map_to_logical_device.MapToLogicalDeviceData.name,
         types.InputType.JoystickAxis
     )
     map_to_io_action.io_input_guid = io[_OUTPUT_IO_AXIS_LABEL].guid
 
     # Add actions to profile.
-    root_action = p_manager.create_instance(root.RootData.name, types.InputType.JoystickAxis)
+    root_action = p_manager.create_instance(
+        root.RootData.name, types.InputType.JoystickAxis
+    )
     root_action.insert_action(response_curve_action, "children")
     root_action.insert_action(map_to_io_action, "children")
     # Add input item and its binding.
     input_item = profile.InputItem(pr.library)
-    input_item.device_id = dill.UUID_IntermediateOutput
+    input_item.device_id = dill.UUID_LogicalDevice
     input_item.input_id = io[_INPUT_IO_AXIS_LABEL].guid
     input_item.input_type = types.InputType.JoystickAxis
     input_item.mode = mode_manager.ModeManager().current.name
@@ -81,17 +83,17 @@ def profile_setup() -> None:
     input_item_binding.root_action = root_action
     input_item_binding.behavior = types.InputType.JoystickAxis
     input_item.action_sequences.append(input_item_binding)
-    pr.inputs.setdefault(dill.UUID_IntermediateOutput, []).append(input_item)
+    pr.inputs.setdefault(dill.UUID_LogicalDevice, []).append(input_item)
 
 
 @pytest.fixture
 def input_axis_uuid() -> uuid.UUID:
-    return intermediate_output.IntermediateOutput()[_INPUT_IO_AXIS_LABEL].guid
+    return intermediate_output.LogicalDevice()[_INPUT_IO_AXIS_LABEL].guid
 
 
 @pytest.fixture
 def output_axis_uuid() -> uuid.UUID:
-    return intermediate_output.IntermediateOutput()[_OUTPUT_IO_AXIS_LABEL].guid
+    return logical_device.LogicalDevice()[_OUTPUT_IO_AXIS_LABEL].guid
 
 
 class TestResponseCurve:
@@ -117,7 +119,7 @@ class TestResponseCurve:
             event_handler.Event(
                 event_type=types.InputType.JoystickAxis,
                 identifier=input_axis_uuid,
-                device_guid=dill.UUID_IntermediateOutput,
+                device_guid=dill.UUID_LogicalDevice,
                 mode=mode_manager.ModeManager().current.name,
                 value=axis_input,
             )

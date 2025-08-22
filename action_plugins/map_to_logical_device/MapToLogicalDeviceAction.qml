@@ -28,10 +28,9 @@ import "../../qml"
 Item {
     id: _root
 
-    property MapToIOModel action
+    property MapToLogicalDeviceModel action
 
     implicitHeight: _content.height
-
 
     RowLayout {
         id: _content
@@ -39,22 +38,22 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
 
-        IOSelector {
-            ioInputType: inputBinding.behavior
-            ioInputGuid: _root.action.ioInputGuid
+        LogicalDeviceSelector {
+            logicalInputType: inputBinding.behavior
+            logicalInputGuid: _root.action.logicalInputGuid
             validTypes: [inputBinding.behavior]
 
-            onIoInputGuidChanged: {
-                _root.action.ioInputGuid = ioInputGuid
+            onLogicalInputGuidChanged: {
+                _root.action.logicalInputGuid = logicalInputGuid
             }
-            onIoInputTypeChanged: {
-                _root.action.ioInputType = ioInputType
+            onLogicalInputTypeChanged: {
+                _root.action.logicalInputType = logicalInputType
             }
         }
 
         // UI for a physical axis behaving as an axis
         Loader {
-            active: _root.action.ioInputType == "axis"
+            active: _root.action.logicalInputType == "axis"
             Layout.fillWidth: true
 
             sourceComponent: Row {
@@ -97,7 +96,7 @@ Item {
         }
         // UI for a button input
         Loader {
-            active: _root.action.ioInputType == "button"
+            active: _root.action.logicalInputType == "button"
             Layout.fillWidth: true
 
             sourceComponent: Row {

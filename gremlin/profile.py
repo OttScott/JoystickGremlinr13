@@ -30,11 +30,9 @@ import PySide6.QtCore
 
 import dill
 
-import action_plugins
-from gremlin.types import AxisButtonDirection, InputType, HatDirection, \
-    ScriptVariableType, PropertyType
-from gremlin import error, plugin_manager, util
-from gremlin.intermediate_output import IntermediateOutput
+from gremlin.types import AxisButtonDirection, InputType, HatDirection
+from gremlin import error, plugin_manager
+from gremlin.logical_device import LogicalDevice
 from gremlin.tree import TreeNode
 from gremlin.user_script import Script
 from gremlin.util import safe_read, safe_format, read_action_ids, read_bool, \
@@ -543,13 +541,14 @@ class Profile:
 
     current_version = 14
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.inputs = {}
         self.library = Library()
         self.settings = Settings(self)
         self.modes = ModeHierarchy(self)
         self.scripts = ScriptManager(self)
         self.fpath = None
+        self._io = LogicalDevice()
 
     def from_xml(self, fpath: str) -> None:
         """Reads the content of an XML file and initializes the profile.
@@ -564,7 +563,7 @@ class Profile:
 
         # Process all intermediate output system inputs
         for node in root.findall(
-            f"./inputs/input[device-id='{str(dill.UUID_IntermediateOutput)}']"
+            f"./inputs/input[device-id='{str(dill.UUID_LogicalDevice)}']"
         ):
             self._create_io_input(node)
 
@@ -587,8 +586,9 @@ class Profile:
         root = ElementTree.Element("profile")
         root.set("version", str(Profile.current_version))
 
-        # Inputs
+        # Serilize inputs entries
         inputs = ElementTree.Element("inputs")
+        # Physical inputs
         for device_data in self.inputs.values():
             for input_data in device_data:
                 if len(input_data.action_sequences) > 0:
@@ -731,13 +731,13 @@ class Profile:
             self.inputs[item.device_id] = []
         self.inputs[item.device_id].append(item)
 
-    def _create_io_input(self, node: ElementTree) -> None:
+    def _create_io_input(self, node: ElementTree.Element) -> None:
         """Creates an intermediate output input for the given node.
 
         Args:
             node: XML node corresponding to an IO input
         """
-        io = IntermediateOutput()
+        io = LogicalDevice()
         io.create(
             read_subelement(node, "input-type"),
             input_id=read_subelement(node, "input-id"),
@@ -796,8 +796,8 @@ class InputItem:
         node.append(create_subelement_node("input-id", input_id))
 
         # Write label if an intermediate output item is serialized
-        if self.device_id == dill.UUID_IntermediateOutput:
-            io = IntermediateOutput()
+        if self.device_id == dill.UUID_LogicalDevice:
+            io = LogicalDevice()
             node.append(create_subelement_node(
                 "label",
                 io[self.input_id].label

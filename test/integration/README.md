@@ -71,13 +71,14 @@ The action plugin integration tests are located in the `action_plugins` subdirec
 
 # Objective
 
-To test the interplay of action plugins using `IntermediateOutput` to feed inputs and check
-outputs.
+To test the interplay of action plugins using the `LogicalDevice` system to
+feed inputs and check outputs.
 
 ## Ability to run quickly, and on GitHub actions.
 
-By using only `IntermediateOutput` device for inputs and outputs, the tests can be run quickly,
-and on GitHub actions where we do not install vJoy. `DirectInput` is also bypassed.
+By using only the `LogicalDevice` system for inputs and outputs, the tests can
+be run quickly, and on GitHub actions where we do not install vJoy.
+`DirectInput` is also bypassed thus not requiring physical hardware access.
 
 # How it works
 
@@ -85,8 +86,8 @@ The action plugin integration tests are similar to the end-to-end tests, but wit
 differences:
 
 1.  The profile is directly modified via Python APIs, and activated.
-2.  The inputs are written to the `IntermediateOutput` device, and the outputs are verified,
-    also from the `IntermediateOutput` device.
+2.  The inputs are written to the `LogicalDevice` system, and the outputs are
+    verified, also from the `LogicalDevice` system.
 
 # Code Layout
 
@@ -94,4 +95,4 @@ Similar to the end-to-end tests (and many fixtures are re-used via pytest fixtur
 but with the following differences/overrides for the fixtures:
 
 1.  `_activate_gremlin` is overridden to not load a profile but directly activate the current one.
-2.  (Only) `assert_io_*` methods are used to verify `IntermediateOutput` device outputs.
+2.  (Only) `assert_io_*` methods are used to verify `LogicalDEvice` outputs.

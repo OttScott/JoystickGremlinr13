@@ -25,16 +25,16 @@ import pytest
 
 from gremlin.common import InputType
 from gremlin.error import GremlinError
-from gremlin.intermediate_output import IntermediateOutput
+from gremlin.logical_device import LogicalDevice
 
 
 @pytest.fixture(autouse=True)
 def reset_io():
-    IntermediateOutput().reset()
+    LogicalDevice().reset()
 
 
 def test_creation():
-    io = IntermediateOutput()
+    io = LogicalDevice()
 
     io.create(InputType.JoystickButton, label="TB 1")
     assert io["TB 1"].label == "TB 1"
@@ -55,7 +55,7 @@ def test_creation():
 
 
 def test_delete():
-    io = IntermediateOutput()
+    io = LogicalDevice()
 
     io.create(InputType.JoystickButton, label="TB 1")
     io.create(InputType.JoystickButton, label="TB 2")
@@ -77,7 +77,7 @@ def test_delete():
 
 
 def test_index_reuse():
-    io = IntermediateOutput()
+    io = LogicalDevice()
 
     io.create(InputType.JoystickButton, label="TB 1")
     tb1_guid = io["TB 1"]
@@ -91,7 +91,7 @@ def test_index_reuse():
 
 
 def test_relabel():
-    io = IntermediateOutput()
+    io = LogicalDevice()
 
     io.create(InputType.JoystickButton, label="TB 1")
     io.create(InputType.JoystickButton, label="TB 2")

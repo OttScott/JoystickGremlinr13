@@ -26,17 +26,16 @@ import Gremlin.Device
 Item {
     id: _root
 
-    property string ioInputType
-    // property string ioInputGuid
+    property string logicalInputType
 
-    property alias ioInputGuid: _model.currentGuid
+    property alias logicalInputGuid: _model.currentGuid
     property alias validTypes: _model.validTypes
 
     implicitHeight: _content.height
     implicitWidth: _content.implicitWidth
 
 
-    IODeviceInputsModel {
+    LogicalDeviceModel {
         id: _model
     }
 

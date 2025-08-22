@@ -23,22 +23,23 @@ from json.decoder import JSONDecodeError
 import logging
 import time
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING
 
 from PySide6 import QtCharts, QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot
 
 import dill
 
-from gremlin import common, device_initialization, event_handler, shared_state, \
-    util
+from gremlin import common, device_initialization, event_handler, \
+    shared_state, util
 from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
-from gremlin.intermediate_output import IntermediateOutput
-from gremlin.signal import signal
+from gremlin.logical_device import LogicalDevice
 from gremlin.types import InputType, PropertyType
 
+if TYPE_CHECKING:
+    import gremlin.ui.type_aliases as ta
 
 
 QML_IMPORT_NAME = "Gremlin.Device"
@@ -489,22 +490,25 @@ class Device(QtCore.QAbstractListModel):
 
 
 @QtQml.QmlElement
-class IODeviceManagementModel(QtCore.QAbstractListModel):
+class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
 
     """Model providing information about the intermedia output device."""
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("actionCount".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("label".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1:
+            QtCore.QByteArray("name".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 2:
+            QtCore.QByteArray("actionCount".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 3:
+            QtCore.QByteArray("label".encode()),
     }
 
     deviceChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: None|QtCore.QObject=None) -> None:
         super().__init__(parent)
 
-        self._io = IntermediateOutput()
+        self._io = LogicalDevice()
 
     @Slot(str)
     def createInput(self, type_str: str) -> None:
@@ -521,9 +525,9 @@ class IODeviceManagementModel(QtCore.QAbstractListModel):
         )
 
     @Slot(str, str)
-    def changeName(self, old_labele: str, new_label: str) -> None:
+    def changeName(self, old_label: str, new_label: str) -> None:
         try:
-            self._io.set_label(old_labele, new_label)
+            self._io.set_label(old_label, new_label)
             self.dataChanged.emit(
                 self.createIndex(0, 0),
                 self.createIndex(self.rowCount(), 0)
@@ -546,28 +550,32 @@ class IODeviceManagementModel(QtCore.QAbstractListModel):
     def _get_guid(self) -> str:
         return str(self._io.device_guid)
 
-    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+    def rowCount(self, parent : ta.ModelIndex=QtCore.QModelIndex()) -> int:
         return len(self._io.labels_of_type())
 
-    def data(self, index: QtCore.QModelIndex, role:int=...) -> Any:
-        if role not in IODeviceManagementModel.roles:
+    def data(
+            self,
+            index : ta.ModelIndex,
+            role : int=QtCore.Qt.ItemDataRole.DisplayRole
+     ) -> Any:
+        if role not in self.roles:
             return "Unknown"
 
-        role_name = IODeviceManagementModel.roles[role].data().decode()
         input = self._index_to_input(index.row())
-        if role_name == "name":
-            return f"{InputType.to_string(input.type).capitalize()} " \
-                f"{input.suffix}"
-        elif role_name == "actionCount":
-            # FIXME: retrieve currently selected moden mae
-            return shared_state.current_profile.get_input_count(
-                self._io.device_guid,
-                input.type,
-                input.guid,
-                "Default"
-            )
-        elif role_name == "label":
-            return input.label
+        match self.roles[role]:
+            case "name":
+                return f"{InputType.to_string(input.type).capitalize()} " \
+                    f"{input.suffix}"
+            case "actionCount":
+                # FIXME: retrieve currently selected moden mae
+                return shared_state.current_profile.get_input_count(
+                    self._io.device_guid,
+                    input.type,
+                    input.guid,
+                    "Default"
+                )
+            case "label":
+                return input.label
 
     @Slot(str, result=List[str])
     def validLabels(self, type_str: str) -> List[str]:
@@ -606,7 +614,7 @@ class IODeviceManagementModel(QtCore.QAbstractListModel):
             identifier[1]
         )
 
-    def _index_to_input(self, index: int) -> IntermediateOutput.Input:
+    def _index_to_input(self, index: int) -> LogicalDevice.Input:
         """Returns the label corresponding to the provided linear index.
 
         Args:
@@ -630,13 +638,13 @@ class IODeviceManagementModel(QtCore.QAbstractListModel):
         return all_labels.index(label)
 
     def roleNames(self) -> Dict:
-        return IODeviceManagementModel.roles
+        return self.roles
 
     guid = Property(str, fget=_get_guid)
 
 
 @QtQml.QmlElement
-class IODeviceInputsModel(QtCore.QAbstractListModel):
+class LogicalDeviceModel(QtCore.QAbstractListModel):
 
     inputsChanged = Signal()
     selectionChanged = Signal()
@@ -649,7 +657,7 @@ class IODeviceInputsModel(QtCore.QAbstractListModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._io = IntermediateOutput()
+        self._io = LogicalDevice()
         self._valid_types = None
         self._current_index = 0
         self._current_guid = None
@@ -663,7 +671,7 @@ class IODeviceInputsModel(QtCore.QAbstractListModel):
             role: int=QtCore.Qt.ItemDataRole.DisplayRole
     ) -> Any:
         if role not in self.roleNames():
-            raise GremlinError(f"Invalid role {role} in IODeviceInputsModel")
+            raise GremlinError(f"Invalid role {role} in LogicalDeviceModel")
 
         input = self._io.inputs_of_type(self._valid_types)[index.row()]
         if role == QtCore.Qt.UserRole + 1:
@@ -672,7 +680,7 @@ class IODeviceInputsModel(QtCore.QAbstractListModel):
             return str(input.guid)
 
     def roleNames(self) -> Dict:
-        return IODeviceInputsModel.roles
+        return self.roles
 
     def _set_valid_types(self, valid_types: List[str]) -> None:
         type_list = sorted([InputType.to_enum(entry) for entry in valid_types])
