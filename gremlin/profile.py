@@ -774,6 +774,13 @@ class InputItem:
         if self.input_type == InputType.Keyboard:
             self.input_id = (self.input_id & 0xFF, self.input_id >> 8)
 
+        # If the node corresponds to a LogicalDevice instance we also
+        # initialize the LD object instance.
+        # LogicalDevice().create(
+        #     self.input_type,
+        #     self.input_id
+        # )
+
         # Parse every action configuration entry
         for entry in node.findall("action-configuration"):
             action = InputItemBinding(self)

@@ -88,7 +88,7 @@ def profile_setup() -> None:
 
 @pytest.fixture
 def input_axis_uuid() -> uuid.UUID:
-    return intermediate_output.LogicalDevice()[_INPUT_IO_AXIS_LABEL].guid
+    return logical_device.LogicalDevice()[_INPUT_IO_AXIS_LABEL].guid
 
 
 @pytest.fixture
