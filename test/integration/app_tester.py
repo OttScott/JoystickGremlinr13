@@ -23,6 +23,7 @@ import pytest
 from PySide6 import QtWidgets
 
 import dill
+from gremlin import event_handler
 import gremlin.input_cache
 import gremlin.types
 
@@ -48,6 +49,9 @@ class GremlinAppTester:
 
     def __init__(self, app: QtWidgets.QApplication):
         self.app = app
+    
+    def send_event(self, event: event_handler.Event):
+        event_handler.EventListener().joystick_event.emit(event)
 
     def _assert_input_eventually_equals(
         self,
@@ -174,6 +178,20 @@ class GremlinAppTester:
         self._assert_input_eventually_equals(
             lambda: dill.DILL.get_hat(di_device_guid, hat_id),
             expected,
+            min_delay,
+            max_delay,
+        )
+    
+    def assert_io_axis_eventually_equals(
+        self,
+        axis_uuid: uuid.UUID,
+        expected: int,
+        min_delay: float = 0,
+        max_delay: float = _ASSERT_EVENTUALLY_MAX_DELAY,
+    ):
+        self._assert_input_eventually_equals(
+            lambda: gremlin.input_cache.Joystick()[dill.GUID_IntermediateOutput.uuid][axis_uuid].value,
+            pytest.approx(expected, abs=_INTEGER_AXIS_MAX_DELTA),
             min_delay,
             max_delay,
         )
