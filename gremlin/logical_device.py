@@ -77,6 +77,7 @@ class LogicalDevice:
 
         def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
+            self._value = 0.0
 
         def _input_type(self) -> InputType:
             return InputType.JoystickAxis
@@ -90,6 +91,7 @@ class LogicalDevice:
 
         def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
+            self._value = False
 
         def _input_type(self) -> InputType:
             return InputType.JoystickButton
@@ -103,6 +105,7 @@ class LogicalDevice:
 
         def __init__(self, label: str, index: uuid.UUID) -> None:
             super().__init__(label, index)
+            self._value = HatDirection.Center
 
         def _input_type(self) -> InputType:
             return InputType.JoystickHat
@@ -197,7 +200,7 @@ class LogicalDevice:
         del self._inputs[input.guid]
         del self._label_lookup[input.label]
 
-    def labels_of_type(self, type_list: None | List[InputType]=None) -> List[str]:
+    def labels_of_type(self, type_list: List[InputType]=[]) -> List[str]:
         """Returns all labels for inputs of the matching types.
 
         Args:
@@ -209,7 +212,7 @@ class LogicalDevice:
         x = [e.label for e in self.inputs_of_type(type_list)]
         return x
 
-    def inputs_of_type(self, type_list: None | List[InputType]) -> List[Input]:
+    def inputs_of_type(self, type_list: List[InputType]=[]) -> List[Input]:
         """Returns input corresponding to the specified types.
 
         Args:
@@ -218,7 +221,7 @@ class LogicalDevice:
         Returns:
             List of inputs that have the specified type
         """
-        if type_list is None:
+        if len(type_list) == 0:
             type_list = [
                 InputType.JoystickAxis,
                 InputType.JoystickButton,
