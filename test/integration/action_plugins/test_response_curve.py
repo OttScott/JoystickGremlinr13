@@ -65,7 +65,7 @@ def profile_setup() -> None:
         map_to_logical_device.MapToLogicalDeviceData.name,
         types.InputType.JoystickAxis
     )
-    map_to_io_action.io_input_guid = io[_OUTPUT_IO_AXIS_LABEL].guid
+    map_to_io_action.io_input_id = io[_OUTPUT_IO_AXIS_LABEL].id
 
     # Add actions to profile.
     root_action = p_manager.create_instance(
@@ -76,7 +76,7 @@ def profile_setup() -> None:
     # Add input item and its binding.
     input_item = profile.InputItem(pr.library)
     input_item.device_id = dill.UUID_LogicalDevice
-    input_item.input_id = io[_INPUT_IO_AXIS_LABEL].guid
+    input_item.input_id = io[_INPUT_IO_AXIS_LABEL].id
     input_item.input_type = types.InputType.JoystickAxis
     input_item.mode = mode_manager.ModeManager().current.name
     input_item_binding = profile.InputItemBinding(input_item)
@@ -87,13 +87,13 @@ def profile_setup() -> None:
 
 
 @pytest.fixture
-def input_axis_uuid() -> uuid.UUID:
-    return logical_device.LogicalDevice()[_INPUT_IO_AXIS_LABEL].guid
+def input_axis_id() -> uuid.UUID:
+    return logical_device.LogicalDevice()[_INPUT_IO_AXIS_LABEL].id
 
 
 @pytest.fixture
-def output_axis_uuid() -> uuid.UUID:
-    return logical_device.LogicalDevice()[_OUTPUT_IO_AXIS_LABEL].guid
+def output_axis_id() -> uuid.UUID:
+    return logical_device.LogicalDevice()[_OUTPUT_IO_AXIS_LABEL].id
 
 
 class TestResponseCurve:
@@ -111,21 +111,21 @@ class TestResponseCurve:
         self,
         tester: app_tester.GremlinAppTester,
         axis_input: int,
-        input_axis_uuid: uuid.UUID,
-        output_axis_uuid: uuid.UUID,
+        input_axis_id: uuid.UUID,
+        output_axis_id: uuid.UUID,
     ):
         """Applies groups of sequential inputs."""
         tester.send_event(
             event_handler.Event(
                 event_type=types.InputType.JoystickAxis,
-                identifier=input_axis_uuid,
+                identifier=input_axis_id,
                 device_guid=dill.UUID_LogicalDevice,
                 mode=mode_manager.ModeManager().current.name,
                 value=axis_input,
             )
         )
-        tester.assert_io_axis_eventually_equals(
-            output_axis_uuid,
+        tester.assert_logical_axis_eventually_equals(
+            output_axis_id,
             pytest.approx(axis_input, abs=8),
             0,
             1,

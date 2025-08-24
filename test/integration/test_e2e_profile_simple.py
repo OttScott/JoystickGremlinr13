@@ -145,7 +145,7 @@ class TestSimpleProfile:
 
     @pytest.mark.parametrize(
         ("di_input", "vjoy_output", "cached_value"),
-        [(False, 0, None), (True, 1, True), (False, 0, False), (True, 1, True)],
+        [(False, 0, False), (True, 1, True), (False, 0, False), (True, 1, True)],
     )
     def test_button(
         self,
@@ -175,7 +175,7 @@ class TestSimpleProfile:
     @pytest.mark.parametrize(
         ("di_input", "vjoy_output", "cached_value"),
         [
-            (types.HatDirection.Center, -1, None),
+            (types.HatDirection.Center, -1, types.HatDirection.Center),
             (types.HatDirection.North, 0, types.HatDirection.North.value),
             (types.HatDirection.NorthEast, 4500, types.HatDirection.NorthEast.value),
             (types.HatDirection.East, 9000, types.HatDirection.East.value),
