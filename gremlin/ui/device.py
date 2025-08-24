@@ -199,8 +199,8 @@ class InputIdentifier(QtCore.QObject):
             device_guid: uuid.UUID | None=None,
             input_type: InputType | None=None,
             input_id: int | None=None,
-            parent=None
-    ):
+            parent: ta.OQO=None
+    ) -> None:
         super().__init__(parent)
 
         self.device_guid = device_guid
@@ -210,9 +210,12 @@ class InputIdentifier(QtCore.QObject):
     @Property(str, notify=changed)
     def label(self) -> str:
         if self.isValid:
-            dev_name = dill.DILL.get_device_name(
-                dill.GUID.from_uuid(self.device_guid)
-            )
+            if self.device_guid == dill.UUID_LogicalDevice:
+                dev_name = "Logical Device"
+            else:
+                dev_name = dill.DILL.get_device_name(
+                    dill.GUID.from_uuid(self.device_guid)
+                )
             return f"{dev_name} - " + \
                    f"{InputType.to_string(self.input_type).capitalize()} " + \
                    f"{self.input_id}"
@@ -495,20 +498,15 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
     """Model providing information about the intermedia output device."""
 
     roles = {
-        QtCore.Qt.ItemDataRole.UserRole + 1:
-            QtCore.QByteArray("name".encode()),
-        QtCore.Qt.ItemDataRole.UserRole + 2:
-            QtCore.QByteArray("actionCount".encode()),
-        QtCore.Qt.ItemDataRole.UserRole + 3:
-            QtCore.QByteArray("label".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"actionCount"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"label"),
     }
-
-    deviceChanged = Signal()
 
     def __init__(self, parent: None|QtCore.QObject=None) -> None:
         super().__init__(parent)
 
-        self._io = LogicalDevice()
+        self._logical = LogicalDevice()
 
     @Slot(str)
     def createInput(self, type_str: str) -> None:
@@ -517,7 +515,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
             self.rowCount(),
             self.rowCount()
         )
-        self._io.create(InputType.to_enum(type_str))
+        self._logical.create(InputType.to_enum(type_str))
         self.endInsertRows()
         self.dataChanged.emit(
             self.createIndex(0, 0),
@@ -527,7 +525,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
     @Slot(str, str)
     def changeName(self, old_label: str, new_label: str) -> None:
         try:
-            self._io.set_label(old_label, new_label)
+            self._logical.set_label(old_label, new_label)
             self.dataChanged.emit(
                 self.createIndex(0, 0),
                 self.createIndex(self.rowCount(), 0)
@@ -540,7 +538,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
     def deleteInput(self, label: str) -> None:
         item_index = self._label_to_index(label)
         self.beginRemoveRows(QtCore.QModelIndex(), item_index, item_index)
-        self._io.delete(label)
+        self._logical.delete(label)
         self.endRemoveRows()
         self.dataChanged.emit(
             self.createIndex(0, 0),
@@ -548,10 +546,10 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
         )
 
     def _get_guid(self) -> str:
-        return str(self._io.device_guid)
+        return str(self._logical.device_guid)
 
     def rowCount(self, parent : ta.ModelIndex=QtCore.QModelIndex()) -> int:
-        return len(self._io.labels_of_type())
+        return len(self._logical.labels_of_type())
 
     def data(
             self,
@@ -565,13 +563,14 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
         match self.roles[role]:
             case "name":
                 return f"{InputType.to_string(input.type).capitalize()} " \
-                    f"{input.suffix}"
+                    f"{input.id}"
             case "actionCount":
-                # FIXME: retrieve currently selected moden mae
+                # FIXME: retrieve currently selected mode just as the other
+                #   input devices do
                 return shared_state.current_profile.get_input_count(
-                    self._io.device_guid,
+                    self._logical.device_guid,
                     input.type,
-                    input.guid,
+                    input.id,
                     "Default"
                 )
             case "label":
@@ -581,9 +580,9 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
     def validLabels(self, type_str: str) -> List[str]:
         """Returns a list of valid labels for a given input."""
         type = InputType.to_enum(type_str)
-        if len(self._io.keys_of_type([type])) == 0:
-            self._io.create(type)
-        return self._io.keys_of_type([type])
+        if len(self._logical.labels_of_type([type])) == 0:
+            self._logical.create(type)
+        return self._logical.labels_of_type([type])
 
     @Slot(int, result=InputIdentifier)
     def inputIdentifier(self, index: int) -> InputIdentifier:
@@ -602,9 +601,9 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
 
         input = self._index_to_input(index)
         identifier = InputIdentifier(parent=self)
-        identifier.device_guid = self._io.device_guid
+        identifier.device_guid = self._logical.device_guid
         identifier.input_type = input.type
-        identifier.input_id = input.guid
+        identifier.input_id = input.id
 
         return identifier
 
@@ -623,7 +622,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
         Returns:
             The input corresponding to the given index
         """
-        return self._io[self._io.labels_of_type()[index]]
+        return self._logical[self._logical.labels_of_type()[index]]
 
     def _label_to_index(self, label: str) -> int:
         """Returns the index corresponding to the given label.
@@ -634,7 +633,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
         Returns:
             Index of the given label in the backend data storage
         """
-        all_labels = self._io.labels_of_type()
+        all_labels = self._logical.labels_of_type()
         return all_labels.index(label)
 
     def roleNames(self) -> Dict:
@@ -650,34 +649,47 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
     selectionChanged = Signal()
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("label".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("guid".encode())
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"label"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"id"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"type"),
+        QtCore.Qt.ItemDataRole.UserRole + 4:
+            QtCore.QByteArray(b"inputIdentifier"),
     }
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: ta.OQO=None) -> None:
         super().__init__(parent)
 
-        self._io = LogicalDevice()
-        self._valid_types = None
+        self._logical = LogicalDevice()
+        self._valid_types = []
         self._current_index = 0
-        self._current_guid = None
+        self._current_identifier = InputIdentifier(parent=self)
 
-    def rowCount(self, parent) -> int:
-        return len(self._io.labels_of_type(self._valid_types))
+    def rowCount(self, parent: ta.ModelIndex=QtCore.QModelIndex()) -> int:
+        return len(self._logical.labels_of_type(self._valid_types))
 
     def data(
             self,
-            index: QtCore.QModelIndex,
+            index: ta.ModelIndex,
             role: int=QtCore.Qt.ItemDataRole.DisplayRole
     ) -> Any:
         if role not in self.roleNames():
             raise GremlinError(f"Invalid role {role} in LogicalDeviceModel")
 
-        input = self._io.inputs_of_type(self._valid_types)[index.row()]
-        if role == QtCore.Qt.UserRole + 1:
-            return input.label
-        elif role == QtCore.Qt.UserRole + 2:
-            return str(input.guid)
+        input = self._logical.inputs_of_type(self._valid_types)[index.row()]
+        match self.roles[role]:
+            case "label":
+                return input.label
+            case "id":
+                return input.id
+            case "type":
+                return InputType.to_string(input.type)
+            case "inputIdentifier":
+                return InputIdentifier(
+                    LogicalDevice().device_guid,
+                    input.type,
+                    input.id,
+                    parent=self
+                )
 
     def roleNames(self) -> Dict:
         return self.roles
@@ -691,21 +703,23 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
     def _get_current_selection_index(self) -> int:
         return self._current_index
 
-    def _get_current_guid(self) -> str:
-        return str(self._current_guid)
+    def _get_current_identifier(self) -> InputIdentifier:
+        return self._current_identifier
 
-    def _set_current_guid(self, guid_str: str) -> None:
-        guid = uuid.UUID(guid_str)
-        if guid != self._current_guid:
-            self._current_guid = guid
+    def _set_current_identifier(self, identifier: InputIdentifier) -> None:
+        if identifier != self._current_identifier:
+            self._current_identifier = identifier
             self._current_index = 0
-            for i, input in enumerate(self._io.inputs_of_type(self._valid_types)):
-                if input.guid == guid:
+            for i, input in enumerate(
+                self._logical.inputs_of_type(self._valid_types)
+            ):
+                if input.type == identifier.input_type and \
+                        input.id == identifier.input_id:
                     self._current_index = i
             self.selectionChanged.emit()
 
     validTypes = Property(
-        "QVariantList",
+        list,
         fset=_set_valid_types,
         notify=inputsChanged
     )
@@ -716,10 +730,10 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
         notify=selectionChanged
     )
 
-    currentGuid = Property(
-        str,
-        fget=_get_current_guid,
-        fset=_set_current_guid,
+    currentIdentifier = Property(
+        InputIdentifier,
+        fget=_get_current_identifier,
+        fset=_set_current_identifier,
         notify=selectionChanged
     )
 

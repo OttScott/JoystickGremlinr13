@@ -21,12 +21,10 @@ from abc import abstractmethod, ABCMeta
 import codecs
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING, Callable
+from typing import Dict, List, Optional, Set, TYPE_CHECKING, Callable
 import uuid
 from xml.dom import minidom
 from xml.etree import ElementTree
-
-import PySide6.QtCore
 
 import dill
 
@@ -35,7 +33,7 @@ from gremlin import error, plugin_manager
 from gremlin.logical_device import LogicalDevice
 from gremlin.tree import TreeNode
 from gremlin.user_script import Script
-from gremlin.util import safe_read, safe_format, read_action_ids, read_bool, \
+from gremlin.util import safe_read, safe_format, read_action_ids, \
     read_subelement, create_subelement_node
 
 
@@ -43,49 +41,16 @@ if TYPE_CHECKING:
     from gremlin.base_classes import AbstractActionData
 
 
-def mode_list(node):
-    """Returns a list of all modes based on the given node.
-
-    :param node a node from a profile tree
-    :return list of mode names
-    """
-    # Get profile root node
-    parent = node
-    while parent.parent is not None:
-        parent = parent.parent
-    assert(type(parent) == Profile)
-    # Generate list of modes
-    mode_names = []
-    for device in parent.devices.values():
-        mode_names.extend(device.modes.keys())
-
-    return sorted(list(set(mode_names)), key=lambda x: x.lower())
-
-
-def extract_remap_actions(action_sets):
-    """Returns a list of remap actions from a list of actions.
-
-    :param action_sets set of actions from which to extract Remap actions
-    :return list of Remap actions contained in the provided list of actions
-    """
-    remap_actions = []
-    for actions in [a for a in action_sets if a is not None]:
-        for action in actions:
-            if isinstance(action, action_plugins.remap.Remap):
-                remap_actions.append(action)
-    return remap_actions
-
-
 class AbstractVirtualButton(metaclass=ABCMeta):
 
     """Base class of all virtual buttons."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new instance."""
         pass
 
     @abstractmethod
-    def from_xml(self, node: ElementTree) -> None:
+    def from_xml(self, node: ElementTree.Element) -> None:
         """Populates the virtual button based on the node's data.
 
         Args:
@@ -94,7 +59,7 @@ class AbstractVirtualButton(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def to_xml(self) -> ElementTree:
+    def to_xml(self) -> ElementTree.Element:
         """Returns an XML node representing the data of this instance.
 
         Returns:
@@ -107,7 +72,7 @@ class VirtualAxisButton(AbstractVirtualButton):
 
     """Virtual button which turns an axis range into a button."""
 
-    def __init__(self, lower_limit: float=0.0, upper_limit: float=0.0):
+    def __init__(self, lower_limit: float=0.0, upper_limit: float=0.0) -> None:
         """Creates a new instance.
 
         Args:
@@ -120,7 +85,7 @@ class VirtualAxisButton(AbstractVirtualButton):
         self.upper_limit = upper_limit
         self.direction = AxisButtonDirection.Anywhere
 
-    def from_xml(self, node: ElementTree) -> None:
+    def from_xml(self, node: ElementTree.Element) -> None:
         """Populates the virtual button based on the node's data.
 
         Args:
@@ -130,7 +95,7 @@ class VirtualAxisButton(AbstractVirtualButton):
         self.upper_limit = read_subelement(node, "upper-limit")
         self.direction = read_subelement(node, "axis-button-direction")
 
-    def to_xml(self) -> ElementTree:
+    def to_xml(self) -> ElementTree.Element:
         """Returns an XML node representing the data of this instance.
 
         Returns:
@@ -149,7 +114,7 @@ class VirtualHatButton(AbstractVirtualButton):
 
     """Virtual button which combines hat directions into a button."""
 
-    def __init__(self, directions: Set=()):
+    def __init__(self, directions: Set=set()) -> None:
         """Creates a instance.
 
         Args:
@@ -159,7 +124,7 @@ class VirtualHatButton(AbstractVirtualButton):
 
         self.directions = list(set(directions))
 
-    def from_xml(self, node: ElementTree) -> None:
+    def from_xml(self, node: ElementTree.Element) -> None:
         """Populates the activation condition based on the node's data.
 
         Args:
@@ -167,9 +132,9 @@ class VirtualHatButton(AbstractVirtualButton):
         """
         self.directions = []
         for hd_node in node.findall("hat-direction"):
-            self.directions.append(HatDirection.to_enum(hd_node.text))
+            self.directions.append(HatDirection.to_enum(str(hd_node.text)))
 
-    def to_xml(self) -> ElementTree:
+    def to_xml(self) -> ElementTree.Element:
         """Returns an XML node representing the data of this instance.
 
         Returns:
@@ -187,7 +152,7 @@ class Settings:
 
     """Stores general profile specific settings."""
 
-    def __init__(self, parent: Profile):
+    def __init__(self, parent: Profile) -> None:
         """Creates a new instance.
 
         Args:
@@ -199,7 +164,7 @@ class Settings:
         self.startup_mode = None
         self.default_delay = 0.05
 
-    def from_xml(self, node: ElementTree) -> None:
+    def from_xml(self, node: ElementTree.Element) -> None:
         """Populates the data storage with the XML node's contents.
 
         Args:
@@ -234,7 +199,7 @@ class Settings:
                 value = safe_read(axis_node, "value", float, 0.0)
                 self.vjoy_initial_values[vid][aid] = value
 
-    def to_xml(self) -> ElementTree:
+    def to_xml(self) -> ElementTree.Element:
         """Returns an XML node containing the settings.
 
         Returns:
@@ -315,7 +280,7 @@ class Library:
     is used by the input items to reference the actual content.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new library instance.
 
         The library contains both the individual action configurations as well
@@ -491,7 +456,7 @@ class Library:
                 iterations += 1
                 if iterations > 5:
                     logging.getLogger("system").error(
-                        f"Loading profile failed due to action resolution chain"
+                        "Loading profile failed due to action resolution chain"
                     )
                     break
 
@@ -548,7 +513,7 @@ class Profile:
         self.modes = ModeHierarchy(self)
         self.scripts = ScriptManager(self)
         self.fpath = None
-        self._io = LogicalDevice()
+        LogicalDevice().reset()
 
     def from_xml(self, fpath: str) -> None:
         """Reads the content of an XML file and initializes the profile.
@@ -561,14 +526,9 @@ class Profile:
         tree = ElementTree.parse(fpath)
         root = tree.getroot()
 
-        # Process all intermediate output system inputs
-        for node in root.findall(
-            f"./inputs/input[device-id='{str(dill.UUID_LogicalDevice)}']"
-        ):
-            self._create_io_input(node)
-
         # Create library entries and modes
         # self.settings.from_xml(root)
+        self._logical_devices_from_xml(root)
         self.library.from_xml(root)
         self.modes.from_xml(root)
         self.scripts.from_xml(root)
@@ -597,6 +557,7 @@ class Profile:
 
         # Managed content
         # root.append(self.settings.to_xml())
+        root.append(self._logical_devices_to_xml())
         root.append(self.library.to_xml())
         root.append(self.modes.to_xml())
         root.append(self.scripts.to_xml())
@@ -718,7 +679,7 @@ class Profile:
         # unused
         self.library.remove_unused(action, recursive=True)
 
-    def _process_input(self, node: ElementTree) -> None:
+    def _process_input(self, node: ElementTree.Element) -> None:
         """Processes an InputItem XML node and stores it.
 
         Args:
@@ -731,25 +692,32 @@ class Profile:
             self.inputs[item.device_id] = []
         self.inputs[item.device_id].append(item)
 
-    def _create_io_input(self, node: ElementTree.Element) -> None:
-        """Creates an intermediate output input for the given node.
+    def _logical_devices_from_xml(self, root_node: ElementTree.Element) -> None:
+        logical = LogicalDevice()
+        for node in root_node.findall("./logical-device/input"):
+            print(node)
+            logical.create(
+                read_subelement(node, "input-type"),
+                read_subelement(node, "input-id"),
+                read_subelement(node, "label")
+            )
 
-        Args:
-            node: XML node corresponding to an IO input
-        """
-        io = LogicalDevice()
-        io.create(
-            read_subelement(node, "input-type"),
-            input_id=read_subelement(node, "input-id"),
-            label=read_subelement(node, "label")
-        )
+    def _logical_devices_to_xml(self) -> ElementTree.Element:
+        node = ElementTree.Element("logical-device")
+        for input in LogicalDevice().inputs_of_type():
+            input_node = ElementTree.Element("input")
+            input_node.append(create_subelement_node("input-type", input.type))
+            input_node.append(create_subelement_node("input-id", input.id))
+            input_node.append(create_subelement_node("label", input.label))
+            node.append(input_node)
+        return node
 
 
 class InputItem:
 
     """Represents the configuration of a single input in a particular mode."""
 
-    def __init__(self, library: Library):
+    def __init__(self, library: Library) -> None:
         """Creates a new instance.
 
         Args:
@@ -774,13 +742,6 @@ class InputItem:
         if self.input_type == InputType.Keyboard:
             self.input_id = (self.input_id & 0xFF, self.input_id >> 8)
 
-        # If the node corresponds to a LogicalDevice instance we also
-        # initialize the LD object instance.
-        # LogicalDevice().create(
-        #     self.input_type,
-        #     self.input_id
-        # )
-
         # Parse every action configuration entry
         for entry in node.findall("action-configuration"):
             action = InputItemBinding(self)
@@ -801,14 +762,6 @@ class InputItem:
         if self.input_type == InputType.Keyboard:
             input_id = self.input_id[1] << 8 | self.input_id[0]
         node.append(create_subelement_node("input-id", input_id))
-
-        # Write label if an intermediate output item is serialized
-        if self.device_id == dill.UUID_LogicalDevice:
-            io = LogicalDevice()
-            node.append(create_subelement_node(
-                "label",
-                io[self.input_id].label
-            ))
 
         # Action configurations
         for entry in self.action_sequences:

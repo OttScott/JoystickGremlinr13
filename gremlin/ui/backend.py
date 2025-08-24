@@ -86,7 +86,7 @@ class UIState(QtCore.QObject):
                 self.setCurrentDevice(str(devices[0].device_guid))
             else:
                 self.setCurrentDevice(str(dill.UUID_Invalid))
-                self.setCurrentTab("intermediate")
+                self.setCurrentTab("logical")
 
 
     @Slot(str)

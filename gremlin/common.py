@@ -35,6 +35,20 @@ class SingletonDecorator:
         return self.instance
 
 
+
+class SingletonMetaclass(type):
+
+    # https://stackoverflow.com/a/6798042
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = \
+                super(SingletonMetaclass, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
 def input_to_ui_string(input_type: InputType, input_id: int) -> str:
     """Returns a string for UI usage of an input.
 

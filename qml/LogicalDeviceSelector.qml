@@ -28,7 +28,7 @@ Item {
 
     property string logicalInputType
 
-    property alias logicalInputGuid: _model.currentGuid
+    property alias logicalInputIdentifier: _model.currentIdentifier
     property alias validTypes: _model.validTypes
 
     implicitHeight: _content.height
@@ -52,22 +52,26 @@ Item {
 
             model: _model
             textRole: "label"
+            valueRole: "inputIdentifier"
             currentIndex: _model.currentSelectionIndex
             delegate: OptionDelegate {}
+
+            onActivated: (index) => {
+                _model.currentIdentifier = currentValue
+                console.log("Selected logical input: " + currentValue.label)
+            }
+
+            Component.onCompleted: {
+                currentIndex = indexOfValue(_model.currentIdentifier)
+            }
         }
     }
 
     component OptionDelegate : ItemDelegate {
         required property string label
-        required property string guid
 
         width: parent.width
         text: label
-
-        onClicked: function()
-        {
-            _model.currentGuid = guid
-        }
     }
 
 }

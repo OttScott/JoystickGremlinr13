@@ -28,7 +28,7 @@ import Gremlin.Profile
 
 
 // Render all detected devices using a TabBar while also displaying the
-// Intermediate output tab
+// Logical Device tab
 Item {
     id: _root
 
@@ -70,22 +70,22 @@ Item {
         }
 
         JGTabButton {
-            id: _ioButton
+            id: _logicalButton
 
-            text: "Intermediate Output"
+            text: "Logical Device"
             width: _metricIO.width + 50
-            checked: uiState.currentTab === "intermediate"
+            checked: uiState.currentTab === "logical"
 
             onClicked: () => {
-                uiState.setCurrentTab("intermediate")
+                uiState.setCurrentTab("logical")
                 uiState.setCurrentDevice("f0af472f-8e17-493b-a1eb-7333ee8543f2")
             }
 
             TextMetrics {
                 id: _metricIO
 
-                font: _ioButton.font
-                text: _ioButton.text
+                font: _logicalButton.font
+                text: _logicalButton.text
             }
         }
 

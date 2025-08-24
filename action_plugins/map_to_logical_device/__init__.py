@@ -35,6 +35,7 @@ from gremlin.profile import Library
 from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.device import InputIdentifier
 
 
 if TYPE_CHECKING:
@@ -46,7 +47,6 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
     def __init__(self, instance: MapToLogicalDeviceData) -> None:
         super().__init__(instance)
         self._logical = LogicalDevice()
-        self._cache = input_cache.Joystick()
         self._event_listener = EventListener()
 
     def __call__(
@@ -57,35 +57,34 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
     ) -> None:
         if not self._should_execute(value):
             return
+        input = self._logical[LogicalDevice.Input.Identifier(
+            self.data.logical_input_type,
+            self.data.logical_input_id
+        )]
 
-        # Emit an event with the LD guid and the rest of the system will
-        # then take care of executing it
-        logical_input = self._logical[self.data.logical_input_guid]
-
-        # Determine correct event values and update the input cache
+        # Determine correct event values and update the logical device's
+        # internal state.
         is_pressed = None
         input_value = None
-        match logical_input.type:
+        match input.type:
             case InputType.JoystickAxis:
                 input_value = value.current
-                self._cache[self._logical.device_guid][logical_input.guid] \
-                    .update(input_value)
+                input.update(input_value)
             case InputType.JoystickButton:
                 is_pressed = value.current
                 if self.data.button_inverted:
                     is_pressed = not is_pressed
-                self._cache[self._logical.device_guid][logical_input.guid] \
-                    .update(is_pressed)
+                input.update(is_pressed)
             case InputType.JoystickHat:
                 input_vaue = value.current
-                self._cache[self._logical.device_guid][logical_input.guid] \
-                    .update(input_value)
+                input.update(input_value)
 
-        # Emit the event
+        # Emit an event with the LogicalDevice guid and the rest of the
+        # system will then take care of executing it.
         self._event_listener.joystick_event.emit(
             Event(
-                event_type=logical_input.type,
-                identifier=logical_input.guid,
+                event_type=input.type,
+                identifier=input.id,
                 device_guid=self._logical.device_guid,
                 mode=mode_manager.ModeManager().current.name,
                 value=input_value,
@@ -97,8 +96,8 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
 
 class MapToLogicalDeviceModel(ActionModel):
 
-    ioInputGuidChanged = Signal()
-    ioInputTypeChanged = Signal()
+    logicalInputIdentifierChanged = Signal()
+    logicalInputTypeChanged = Signal()
     axisModeChanged = Signal()
     axisScalingChanged = Signal()
     buttonInvertedChanged = Signal()
@@ -123,27 +122,25 @@ class MapToLogicalDeviceModel(ActionModel):
             self._parent_sequence_index.index
         ).actionBehavior
 
-    def _get_logical_input_guid(self) -> str:
-        return str(self._data.logical_input_guid)
+    def _get_logical_input_identifier(self) -> InputIdentifier:
+        return InputIdentifier(
+            LogicalDevice().device_guid,
+            self._data.logical_input_type,
+            self._data.logical_input_id,
+            parent=self
+        )
 
-    def _set_logical_input_guid(self, guid_str: str) -> None:
-        try:
-            guid = uuid.UUID(guid_str)
-            if guid != self._data.logical_input_guid:
-                self._data.logical_input_guid = guid
-                self.ioInputGuidChanged.emit()
-        except ValueError:
-            pass
-
-    def _get_logical_input_type(self) -> str:
-        return InputType.to_string(self._data.logical_input_type)
-
-    def _set_logical_input_type(self, input_type: str) -> None:
-        input_type_tmp = InputType.to_enum(input_type)
-        if input_type_tmp == self._data.logical_input_type:
-            return
-        self._data.logical_input_type = input_type_tmp
-        self.logicalInputTypeChanged.emit()
+    def _set_logical_input_identifier(self, identifier: InputIdentifier) -> None:
+        new_identifier = InputIdentifier(
+            LogicalDevice().device_guid,
+            self._data.logical_input_type,
+            self._data.logical_input_id,
+            parent=self
+        )
+        if new_identifier != identifier:
+            self._data.logical_input_id = identifier.input_id
+            self._data.logical_input_type = identifier.input_type
+            self.logicalInputIdentifierChanged.emit()
 
     def _get_axis_mode(self) -> str:
         return AxisMode.to_string(self._data.axis_mode)
@@ -173,17 +170,11 @@ class MapToLogicalDeviceModel(ActionModel):
         self._data.button_inverted = button_inverted
         self.buttonInvertedChanged.emit()
 
-    logicalInputGuid = Property(
-        str,
-        fget=_get_logical_input_guid,
-        fset=_set_logical_input_guid,
-        notify=ioInputGuidChanged
-    )
-    logicalInputType = Property(
-        str,
-        fget=_get_logical_input_type,
-        fset=_set_logical_input_type,
-        notify=ioInputTypeChanged
+    logicalInputIdentifier = Property(
+        InputIdentifier,
+        fget=_get_logical_input_identifier,
+        fset=_set_logical_input_identifier,
+        notify=logicalInputIdentifierChanged
     )
     axisMode = Property(
         str,
@@ -206,7 +197,7 @@ class MapToLogicalDeviceModel(ActionModel):
 
 class MapToLogicalDeviceData(AbstractActionData):
 
-    """Action propagating data to the intermediate output inputs."""
+    """Action propagating data to the logical device inputs."""
 
     version = 1
     name  = "Map to Logical Device"
@@ -241,7 +232,7 @@ class MapToLogicalDeviceData(AbstractActionData):
             logical_input = logical.inputs_of_type([behavior_type])[0]
 
         # Model variables
-        self.logical_input_guid = logical_input.guid
+        self.logical_input_id = logical_input.id
         self.logical_input_type = behavior_type
         self.axis_mode = AxisMode.Absolute
         self.axis_scaling = 1.0
@@ -249,8 +240,8 @@ class MapToLogicalDeviceData(AbstractActionData):
 
     def _from_xml(self, node: ElementTree.Element, library: Library) -> None:
         self._id = util.read_action_id(node)
-        self.logical_input_guid = util.read_property(
-            node, "logical-input-guid", PropertyType.UUID
+        self.logical_input_id = util.read_property(
+            node, "logical-input-id", PropertyType.Int
         )
         self.logical_input_type = util.read_property(
             node, "logical-input-type", PropertyType.InputType
@@ -270,7 +261,7 @@ class MapToLogicalDeviceData(AbstractActionData):
     def _to_xml(self) -> ElementTree.Element:
         node = util.create_action_node(MapToLogicalDeviceData.tag, self._id)
         node.append(util.create_property_node(
-            "logical-input-guid", self.logical_input_guid, PropertyType.UUID
+            "logical-input-id", self.logical_input_id, PropertyType.Int
         ))
         node.append(util.create_property_node(
             "logical-input-type", self.logical_input_type, PropertyType.InputType

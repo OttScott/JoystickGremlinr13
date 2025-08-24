@@ -393,6 +393,14 @@ ApplicationWindow {
             _modeSelector.currentIndex = _modeSelector.find(uiState.currentMode)
         }
     }
+    Connections {
+        target: backend
+
+        function onProfileChanged() {
+            _logicalDeviceList.device =
+                backend.getLogicalDeviceManagementModel()
+        }
+    }
 
     // Main window content
     ColumnLayout {
@@ -439,11 +447,11 @@ ApplicationWindow {
                 device: _deviceModel
             }
 
-            // List of intermediate output device inputs
+            // List of logical device inputs
             LogicalDevice {
                 id: _logicalDeviceList
 
-                visible: uiState.currentTab === "intermediate"
+                visible: uiState.currentTab === "logical"
                 SplitView.minimumWidth: 200
 
                 device: backend.getLogicalDeviceManagementModel()

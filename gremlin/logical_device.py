@@ -15,22 +15,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
+
+import collections
 import time
-from typing import List, Optional
-import uuid
+from typing import cast, List, Optional
 
 import dill
 
 from gremlin.error import GremlinError, MissingImplementationError
-from gremlin.common import SingletonDecorator
+from gremlin.common import SingletonMetaclass
 from gremlin.types import InputType, HatDirection
 
 
-@SingletonDecorator
-class LogicalDevice:
+# @SingletonDecorator
+class LogicalDevice(metaclass=SingletonMetaclass):
 
-    """Implements a device like system for arbitrary amonuts of intermediate
-    outputs that can be used to combine and further modify inputs before
+    """Implements a device like system for arbitrary amonuts of logical device
+    inputs that can be used to combine and further modify inputs before
     ultimately feeding them to a vJoy device."""
 
     device_guid = dill.UUID_LogicalDevice
@@ -39,15 +41,17 @@ class LogicalDevice:
 
         """General input class, base class for all other inputs."""
 
-        def __init__(self, label: str, index: uuid.UUID) -> None:
+        Identifier = collections.namedtuple("Identifier", ["type", "id"])
+
+        def __init__(self, label: str, id: int) -> None:
             """Creates a new Input instance.
 
             Args:
                 label: textual label associated with this input
-                index: per InputType unique index
+                index: per InputType index
             """
             self._label = label
-            self._guid = index
+            self._id = id
             self._value = None
 
         def update(self, value: float | bool | HatDirection) -> None:
@@ -58,25 +62,24 @@ class LogicalDevice:
             return self._label
 
         @property
-        def guid(self) -> uuid.UUID:
-            return self._guid
+        def id(self) -> int:
+            return self._id
 
         @property
         def type(self) -> InputType:
             return self._input_type()
 
         @property
-        def suffix(self) -> str:
-            return str(self._guid).split("-")[0]
+        def identifier(self) -> Identifier:
+            return self.Identifier(self.type, self.id)
 
         def _input_type(self) -> InputType:
             raise MissingImplementationError("Input._input_type not implemented")
 
-
     class Axis(Input):
 
-        def __init__(self, label: str, index: uuid.UUID) -> None:
-            super().__init__(label, index)
+        def __init__(self, label: str, id: int) -> None:
+            super().__init__(label, id)
             self._value = 0.0
 
         def _input_type(self) -> InputType:
@@ -84,13 +87,12 @@ class LogicalDevice:
 
         @property
         def value(self) -> float:
-            assert isinstance(self._value, float)
             return self._value
 
     class Button(Input):
 
-        def __init__(self, label: str, index: uuid.UUID) -> None:
-            super().__init__(label, index)
+        def __init__(self, label: str, id: int) -> None:
+            super().__init__(label, id)
             self._value = False
 
         def _input_type(self) -> InputType:
@@ -98,13 +100,12 @@ class LogicalDevice:
 
         @property
         def is_pressed(self) -> bool:
-            assert isinstance(self._value, bool)
             return self._value
 
     class Hat(Input):
 
-        def __init__(self, label: str, index: uuid.UUID) -> None:
-            super().__init__(label, index)
+        def __init__(self, label: str, id: int) -> None:
+            super().__init__(label, id)
             self._value = HatDirection.Center
 
         def _input_type(self) -> InputType:
@@ -112,7 +113,6 @@ class LogicalDevice:
 
         @property
         def direction(self) -> HatDirection:
-            assert isinstance(self._value, HatDirection)
             return self._value
 
 
@@ -120,13 +120,13 @@ class LogicalDevice:
         self._inputs = {}
         self._label_lookup = {}
 
-    def __getitem__(self, identifier: uuid.UUID | str) -> Input:
-        return self._inputs[self._identifier_to_guid(identifier)]
+    def __getitem__(self, identifier_or_label: Input.Identifier | str) -> Input:
+        return self._inputs[self._resolve_to_identifier(identifier_or_label)]
 
     def create(
             self,
             type: InputType,
-            input_id: Optional[uuid.UUID]=None,
+            input_id: Optional[int]=None,
             label: Optional[str]=None
     ) -> Input:
         """Creates a new input instance of the given type.
@@ -145,25 +145,23 @@ class LogicalDevice:
             InputType.JoystickHat: self.Hat
         }
 
-        # Use provided input id and verify it is unique otherwise generte one
-        guid = uuid.uuid4()
-        if input_id is not None:
-            if input_id in self._inputs:
-                raise GremlinError(f"IO item with duplicate id {input_id}.")
-            else:
-                guid = input_id
+        # Use provided input id or generate a new onw if the provided one is
+        # currently in use.
+        if input_id is None or self._is_id_in_use(input_id, type):
+            input_id = self._lowest_available_id(type)
 
-        # Generate a valid label if none has been provided
+        # Generate a valid label if none has been provided.
         if label is None:
-            # Create a key and check it is valid and if not, make it valid
-            suffix = str(guid).split("-")[0]
-            label = f"{InputType.to_string(type).capitalize()} {suffix}"
+            # Create a key and check it is valid and if not, make it valid.
+            label = f"{InputType.to_string(type).capitalize()} {input_id}"
             if label in self.labels_of_type():
                 label = f"{label} - {time.time()}"
 
-        self._inputs[guid] = do_create[type](label, guid)
-        self._label_lookup[label] = guid
-        return self._inputs[guid]
+        # Create input store information and return it.
+        new_input = do_create[type](label, input_id)
+        self._inputs[new_input.identifier] = new_input
+        self._label_lookup[label] = new_input.identifier
+        return new_input
 
     def reset(self) -> None:
         """Resets the IO system to contain no entries."""
@@ -187,24 +185,26 @@ class LogicalDevice:
 
         input = self._inputs[self._label_lookup[old_label]]
         input._label = new_label
-        self._label_lookup[new_label] = input.guid
+        self._label_lookup[new_label] = input.identifier
         del self._label_lookup[old_label]
 
-    def delete(self, identifier: str | uuid.UUID) -> None:
-        """Deletes an input based on the given identifier.
+    def delete(self, identifier_or_label: Input.Identifier | str) -> None:
+        """Deletes the specified input if it is present.
 
         Args:
-            identifier: The label or guid of the input to delete
+            identifier_or_label: Identifier or label of the input to delete
         """
-        input = self._inputs[self._identifier_to_guid(identifier)]
-        del self._inputs[input.guid]
+        input = self[identifier_or_label]
+        del self._inputs[input.identifier]
         del self._label_lookup[input.label]
+        del input
 
     def labels_of_type(self, type_list: List[InputType]=[]) -> List[str]:
         """Returns all labels for inputs of the matching types.
 
         Args:
-            type_list: List of input types to match against
+            type_list: List of input types to match against, if empty all types
+                are matched against.
 
         Returns:
             List of all labels matching the specified inputs types
@@ -212,11 +212,12 @@ class LogicalDevice:
         x = [e.label for e in self.inputs_of_type(type_list)]
         return x
 
-    def inputs_of_type(self, type_list: List[InputType]=[]) -> List[Input]:
+    def inputs_of_type(self, type_list: List[InputType]=[]) -> list[Input]:
         """Returns input corresponding to the specified types.
 
         Args:
-            type_list: List of types for which to return inputs
+            type_list: List of input types to match against, if empty all types
+                are matched against.
 
         Returns:
             List of inputs that have the specified type
@@ -266,27 +267,76 @@ class LogicalDevice:
     def hat_count(self) -> int:
         return len(self.inputs_of_type([InputType.JoystickHat]))
 
-    def _identifier_to_guid(self, identifier: str | uuid.UUID) -> uuid.UUID:
-        """Returns the guid for the provided identifier.
+    def axis(self, index: int) -> Axis:
+        if index not in [e.id for e in self.inputs_of_type([InputType.JoystickAxis])]:
+            raise GremlinError(f"No logical axis with id {index} exists.")
+        return cast(
+            LogicalDevice.Axis,
+            self[LogicalDevice.Input.Identifier(InputType.JoystickAxis, index)]
+        )
 
-        This will perform a lookup if necessary.
+    def button(self, index: int) -> Button:
+        if index not in [e.id for e in self.inputs_of_type([InputType.JoystickButton])]:
+            raise GremlinError(f"No logical button with id {index} exists.")
+        return cast(
+            LogicalDevice.Button,
+            self[LogicalDevice.Input.Identifier(InputType.JoystickButton, index)]
+        )
+
+    def hat(self, index: int) -> Hat:
+        if index not in [e.id for e in self.inputs_of_type([InputType.JoystickHat])]:
+            raise GremlinError(f"No logical hat with id {index} exists.")
+        return cast(
+            LogicalDevice.Hat,
+            self[LogicalDevice.Input.Identifier(InputType.JoystickHat, index)]
+        )
+
+    def _lowest_available_id(self, type: InputType) -> int:
+        """Returns the next lowest available id for the specified input type.
 
         Args:
-            identifier: The identifier to transform into a guid
+            type: The input type to return the next id for
 
         Returns:
-            Guid corresponding to the provided identifier
+            The next available id for the specified input type
+        """
+        next_id = 1
+        while next_id in sorted([e.id for e in self.inputs_of_type([type])]):
+            next_id += 1
+        return next_id
+
+    def _is_id_in_use(self, id: int, type: InputType) -> bool:
+        """Returns whether the specified id is already in use by the given type.
+
+        Args:
+            id: The id to check for usage
+            type: The input type to check for usage of the id
+        """
+        return id in [e.id for e in self.inputs_of_type([type])]
+
+    def _resolve_to_identifier(
+        self,
+        identifier_or_label: Input.Identifier | str
+    ) -> Input.Identifier:
+        """Returns the identifier associated with the given lookup.
+
+        Args:
+            identifier_or_label: The query key that may need to be converted to
+                an identifier
+
+        Returns:
+            Identifier corresponding to the provided input
         """
         try:
-            if isinstance(identifier, str):
-                return self._label_lookup[identifier]
-            elif isinstance(identifier, uuid.UUID):
-                return identifier
+            if isinstance(identifier_or_label, str):
+                return self._label_lookup[identifier_or_label]
+            elif isinstance(identifier_or_label, self.Input.Identifier):
+                return identifier_or_label
             else:
                 raise GremlinError(
-                    f"Provided identifier '{identifier}' is invalid"
+                    f"Provided lookup '{identifier_or_label}' is invalid."
             )
         except KeyError:
             raise GremlinError(
-                f"No input with identifier '{identifier}' exists"
+                f"No input exists for '{identifier_or_label}'."
             )

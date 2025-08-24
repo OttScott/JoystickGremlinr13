@@ -78,7 +78,7 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
         }
 
-        // Controls to add new intermediate output instances
+        // Controls to add new logical device input instances
         RowLayout {
             Layout.minimumWidth: 100
             Layout.preferredHeight: 50

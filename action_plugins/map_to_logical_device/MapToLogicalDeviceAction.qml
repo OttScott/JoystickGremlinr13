@@ -40,11 +40,11 @@ Item {
 
         LogicalDeviceSelector {
             logicalInputType: inputBinding.behavior
-            logicalInputGuid: _root.action.logicalInputGuid
+            logicalInputIdentifier: _root.action.logicalInputIdentifier
             validTypes: [inputBinding.behavior]
 
-            onLogicalInputGuidChanged: {
-                _root.action.logicalInputGuid = logicalInputGuid
+            onLogicalInputIdentifierChanged: {
+                _root.action.logicalInputIdentifier = logicalInputIdentifier
             }
             onLogicalInputTypeChanged: {
                 _root.action.logicalInputType = logicalInputType
