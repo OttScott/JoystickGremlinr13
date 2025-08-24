@@ -56,7 +56,7 @@ class UIState(QtCore.QObject):
     modeChanged = Signal()
     tabChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
         self._current_device = dill.UUID_Invalid
@@ -69,7 +69,7 @@ class UIState(QtCore.QObject):
         )
         signal.profileChanged.connect(self._device_change)
 
-    def _device_change(self):
+    def _device_change(self) -> None:
         # We only care about this in case we've selected a physical device
         if self._current_tab != "physical":
             return

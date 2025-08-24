@@ -15,9 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
 
 from PySide6 import QtCore
 
+
 MI = QtCore.QModelIndex
 PMI = QtCore.QPersistentModelIndex
+OQO = Optional[QtCore.QObject]
 ModelIndex = MI | PMI

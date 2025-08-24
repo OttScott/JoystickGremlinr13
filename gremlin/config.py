@@ -19,12 +19,9 @@ import json
 import logging
 import time
 import os
-import re
 import uuid
 
-from typing import Any, List, Tuple
-
-from PySide6 import QtCore
+from typing import Any, Tuple
 
 from gremlin import common, error, util
 from gremlin.types import PropertyType
@@ -48,7 +45,7 @@ class Configuration:
 
     """Responsible for loading and saving configuration data."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new instance, loading the current configuration."""
         self._data = {}
         self._last_reload = None
@@ -66,7 +63,7 @@ class Configuration:
         """Returns True if the last load() was less than 1 second ago."""
         return self._last_reload is not None and time.time() - self._last_reload < 1
 
-    def load(self):
+    def load(self) -> None:
         """Loads the configuration file's content."""
         if self._should_skip_reload():
             return
@@ -110,7 +107,7 @@ class Configuration:
         self._last_reload = time.time()
         self.save()
 
-    def save(self):
+    def save(self) -> None:
         """Writes the configuration file to disk."""
         # Convert all data to string representations
         json_data = {}
@@ -174,7 +171,7 @@ class Configuration:
         # Check the data type is a known one
         if data_type not in _required_properties:
             raise error.GremlinError(
-                f"Attempting to register an entry with unsupported data type: " +
+                "Attempting to register an entry with unsupported data type: " +
                 f"{str(data_type)} in {key}"
             )
 
@@ -228,7 +225,7 @@ class Configuration:
         # Mark property as being registered
         self._data[key]["is_registered"] = True
 
-    def purge_unused(self):
+    def purge_unused(self) -> None:
         """Removes all options that have failed to be registered."""
         keys_to_delete = []
         for key, value in self._data.items():
@@ -279,7 +276,7 @@ class Configuration:
         else:
             data_type = self._data[key]["data_type"]
             raise error.GremlinError(
-                f"Value has wrong data type, expted: " +
+                "Value has wrong data type, expted: " +
                 f"'{data_type}' got '{type(value)}'"
             )
 

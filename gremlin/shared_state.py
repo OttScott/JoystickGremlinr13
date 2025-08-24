@@ -15,8 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import annotations
 
 import threading
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from gremlin import profile
 
 
 """Stores global state that needs to be shared between various
@@ -33,10 +38,10 @@ _suspend_input_highlighting = False
 _suspend_timer = None
 
 # Holds the currently active profile
-current_profile = None
+current_profile : None | profile.Profile = None
 
 
-def suspend_input_highlighting():
+def suspend_input_highlighting() -> bool:
     """Returns whether or not input highlighting is suspended.
 
     :return True if input's are not automatically selected, False otherwise
@@ -57,7 +62,7 @@ def set_suspend_input_highlighting(value: bool) -> None:
     _suspend_input_highlighting = value
 
 
-def delayed_input_highlighting_suspension():
+def delayed_input_highlighting_suspension() -> None:
     """Disables input highlighting with a delay."""
     global _suspend_timer
     if _suspend_timer is not None:

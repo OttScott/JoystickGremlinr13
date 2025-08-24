@@ -36,7 +36,7 @@ class JoystickWrapper:
 
         """Represents a joystick input."""
 
-        def __init__(self, joystick_guid: uuid.UUID, index: int):
+        def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             """Creates a new instance.
 
             Args:
@@ -59,7 +59,7 @@ class JoystickWrapper:
 
         """Represents a single axis of a joystick."""
 
-        def __init__(self, joystick_guid: uuid.UUID, index: int):
+        def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
 
         @property
@@ -73,7 +73,7 @@ class JoystickWrapper:
 
         """Represents a single button of a joystick."""
 
-        def __init__(self, joystick_guid: uuid.UUID, index: int):
+        def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
 
         @property
@@ -84,14 +84,14 @@ class JoystickWrapper:
 
         """Represents a single hat of a joystick,"""
 
-        def __init__(self, joystick_guid: uuid.UUID, index: int):
+        def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
 
         @property
         def direction(self) -> types.HatDirection:
             return self._value
 
-    def __init__(self, device_guid: uuid.UUID):
+    def __init__(self, device_guid: uuid.UUID) -> None:
         """Creates a new wrapper object for the given joystick.
 
         Args:
@@ -194,7 +194,7 @@ class JoystickWrapper:
             )
         return self._buttons[index]
 
-    def hat(self, index):
+    def hat(self, index: int) -> Hat:
         """Returns the Hat instance for the given index.
 
         The index is 1 based, i.e. the first hat starts with index 1.
@@ -282,7 +282,10 @@ class Joystick:
     # Dictionary of initialized joystick devices
     devices = {}
 
-    def __getitem__(self, device_guid: uuid.UUID):
+    def __getitem__(
+        self,
+        device_guid: uuid.UUID
+    ) -> logical_device.LogicalDevice | JoystickWrapper:
         """Returns the requested joystick instance.
 
         If the joystick instance exists it is returned directly, otherwise
@@ -316,7 +319,7 @@ class Keyboard:
 
     """Provides access to the keyboard state."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialises a new object."""
         self._keyboard_state = {}
 

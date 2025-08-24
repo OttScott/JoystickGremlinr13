@@ -68,7 +68,7 @@ class Event:
             value: Any | None=None,
             is_pressed: bool | None=None,
             raw_value: Any | None=None
-    ):
+    ) -> None:
         """Creates a new Event object.
 
         Args:
@@ -136,10 +136,12 @@ class Event:
             self.raw_value
         )
 
-    def __eq__(self, other: Event) -> bool:
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, Event)
         return self.__hash__() == other.__hash__()
 
-    def __ne__(self, other: Event) -> bool:
+    def __ne__(self, other: object) -> bool:
+        assert isinstance(other, Event)
         return not (self == other)
 
     def __str__(self) -> str:
@@ -185,7 +187,7 @@ class Event:
         return Event(
             event_type=InputType.Keyboard,
             identifier=(key.scan_code, key.is_extended),
-            device_guid=dill.GUID_Keyboard,
+            device_guid=dill.UUID_Keyboard,
             mode=mode_manager.ModeManager().current.name
         )
 
@@ -208,7 +210,7 @@ class EventListener(QtCore.QObject):
     # Signal emitted when a joystick is attached or removed
     device_change_event = QtCore.Signal()
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new instance."""
         QtCore.QObject.__init__(self)
         self.keyboard_hook = windows_event_hook.KeyboardHook()
@@ -409,7 +411,7 @@ class EventListener(QtCore.QObject):
             )
             return util.with_default_center_calibration(event.value)
 
-    def _init_joysticks(self):
+    def _init_joysticks(self) -> None:
         """Initializes joystick devices.
 
         Loads calibration data for the joystick.
@@ -433,7 +435,7 @@ class EventHandler(QtCore.QObject):
     # Signal emitted when the application is pause / resumed
     is_active = QtCore.Signal(bool)
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the EventHandler instance."""
         QtCore.QObject.__init__(self)
         self.process_callbacks = True

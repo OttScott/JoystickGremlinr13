@@ -28,7 +28,7 @@ import time
 import traceback
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 # Import QtMultimedia so pyinstaller doesn't miss it
 from PySide6 import QtCore, QtGui, QtQml, QtQuick, QtWidgets
@@ -148,11 +148,10 @@ def register_config_options() -> None:
         PropertyType.List, [],
         "Priority order of the actions", {},
         True
-
     )
 
 
-def update_action_priorities():
+def update_action_priorities() -> None:
     cfg = gremlin.config.Configuration()
     key = ["global", "general", "action_priorities"]
     priorities = []
@@ -174,7 +173,7 @@ def update_action_priorities():
     cfg.set(*key, priorities)
 
 
-def make_gremlin_app(argv):
+def make_gremlin_app(argv: List[str]) -> QtWidgets.QApplication:
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -358,6 +357,7 @@ def make_gremlin_app(argv):
     # Run UI
     syslog.info("Gremlin UI launching")
     app.aboutToQuit.connect(shutdown_cleanup)
+
     return app
 
 

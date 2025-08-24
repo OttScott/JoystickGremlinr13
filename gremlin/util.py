@@ -373,7 +373,7 @@ def create_subelement_node(
         raise error.ProfileError(
             f"No input subelement with name '{name} exists"
         )
-    if not type(value) in _element_types[name]:
+    if type(value) not in _element_types[name]:
         raise error.ProfileError(
             f"Incorrect value type for subelement with name '{name}"
         )

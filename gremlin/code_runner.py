@@ -16,15 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABCMeta, abstractmethod
-import copy
-import importlib
-import logging
 import os
-import random
-import string
 import sys
 import time
-from typing import List, Tuple
+from typing import List
 
 import dill
 from vjoy.vjoy import VJoyProxy
@@ -40,11 +35,11 @@ class VirtualButton(metaclass=ABCMeta):
 
     """Implements a button like interface."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new instance."""
         self._fsm = self._initialize_fsm()
 
-    def _initialize_fsm(self):
+    def _initialize_fsm(self) -> fsm.FiniteStateMachine:
         """Initializes the state of the button FSM."""
         states = ["up", "down"]
         actions = ["press", "release"]
@@ -88,7 +83,7 @@ class VirtualAxisButton(VirtualButton):
             lower_limit: float,
             upper_limit: float,
             direction: AxisButtonDirection
-    ):
+    ) -> None:
         super().__init__()
         self._lower_limit = lower_limit
         self._upper_limit = upper_limit
@@ -140,7 +135,7 @@ class VirtualHatButton(VirtualButton):
 
     """Treats directional hat events as a button."""
 
-    def __init__(self, directions):
+    def __init__(self, directions) -> None:
         super().__init__()
         self._directions = directions
 
@@ -157,7 +152,7 @@ class VirtualButtonFunctor:
         self,
         virtual_button: VirtualButton,
         event_template: event_handler.Event
-    ):
+    ) -> None:
         self._virtual_button = virtual_button
         self._event_template = event_template
         self._event_listener = event_handler.EventListener()
@@ -176,7 +171,7 @@ class CallbackObject:
 
     c_next_virtual_identifier = 1
 
-    def __init__(self, binding: profile.InputItemBinding):
+    def __init__(self, binding: profile.InputItemBinding) -> None:
         """Creates a new callback instance for a specific input item.
 
         Args:
@@ -235,7 +230,7 @@ class CallbackObject:
         virtual_event = event_handler.Event(
             event_type=InputType.VirtualButton,
             identifier=self._virtual_identifier,
-            device_guid=dill.GUID_Virtual,
+            device_guid=dill.UUID_Virtual,
             mode=mode_manager.ModeManager().current.name,
             is_pressed=False,
             raw_value=False
@@ -292,7 +287,7 @@ class CallbackObject:
             CallbackObject(virt_binding)
         )
 
-    def _generate_values(self, event):
+    def _generate_values(self, event: event_handler.Event) -> List[Value]:
         if event.event_type in [InputType.JoystickAxis, InputType.JoystickHat]:
             value = Value(event.value)
         elif event.event_type in [
@@ -311,7 +306,7 @@ class CodeRunner:
 
     """Runs the actual profile code."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new code runner instance."""
         self.event_handler = event_handler.EventHandler()
         self.event_handler.add_plugin(user_script.JoystickPlugin())
@@ -419,7 +414,7 @@ class CodeRunner:
                 .format(str(e))
             )
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops listening to events and unloads all callbacks."""
         # Disconnect all signals
         if self._running:
@@ -447,14 +442,14 @@ class CodeRunner:
         # Remove other possibly long-running aspects
         audio_player.AudioPlayer().stop()
 
-    def _reset_state(self):
+    def _reset_state(self) -> None:
         """Resets all states to their default values."""
         self.event_handler._active_mode = self._profile.modes.first_mode
         self.event_handler._previous_mode = self._profile.modes.first_mode
         user_script.callback_registry.clear()
         device_helpers.ButtonReleaseActions().reset()
 
-    def _setup_user_scripts(self):
+    def _setup_user_scripts(self) -> None:
         """Handles loading and configuring of user scripts."""
         # Retrieve the list of current paths searched by Python
         system_paths = [os.path.normcase(os.path.abspath(p)) for p in sys.path]
@@ -477,9 +472,9 @@ class CodeRunner:
         # plugins properly
         sys.path = system_paths
 
-    def _setup_profile(self):
-        # Collect action sequences from physical inputs and intermediate
-        # output entries
+    def _setup_profile(self) -> None:
+        # Collect action sequences from physical inputs and logical device
+        # input entries.
         item_list = sum(self._profile.inputs.values(), [])
         action_sequences = sum([e.action_sequences for e in item_list], [])
 

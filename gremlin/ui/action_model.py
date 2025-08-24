@@ -17,13 +17,12 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from PySide6 import QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot
 
 import gremlin.config
-from gremlin import input_cache
 from gremlin.error import MissingImplementationError, GremlinError
 from gremlin.plugin_manager import PluginManager
 from gremlin.profile import Library
@@ -380,5 +379,5 @@ class ActionPriorityListModel(QtCore.QAbstractListModel):
         else:
             raise GremlinError("Invalid role encountered")
 
-    def roleNames(self) -> Dict:
+    def roleNames(self) -> Dict[int, QtCore.QByteArray]:
         return ActionPriorityListModel.roles
