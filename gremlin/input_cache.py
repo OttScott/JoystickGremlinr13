@@ -62,6 +62,8 @@ class JoystickWrapper:
         def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
 
+            self._value = 0.0
+
         @property
         def value(self) -> float:
             # FIXME: This bypasses calibration and any other possible
@@ -76,6 +78,8 @@ class JoystickWrapper:
         def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
 
+            self._value = False
+
         @property
         def is_pressed(self) -> bool:
             return self._value
@@ -86,6 +90,8 @@ class JoystickWrapper:
 
         def __init__(self, joystick_guid: uuid.UUID, index: int) -> None:
             super().__init__(joystick_guid, index)
+
+            self._value = types.HatDirection.Center
 
         @property
         def direction(self) -> types.HatDirection:
