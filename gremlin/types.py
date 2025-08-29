@@ -20,7 +20,8 @@ from __future__ import annotations
 
 import enum
 from enum import Enum
-from typing import Tuple, Union
+import logging
+from typing import Generic, Tuple, TypeVar, Union
 
 import gremlin.error
 
@@ -727,3 +728,55 @@ class Point2D:
             New Point2D instance representing the subtraction result
         """
         return Point2D(self.x - other.x, self.y - other.y)
+
+
+NumericType = TypeVar("NumericType", int, float)
+
+class ValueRange(Generic[NumericType]):
+
+    """Represents a value range for a numerical type."""
+
+    _low: NumericType
+    _high: NumericType
+    _value: NumericType
+
+    def __init__(self, low: NumericType, high: NumericType) -> None:
+        """Creates a new ValueRange.
+
+        Will swap low and high if they are in the wrong order.
+
+        Args:
+            low: The lower bound of the range
+            high: The upper bound of the range
+        """
+        if low > high:
+            logging.getLogger("system").warning(
+                f"ValueRange initialized with low > high ({low} > {high}),"
+                "swapping values."
+            )
+            low, high = high, low
+        self._low = low
+        self._high = high
+        self._value = low
+
+    @property
+    def value(self) -> NumericType:
+        return self._value
+
+    @value.setter
+    def value(self, val: NumericType) -> None:
+        """Sets the value represented by the ValueRange.
+
+        If the given value exceeds the range's limits, it will be clamlped.
+
+        Args:
+            val: The new value to set
+        """
+        if self._low <= val <= self._high:
+            self._value = val
+        else:
+            logging.getLogger("system").warning(
+                f"Attempted to set ValueRange to {val}, which is outside the "
+                f"range [{self._low}, {self._high}], clampping value."
+            )
+            self._value = max(self._low, min(val, self._high))
