@@ -23,6 +23,7 @@ import QtQuick.Window
 import QtQuick.Controls.Universal
 
 import Gremlin.Profile
+import Gremlin.UI
 import Gremlin.ActionPlugins
 import "../../qml"
 
@@ -168,7 +169,7 @@ Item {
                 text: bsi.icons.replace
 
                 onClicked: function() {
-                    _root.action.firstAxis = inputIdentifier
+                    _root.action.firstAxis = uiState.currentInput
                 }
             }
 
@@ -190,7 +191,7 @@ Item {
                 text: bsi.icons.replace
 
                 onClicked: function() {
-                    _root.action.secondAxis = inputIdentifier
+                    _root.action.secondAxis = uiState.currentInput
                 }
             }
         }
