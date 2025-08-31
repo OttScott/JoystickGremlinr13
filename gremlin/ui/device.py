@@ -643,7 +643,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
 
 
 @QtQml.QmlElement
-class LogicalDeviceModel(QtCore.QAbstractListModel):
+class LogicalDeviceSelectorModel(QtCore.QAbstractListModel):
 
     inputsChanged = Signal()
     selectionChanged = Signal()
@@ -652,8 +652,6 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
         QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"label"),
         QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"id"),
         QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"type"),
-        QtCore.Qt.ItemDataRole.UserRole + 4:
-            QtCore.QByteArray(b"inputIdentifier"),
     }
 
     def __init__(self, parent: ta.OQO=None) -> None:
@@ -661,7 +659,7 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
 
         self._logical = LogicalDevice()
         self._valid_types = []
-        self._current_index = 0
+        self._current_index = -1
         self._current_identifier = InputIdentifier(parent=self)
 
     def rowCount(self, parent: ta.ModelIndex=QtCore.QModelIndex()) -> int:
@@ -673,7 +671,9 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
             role: int=QtCore.Qt.ItemDataRole.DisplayRole
     ) -> Any:
         if role not in self.roleNames():
-            raise GremlinError(f"Invalid role {role} in LogicalDeviceModel")
+            raise GremlinError(
+                f"Invalid role {role} in LogicalDeviceSelectorModel"
+            )
 
         input = self._logical.inputs_of_type(self._valid_types)[index.row()]
         match self.roles[role]:
@@ -683,13 +683,6 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
                 return input.id
             case "type":
                 return InputType.to_string(input.type)
-            case "inputIdentifier":
-                return InputIdentifier(
-                    LogicalDevice().device_guid,
-                    input.type,
-                    input.id,
-                    parent=self
-                )
 
     def roleNames(self) -> Dict:
         return self.roles
@@ -697,25 +690,38 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
     def _set_valid_types(self, valid_types: List[str]) -> None:
         type_list = sorted([InputType.to_enum(entry) for entry in valid_types])
         if type_list != self._valid_types:
+            is_initialized = len(self._valid_types) > 0
             self._valid_types = type_list
             self.inputsChanged.emit()
-
-    def _get_current_selection_index(self) -> int:
-        return self._current_index
+            if is_initialized:
+                self._set_current_index(0)
 
     def _get_current_identifier(self) -> InputIdentifier:
         return self._current_identifier
 
     def _set_current_identifier(self, identifier: InputIdentifier) -> None:
         if identifier != self._current_identifier:
-            self._current_identifier = identifier
-            self._current_index = 0
+            # Find the index that would correspond to the given identifier.
             for i, input in enumerate(
                 self._logical.inputs_of_type(self._valid_types)
             ):
                 if input.type == identifier.input_type and \
                         input.id == identifier.input_id:
-                    self._current_index = i
+                    self._set_current_index(i)
+
+    def _get_current_index(self) -> int:
+        return self._current_index
+
+    def _set_current_index(self, index: int) -> None:
+        if index != self._current_index:
+            input = self._logical.inputs_of_type(self._valid_types)[index]
+            self._current_identifier = InputIdentifier(
+                LogicalDevice().device_guid,
+                input.type,
+                input.id,
+                parent=self
+            )
+            self._current_index = index
             self.selectionChanged.emit()
 
     validTypes = Property(
@@ -724,16 +730,17 @@ class LogicalDeviceModel(QtCore.QAbstractListModel):
         notify=inputsChanged
     )
 
-    currentSelectionIndex = Property(
-        int,
-        fget=_get_current_selection_index,
-        notify=selectionChanged
-    )
-
     currentIdentifier = Property(
         InputIdentifier,
         fget=_get_current_identifier,
         fset=_set_current_identifier,
+        notify=selectionChanged
+    )
+
+    currentIndex = Property(
+        int,
+        fget=_get_current_index,
+        fset=_set_current_index,
         notify=selectionChanged
     )
 

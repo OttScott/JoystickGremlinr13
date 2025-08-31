@@ -695,7 +695,6 @@ class Profile:
     def _logical_devices_from_xml(self, root_node: ElementTree.Element) -> None:
         logical = LogicalDevice()
         for node in root_node.findall("./logical-device/input"):
-            print(node)
             logical.create(
                 read_subelement(node, "input-type"),
                 read_subelement(node, "input-id"),

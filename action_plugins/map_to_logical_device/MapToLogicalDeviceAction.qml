@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2015 - 2023 Lionel Ott
+// Copyright (C) 2023 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,15 +39,14 @@ Item {
         anchors.right: parent.right
 
         LogicalDeviceSelector {
+            // The ordering is important, swapping it will result in the
+            // wrong item being displayed.
+            validTypes: [inputBinding.behavior]
             logicalInputType: inputBinding.behavior
             logicalInputIdentifier: _root.action.logicalInputIdentifier
-            validTypes: [inputBinding.behavior]
 
             onLogicalInputIdentifierChanged: {
                 _root.action.logicalInputIdentifier = logicalInputIdentifier
-            }
-            onLogicalInputTypeChanged: {
-                _root.action.logicalInputType = logicalInputType
             }
         }
 

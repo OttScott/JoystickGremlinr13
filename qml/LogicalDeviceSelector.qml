@@ -28,6 +28,7 @@ Item {
 
     property string logicalInputType
 
+    property alias currentIndex: _model.currentIndex
     property alias logicalInputIdentifier: _model.currentIdentifier
     property alias validTypes: _model.validTypes
 
@@ -35,7 +36,7 @@ Item {
     implicitWidth: _content.implicitWidth
 
 
-    LogicalDeviceModel {
+    LogicalDeviceSelectorModel {
         id: _model
     }
 
@@ -47,27 +48,26 @@ Item {
         spacing: 10
 
         ComboBox {
+            id: _combobox
+
             Layout.minimumWidth: 250
             Layout.fillWidth: true
 
             model: _model
             textRole: "label"
-            valueRole: "inputIdentifier"
-            currentIndex: _model.currentSelectionIndex
+            currentIndex: _model.currentIndex
             delegate: OptionDelegate {}
 
-            onActivated: (index) => {
-                _model.currentIdentifier = currentValue
-                console.log("Selected logical input: " + currentValue.label)
-            }
-
-            Component.onCompleted: {
-                currentIndex = indexOfValue(_model.currentIdentifier)
+            onActivated: () => {
+                if (_model.currentIndex !== currentIndex) {
+                    _model.currentIndex = currentIndex
+                }
             }
         }
     }
 
     component OptionDelegate : ItemDelegate {
+        required property int index
         required property string label
 
         width: parent.width
