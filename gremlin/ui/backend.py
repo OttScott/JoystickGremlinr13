@@ -109,7 +109,6 @@ class UIState(QtCore.QObject):
         if mode_name != self._current_mode:
             self._current_mode = mode_name
             self.modeChanged.emit()
-            self.deviceChanged.emit()
             self.inputChanged.emit()
 
     @Slot(str)

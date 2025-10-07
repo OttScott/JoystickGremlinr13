@@ -365,8 +365,9 @@ class Device(QtCore.QAbstractListModel):
 
     @Slot(str)
     def setMode(self, mode: str) -> None:
+        self.layoutAboutToBeChanged.emit()
         self._mode = mode
-        self.modelReset.emit()
+        self.layoutChanged.emit()
 
     def _get_guid(self) -> str:
         if self._device is None:
