@@ -312,6 +312,10 @@ ApplicationWindow {
                 model: _toolbar.modes.modeList
                 textRole: "name"
 
+                onActivated: () => {
+                    uiState.setCurrentMode(currentText)
+                }
+
                 ToolTip {
                     visible: parent.hovered
                     text: qsTr("Select mode to edit")
