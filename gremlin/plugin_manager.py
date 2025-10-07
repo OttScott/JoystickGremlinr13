@@ -52,11 +52,11 @@ class PluginManager(metaclass=SingletonMetaclass):
         self._parameter_requirements : dict[str, PluginList] = {}
 
         self._discover_plugins(Path(util.resource_path("action_plugins")), True)
-        path = Path(config.Configuration().value(
+        user_plugins_path = config.Configuration().value(
             "global", "general", "plugin_directory"
-        ))
-        if path.is_dir():
-            self._discover_plugins(path, False)
+        )
+        if os.path.isdir(user_plugins_path):
+            self._discover_plugins(Path(user_plugins_path), False)
 
         self._create_type_action_map()
         self._create_action_name_map()
