@@ -170,51 +170,52 @@ class PluginManager(metaclass=SingletonMetaclass):
         if not is_core:
             sys.path.insert(0, str(path))
 
-        for root, _, files in os.walk(path):
-            for _ in [v for v in files if v == "__init__.py"]:
+        for fpath in path.glob("**/__init__.py"):
+            try:
+                # Ignore root folder of the action plugins.
+                if fpath.parent == path:
+                    continue
+                # Attempt to load the file and if it looks like a proper
+                # action_plugins store it in the registry.
+                module = fpath.parts[-2]
+                plugin_module_name = f"{path.name}.{module}"
+                if not is_core:
+                    plugin_module_name = module
                 try:
-                    # Attempt to load the file and if it looks like a proper
-                    # action_plugins store it in the registry.
-                    module = os.path.split(root)[1]
-
-                    plugin_module_name = f"{path.name}.{module}"
-                    if not is_core:
-                        plugin_module_name = module
-                    try:
-                        plugin = importlib.import_module(plugin_module_name)
-                    except (ModuleNotFoundError, ImportError) as e:
-                        logging.getLogger("system").error(
-                            f"Failed to load plugin '{plugin_module_name}' "
-                            f"with error: '{e}"
-                        )
-                        continue
-
-                    # Verify requirements for the plugin are satisfied.
-                    if "create" in plugin.__dict__ \
-                            and plugin.create.can_create():
-                        # Store plugin class information.
-                        self._plugins[plugin.create.tag] = plugin.create
-                        logging.getLogger("system").debug(
-                            "Loaded: {}".format(plugin.create.tag)
-                        )
-
-                        # Register QML type.
-                        QtQml.qmlRegisterType(
-                            plugin.create.model,
-                            "Gremlin.ActionPlugins",
-                            1,
-                            0,
-                            plugin.create.model.__name__
-                        )
-                    else:
-                        del plugin
-                except Exception as e:
-                    # Log an error and ignore the action_plugins if anything
-                    # is wrong with it.
-                    logging.getLogger("system").warning(
-                        "Loading action_plugins '{}' failed due to: {}".format(
-                            root.split("\\")[-1],
-                            e
-                        )
+                    plugin = importlib.import_module(plugin_module_name)
+                except (ModuleNotFoundError, ImportError) as e:
+                    logging.getLogger("system").error(
+                        f"Failed to load plugin '{plugin_module_name}' "
+                        f"with error: '{e}"
                     )
-                    raise(e)
+                    continue
+
+                # Verify requirements for the plugin are satisfied.
+                if "create" in plugin.__dict__ \
+                        and plugin.create.can_create():
+                    # Store plugin class information.
+                    self._plugins[plugin.create.tag] = plugin.create
+                    logging.getLogger("system").debug(
+                        "Loaded: {}".format(plugin.create.tag)
+                    )
+
+                    # Register QML type.
+                    QtQml.qmlRegisterType(
+                        plugin.create.model,
+                        "Gremlin.ActionPlugins",
+                        1,
+                        0,
+                        plugin.create.model.__name__
+                    )
+                else:
+                    del plugin
+            except Exception as e:
+                # Log an error and ignore the action_plugins if anything
+                # is wrong with it.
+                logging.getLogger("system").warning(
+                    "Loading action_plugins '{}' failed due to: {}".format(
+                        root.split("\\")[-1],
+                        e
+                    )
+                )
+                raise(e)

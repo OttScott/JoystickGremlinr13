@@ -33,14 +33,24 @@ from gremlin.types import PropertyType
 
 @pytest.fixture
 def cfg() -> Iterator[gremlin.config.Configuration]:
-    """Returns a Configuration object other than the singleton, with file path modified."""
+    """Returns a Configuration object other than the singleton, with file path
+    modified."""
     # Remove the singleton instance if it exists and create a temporary file
-    # to use as the config file.
+    # to use as the config file. The old config file name is stored to be
+    # restored when the fixutre is torn down.
+    original_path = gremlin.config._config_file_path
     SingletonMetaclass._instances.pop(gremlin.config.Configuration, None)
     with mock.patch.object(
         gremlin.config, "_config_file_path", tempfile.mkstemp()[1]
     ):
-        yield gremlin.config.Configuration()
+        try:
+            yield gremlin.config.Configuration()
+        finally:
+            # Restore original config file path and delete singleton instance.
+            gremlin.config._config_file_path = original_path
+            SingletonMetaclass._instances.pop(
+                gremlin.config.Configuration, None
+            )
 
 
 def test_simple(cfg: gremlin.config.Configuration) -> None:

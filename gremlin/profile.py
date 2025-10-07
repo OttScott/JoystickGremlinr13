@@ -1198,7 +1198,7 @@ class ScriptManager:
         script_node = ElementTree.Element("scripts")
         for script in self._scripts:
             node = script.to_xml()
-            if node:
+            if node is not None:
                 script_node.append(node)
         return script_node
 
