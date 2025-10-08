@@ -593,15 +593,15 @@ class ConditionData(AbstractActionData):
     functor = ConditionFunctor
     model = ConditionModel
 
-    properties = [
-        ActionProperty.ActivateOnBoth
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateOnBoth,
+    )
+    input_types = (
         InputType.JoystickAxis,
         InputType.JoystickButton,
         InputType.JoystickHat,
         InputType.Keyboard
-    ]
+    )
 
     def __init__(self, behavior_type: InputType=InputType.JoystickButton):
         super().__init__(behavior_type)
@@ -640,7 +640,7 @@ class ConditionData(AbstractActionData):
                 cond_obj.from_xml(entry)
                 self.conditions.append(cond_obj)
 
-    def _to_xml(self) -> ElementTree:
+    def _to_xml(self) -> ElementTree.Element:
         node = util.create_action_node(ConditionData.tag, self._id)
         node.append(util.create_property_node(
             "logical-operator",
@@ -665,10 +665,15 @@ class ConditionData(AbstractActionData):
         return ["true", "false"]
 
     def _get_container(self, selector: str) -> List[AbstractActionData]:
-        if selector == "true":
-            return self.true_actions
-        elif selector == "false":
-            return self.false_actions
+        match selector:
+            case "true":
+                return self.true_actions
+            case "false":
+                return self.false_actions
+            case _:
+                raise GremlinError(
+                    f"{self.name}: has no container with name {selector}"
+                )
 
     def _handle_behavior_change(
         self,

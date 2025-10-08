@@ -33,6 +33,7 @@ from gremlin.types import ActionActivationMode, ActionProperty, InputType, \
 
 if typing.TYPE_CHECKING:
     from gremlin.event_handler import Event
+    from gremlin.ui.action_model import ActionModel
 
 
 class Value:
@@ -83,14 +84,14 @@ class AbstractActionData(ABC):
     # Fields expected to be present in every action plugin. These define
     # information required by the plugin manager as well as UI and behavior
     # logic.
-    version = None
-    name = None
-    tag = None
-    icon = None
+    version : int = -1
+    name : str = ""
+    tag : str = ""
+    icon : str = ""
     functor = None
     model = None
-    properties = []
-    input_types: List[InputType] = []
+    properties: Tuple[ActionProperty, ...] = ()
+    input_types: Tuple[InputType, ...] = ()
 
     def __init__(self, behavior_type: InputType=InputType.JoystickButton) -> None:
         """Creates a new action data instance.
