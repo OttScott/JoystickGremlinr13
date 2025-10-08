@@ -88,9 +88,10 @@ Item {
                     minValue: 0
                     maxValue: 100
                     stepSize: 0.1
+                    value: _root.action.axisScaling
 
-                    onValueModified: (value) => {
-                        _root.action.axisScaling = value
+                    onValueModified: (newValue) => {
+                        _root.action.axisScaling = newValue
                     }
                 }
             }

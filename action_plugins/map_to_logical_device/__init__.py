@@ -142,6 +142,9 @@ class MapToLogicalDeviceModel(ActionModel):
             self._data.logical_input_type = identifier.input_type
             self.logicalInputIdentifierChanged.emit()
 
+    def _get_logical_input_type(self) -> str:
+        return InputType.to_string(self._data.logical_input_type)
+
     def _get_axis_mode(self) -> str:
         return AxisMode.to_string(self._data.axis_mode)
 
@@ -174,6 +177,11 @@ class MapToLogicalDeviceModel(ActionModel):
         InputIdentifier,
         fget=_get_logical_input_identifier,
         fset=_set_logical_input_identifier,
+        notify=logicalInputIdentifierChanged
+    )
+    logicalInputType = Property(
+        str,
+        fget=_get_logical_input_type,
         notify=logicalInputIdentifierChanged
     )
     axisMode = Property(
@@ -293,7 +301,7 @@ class MapToLogicalDeviceData(AbstractActionData):
         old_behavior: InputType,
         new_behavior: InputType
     ) -> None:
-        self._logical_input_type = new_behavior
+        self.logical_input_type = new_behavior
 
 
 create = MapToLogicalDeviceData

@@ -52,13 +52,13 @@ Item {
 
         // UI for a physical axis behaving as an axis
         Loader {
-            active: _root.action.logicalInputType == "axis"
+            active: _root.action.logicalInputType === "axis"
             Layout.fillWidth: true
 
             sourceComponent: Row {
                 RadioButton {
                     text: "Absolute"
-                    checked: _root.action.axisMode == "absolute"
+                    checked: _root.action.axisMode === "absolute"
 
                     onCheckedChanged: {
                         _root.action.axisMode = "absolute"
@@ -67,7 +67,7 @@ Item {
                 RadioButton {
                     id: _relativeMode
                     text: "Relative"
-                    checked: _root.action.axisMode == "relative"
+                    checked: _root.action.axisMode === "relative"
 
                     onCheckedChanged: {
                         _root.action.axisMode = "relative"
@@ -84,7 +84,7 @@ Item {
                     visible: _relativeMode.checked
                     minValue: 0
                     maxValue: 100
-                    value: 1.0
+                    value: _root.action.axisScaling
                     stepSize: 0.05
 
                     onValueModified: (newValue) => {
@@ -95,7 +95,7 @@ Item {
         }
         // UI for a button input
         Loader {
-            active: _root.action.logicalInputType == "button"
+            active: _root.action.logicalInputType === "button"
             Layout.fillWidth: true
 
             sourceComponent: Row {

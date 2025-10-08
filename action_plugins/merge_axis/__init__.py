@@ -138,7 +138,7 @@ class MergeAxisFunctor(AbstractFunctor):
         """Merges two axes into one:
             - the 1st axis controls the lower half of the value range
             - the 2nd axis controls the upper half
-        
+
         Allows full deflection either way if only one axis is used.
         Performs differential mixing if both are used.
 
@@ -330,7 +330,7 @@ class MergeAxisData(AbstractActionData):
     version = 1
     name = "Merge Axis"
     tag = "merge-axis"
-    icon = "\uF859"
+    icon = "\uF85C"
 
     functor = MergeAxisFunctor
     model = MergeAxisModel
