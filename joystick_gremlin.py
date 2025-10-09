@@ -149,6 +149,13 @@ def register_config_options() -> None:
         "Priority order of the actions", {},
         True
     )
+    cfg.register(
+        "global", "general", "device_change_behavior",
+        PropertyType.Selection, "Reload",
+        "Action Gremlin takes when a joystick is connected or disconnected.",
+        {"valid_options": ["Disable", "Ignore", "Reload"]},
+        True
+    )
 
 
 def update_action_priorities() -> None:
