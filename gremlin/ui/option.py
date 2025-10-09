@@ -214,9 +214,16 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
             value: Any,
             role: int=QtCore.Qt.ItemDataRole.EditRole
     ) -> bool:
-        entries = self._config.entries(self._section_name, self._group_name)
+        entries = self._combined_entries()
         if not index.isValid() or index.row() >= len(entries):
             return False
+
+        name = entries[index.row()]
+        if not self._config.exists(self._section_name, self._group_name, name):
+            raise GremlinError(
+                "Cannot set data for non-config entry " +
+                f"{self._section_name}.{self._group_name}.{name}"
+            )
 
         if self.roles[role] == "value":
             self._config.set(
