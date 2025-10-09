@@ -188,6 +188,23 @@ class Backend(QtCore.QObject):
         event_handler.EventHandler().is_active.connect(
             lambda: self.activityChanged.emit()
         )
+        event_handler.EventListener().device_change_event.connect(
+            self._device_change
+        )
+
+    def _device_change(self) -> None:
+        behavior = config.Configuration().value(
+            "global", "general", "device_change_behavior"
+        )
+        match behavior:
+            case "Disable":
+                self.activate_gremlin(False)
+            case "Ignore":
+                pass
+            case "Reload":
+                if self.gremlinActive:
+                    self.activate_gremlin(False)
+                    self.activate_gremlin(True)
 
     def _emit_change(self) -> None:
         """Emits the signal required for property changes to propagate."""
