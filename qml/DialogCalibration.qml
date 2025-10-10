@@ -58,11 +58,6 @@ Window {
                 textRole: "name"
                 valueRole: "guid"
                 implicitContentWidthPolicy: ComboBox.WidestText
-
-                onActivated: () => {
-                    _axisView.model.guid = currentValue
-                }
-                Component.onCompleted: () => activated(0)
             }
         }
 
@@ -73,7 +68,9 @@ Window {
             Layout.fillHeight: true
             spacing: 10
 
-            model: AxisCalibration {}
+            model: AxisCalibration {
+                guid: _deviceSelection.currentValue
+            }
             clip: true
 
             delegate: CalibrationItem {
@@ -104,7 +101,6 @@ Window {
         required property bool withCenter
         required property bool unsavedChanges
         required property var model
-
 
         // Display axis name and current raw value and axis type
         RowLayout {

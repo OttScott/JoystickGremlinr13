@@ -459,7 +459,7 @@ class Configuration(metaclass=common.SingletonMetaclass):
             axis_id: int,
             data: Tuple[int, int, int, int, bool]
     ) -> None:
-        self.set("calibration", str(uuid).upper(), str(axis_id), data)
+        self.set("calibration", str(uuid).upper(), str(axis_id), list(data))
 
     def _retrieve_value(
         self,

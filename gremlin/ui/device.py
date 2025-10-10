@@ -1241,18 +1241,18 @@ class AxisCalibration(QtCore.QAbstractListModel):
     deviceChanged = Signal()
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("identifier".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("calibratedValue".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("rawValue".encode()),
-        QtCore.Qt.UserRole + 4: QtCore.QByteArray("low".encode()),
-        QtCore.Qt.UserRole + 5: QtCore.QByteArray("centerLow".encode()),
-        QtCore.Qt.UserRole + 6: QtCore.QByteArray("centerHigh".encode()),
-        QtCore.Qt.UserRole + 7: QtCore.QByteArray("high".encode()),
-        QtCore.Qt.UserRole + 8: QtCore.QByteArray("withCenter".encode()),
-        QtCore.Qt.UserRole + 9: QtCore.QByteArray("unsavedChanges".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"identifier"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"calibratedValue"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"rawValue"),
+        QtCore.Qt.ItemDataRole.UserRole + 4: QtCore.QByteArray(b"low"),
+        QtCore.Qt.ItemDataRole.UserRole + 5: QtCore.QByteArray(b"centerLow"),
+        QtCore.Qt.ItemDataRole.UserRole + 6: QtCore.QByteArray(b"centerHigh"),
+        QtCore.Qt.ItemDataRole.UserRole + 7: QtCore.QByteArray(b"high"),
+        QtCore.Qt.ItemDataRole.UserRole + 8: QtCore.QByteArray(b"withCenter"),
+        QtCore.Qt.ItemDataRole.UserRole + 9: QtCore.QByteArray(b"unsavedChanges"),
     }
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: ta.OQO=None) -> None:
         super().__init__(parent)
 
         self._event_listener = event_handler.EventListener()
@@ -1268,36 +1268,46 @@ class AxisCalibration(QtCore.QAbstractListModel):
         self._device_db = DeviceDatabase()
         self._device_mapping = None
 
-    def data(self, index: QtCore.QModelIndex, role:int=...) -> Any:
-        if role not in AxisCalibration.roles:
+    def data(
+        self,
+        index: ta.ModelIndex,
+        role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        if role not in self.roles:
             return None
 
-        role_name = AxisCalibration.roles[role].data().decode()
+        role_name = self.roles[role].data().decode()
         return self._state[index.row()][role_name]
 
-    def setData(self, index: QtCore.QModelIndex, value: Any, role: int=...) -> None:
-        if role not in AxisCalibration.roles:
-            return
+    def setData(
+        self,
+        index: ta.ModelIndex,
+        value: Any,
+        role: int=QtCore.Qt.ItemDataRole.EditRole
+    ) -> bool:
+        if role not in self.roles:
+            return False
 
         # Update internal representation
-        role_name = AxisCalibration.roles[role].data().decode()
+        role_name = self.roles[role].data().decode()
         self._state[index.row()][role_name] = value
         self._state[index.row()]["unsavedChanges"] = True
         self._update_calibration(index.row())
 
         # Signal that the model has changed for a UI update
         self.emit_update(index.row())
+        return True
 
-    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         if self._device is None:
             return 0
 
         return len(self._state)
 
-    def roleNames(self) -> Dict:
-        return AxisCalibration.roles
+    def roleNames(self) -> Dict[int, QtCore.QByteArray]:
+        return self.roles
 
-    def emit_update(self, index: int):
+    def emit_update(self, index: int) -> None:
         """Emits the data update signal for the given index."""
         self.dataChanged.emit(self.index(index, 0), self.index(index, 0))
 
@@ -1354,16 +1364,19 @@ class AxisCalibration(QtCore.QAbstractListModel):
         Args:
             index: index of the axis whose data to save
         """
+        if self._device_uuid is None or self._device is None:
+            return
+
         self._config.set_calibration(
             self._device_uuid,
             self._device.axis_map[index].axis_index,
-            [
+            (
                 self._state[index]["low"],
                 self._state[index]["centerLow"],
                 self._state[index]["centerHigh"],
                 self._state[index]["high"],
                 self._state[index]["withCenter"]
-            ]
+            )
         )
         self._state[index]["unsavedChanges"] = False
         self._event_listener.reload_calibration(
@@ -1387,9 +1400,11 @@ class AxisCalibration(QtCore.QAbstractListModel):
         )
 
     def _set_guid(self, guid: str) -> None:
+        print(guid)
         if self._device is not None and guid == str(self._device.device_guid):
             return
 
+        self.beginResetModel()
         self._device = dill.DILL.get_device_information_by_guid(
             dill.GUID.from_str(guid)
         )
@@ -1401,11 +1416,15 @@ class AxisCalibration(QtCore.QAbstractListModel):
         self._initialize_state()
         self.deviceChanged.emit()
         self.modelReset.emit()
+        self.endResetModel()
 
     def _initialize_state(self) -> None:
+        if self._device_uuid is None or self._device is None:
+            return
+
         for i in range(self._device.axis_count):
             # Register the device in the configuration system, does not
-            # changethe calibration values if the device has previously been
+            # change the calibration values if the device has previously been
             # calibrated.
             key = (self._device_uuid, self._device.axis_map[i].axis_index)
             self._config.init_calibration(*key)
@@ -1434,8 +1453,11 @@ class AxisCalibration(QtCore.QAbstractListModel):
             self._active_calibrations.append({"center": False, "extrema": False})
             self._update_calibration(i)
 
-    def _event_callback(self, event: event_handler.Event):
+    def _event_callback(self, event: event_handler.Event) -> None:
         if event.device_guid != self._device_uuid:
+            return
+
+        if self._device is None:
             return
 
         if event.event_type == InputType.JoystickAxis:
