@@ -73,23 +73,17 @@ Item {
             SplitView.fillHeight: true
             SplitView.fillWidth: true
 
-            ListView {
+            JGListView {
                 id: _view
-                model: scriptListModel
 
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.rightMargin: 5
 
                 spacing: 10
+                scrollbarAlwaysVisible: true
 
-                // Make it behave like a sensible scrolling container
-                ScrollBar.vertical: ScrollBar {
-                    policy: ScrollBar.AlwaysOn
-                }
-                flickableDirection: Flickable.VerticalFlick
-                boundsBehavior: Flickable.StopAtBounds
-
+                model: scriptListModel
                 delegate: ScriptUI {
                     Layout.margins: 10
                     width: _view.width

@@ -57,16 +57,14 @@ Window {
 
         anchors.fill: parent
 
-        ListView  {
+        JGListView  {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            flickableDirection: Flickable.VerticalFlick
-            boundsBehavior: Flickable.StopAtBounds
+            scrollbarAlwaysVisible: true
             spacing: 10
 
             model: mode.modeList
-
             delegate: _delegate
         }
 

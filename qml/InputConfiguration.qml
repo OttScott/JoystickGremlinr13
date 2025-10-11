@@ -51,18 +51,12 @@ Item {
         anchors.fill: parent
 
         // Show all actions associated with this input
-        ListView {
+        JGListView {
             id: _listView
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-
-            // Make it behave like a sensible scrolling container
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
-            flickableDirection: Flickable.VerticalFlick
-            boundsBehavior: Flickable.StopAtBounds
+            scrollbarAlwaysVisible: true
 
             // Content to visualize
             model: _root.inputItemModel

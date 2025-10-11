@@ -55,12 +55,13 @@ Item {
 
         anchors.fill: parent
 
-        ListView {
+        JGListView {
             id: _inputList
 
             Layout.minimumWidth: 200
             Layout.fillHeight: true
             Layout.fillWidth: true
+            scrollbarAlwaysVisible: true
 
             model: device
             delegate: _entryDelegate
@@ -69,13 +70,6 @@ Item {
                 inputIndex = currentIndex
                 inputIdentifier = device.inputIdentifier(currentIndex)
             }
-
-            // Make it behave like a sensible scrolling container
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
-            flickableDirection: Flickable.VerticalFlick
-            boundsBehavior: Flickable.StopAtBounds
         }
 
         // Controls to add new logical device input instances

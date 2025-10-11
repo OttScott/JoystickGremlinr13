@@ -151,15 +151,10 @@ Item {
         ListView {
             Layout.fillWidth: true
             implicitHeight: contentHeight
-
-            // Make it behave like a sensible scrolling container
-            ScrollBar.vertical: ScrollBar {}
-            flickableDirection: Flickable.VerticalFlick
-            boundsBehavior: Flickable.StopAtBounds
+            spacing: 5
 
             model: _root.action.actions
             delegate: _delegateChooser
-            spacing: 5
         }
     }
 

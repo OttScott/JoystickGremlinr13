@@ -1400,7 +1400,6 @@ class AxisCalibration(QtCore.QAbstractListModel):
         )
 
     def _set_guid(self, guid: str) -> None:
-        print(guid)
         if self._device is not None and guid == str(self._device.device_guid):
             return
 

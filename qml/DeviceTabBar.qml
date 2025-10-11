@@ -29,54 +29,54 @@ T.TabBar {
                              contentHeight + topPadding + bottomPadding)
 
     contentItem: ListView {
-            model: control.contentModel
-            currentIndex: control.currentIndex
+        model: control.contentModel
+        currentIndex: control.currentIndex
 
-            spacing: control.spacing
-            orientation: ListView.Horizontal
-            boundsBehavior: Flickable.StopAtBounds
-            flickableDirection: Flickable.AutoFlickIfNeeded
-            snapMode: ListView.SnapToItem
+        spacing: control.spacing
+        orientation: ListView.Horizontal
+        boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.AutoFlickIfNeeded
+        snapMode: ListView.SnapToItem
 
-            ScrollBar.horizontal: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
+        ScrollBar.horizontal: ScrollBar {
+            policy: ScrollBar.AlwaysOn
+        }
 
-            highlightMoveDuration: 100
-            highlightRangeMode: ListView.ApplyRange
-            preferredHighlightBegin: 48
-            preferredHighlightEnd: width - 48
+        highlightMoveDuration: 100
+        highlightRangeMode: ListView.ApplyRange
+        preferredHighlightBegin: 48
+        preferredHighlightEnd: width - 48
 
 
-            MouseArea {
-                anchors.fill: parent
+        MouseArea {
+            anchors.fill: parent
 
-                // Scroll the view without the need for a modifier
-                onWheel: function(evt) {
-                    if(parent.contentWidth < parent.width) {
-                        return
-                    }
-
-                    if (evt.angleDelta.y > 0) {
-                        parent.contentX = Math.max(0, parent.contentX - 10)
-                    } else {
-                        parent.contentX = Math.min(
-                            parent.contentWidth - parent.width,
-                            parent.contentX + 10
-                        )
-                    }
+            // Scroll the view without the need for a modifier.
+            onWheel: function(evt) {
+                if(parent.contentWidth < parent.width) {
+                    return
                 }
 
-                // Ignore all other events and thus pass then  to the
-                // underlying ListView
-                onClicked: (mouse) => mouse.accepted = false
-                onPressed: (mouse) => mouse.accepted = false
-                onReleased: (mouse) => mouse.accepted = false
-                onDoubleClicked: (mouse) => mouse.accepted = false
-                onPositionChanged: (mouse) => mouse.accepted = false
-                onPressAndHold: (mouse) => mouse.accepted = false
+                if (evt.angleDelta.y > 0) {
+                    parent.contentX = Math.max(0, parent.contentX - 10)
+                } else {
+                    parent.contentX = Math.min(
+                        parent.contentWidth - parent.width,
+                        parent.contentX + 10
+                    )
+                }
             }
+
+            // Ignore all other events and thus pass then  to the
+            // underlying ListView.
+            onClicked: (mouse) => mouse.accepted = false
+            onPressed: (mouse) => mouse.accepted = false
+            onReleased: (mouse) => mouse.accepted = false
+            onDoubleClicked: (mouse) => mouse.accepted = false
+            onPositionChanged: (mouse) => mouse.accepted = false
+            onPressAndHold: (mouse) => mouse.accepted = false
         }
+    }
 
     background: Rectangle {
         implicitWidth: 200

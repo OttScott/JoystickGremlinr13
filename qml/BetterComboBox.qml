@@ -55,16 +55,13 @@ ComboBox {
         Universal.theme: control.Universal.theme
         Universal.accent: control.Universal.accent
 
-        contentItem: ListView {
-            clip: true
+        contentItem: JGListView {
             implicitHeight: contentHeight
             model: control.delegateModel
-            currentIndex: control.highlightedIndex
             highlightMoveDuration: 0
+            scrollbarAlwaysVisible: true
 
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
+            currentIndex: control.highlightedIndex
 
             MouseArea {
                 anchors.fill: parent

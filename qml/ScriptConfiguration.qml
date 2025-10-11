@@ -25,7 +25,7 @@ import Qt.labs.qmlmodels
 import Gremlin.Plugin
 
 
-ListView {
+JGListView {
     model: []
     delegate: _variableRenderer
     spacing: 10

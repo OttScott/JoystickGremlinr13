@@ -61,28 +61,21 @@ Window {
             }
         }
 
-        ListView {
+        JGListView {
             id: _axisView
 
+            scrollbarAlwaysVisible: true
+            spacing: 10
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 10
 
             model: AxisCalibration {
                 guid: _deviceSelection.currentValue
             }
-            clip: true
 
             delegate: CalibrationItem {
                 width: ListView.view.width
             }
-
-            // Make it behave like a sensible scrolling container
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
-            flickableDirection: Flickable.VerticalFlick
-            boundsBehavior: Flickable.StopAtBounds
         }
     }
 

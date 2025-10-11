@@ -1,6 +1,6 @@
 // -*- coding: utf-8; -*-
 //
-// Copyright (C) 2022 Lionel Ott
+// Copyright (C) 2025 Lionel Ott
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,22 +18,19 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Layouts
-
-import Gremlin.Config
-import "helpers.js" as Helpers
 
 
-JGListView {
-    property ConfigGroupModel groupModel
+ListView {
+    property bool scrollbarAlwaysVisible: false
 
-    rightMargin: 30
-    bottomMargin: 10
-    spacing: 10
-    scrollbarAlwaysVisible: true
+    // Prevent content being shown outside the widget's bounds.
+    clip: true
 
-    model: groupModel
-    delegate: ConfigGroup {
-        Layout.fillWidth: true
+    // Scrollbar visibility behavior as configured.
+    ScrollBar.vertical: ScrollBar {
+        policy: scrollbarAlwaysVisible ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded
     }
+    // Disable mobile device scrolling behaviors.
+    flickableDirection: Flickable.VerticalFlick
+    boundsBehavior: Flickable.StopAtBounds
 }

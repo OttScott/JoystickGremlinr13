@@ -48,9 +48,10 @@ Item {
     }
 
     // List of all the inputs available on the device
-    ListView {
+    JGListView {
         id: _inputList
         anchors.fill: parent
+        scrollbarAlwaysVisible: true
 
         property int minimumWidth: 200
 
@@ -63,13 +64,6 @@ Item {
                 currentIndex
             )
         }
-
-        // Make it behave like a sensible scrolling container
-        ScrollBar.vertical: ScrollBar {
-            policy: ScrollBar.AlwaysOn
-        }
-        flickableDirection: Flickable.VerticalFlick
-        boundsBehavior: Flickable.StopAtBounds
     }
 
     // Renders the information about a single input, including name and

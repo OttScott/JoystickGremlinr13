@@ -43,7 +43,7 @@ Window {
         anchors.fill: parent
 
         // Shows the list of all option sections
-        ListView {
+        JGListView {
             id: _sectionSelector
 
             Layout.preferredWidth: 200
