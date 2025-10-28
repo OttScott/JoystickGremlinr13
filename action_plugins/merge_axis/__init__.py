@@ -400,6 +400,16 @@ class MergeAxisData(AbstractActionData):
     def is_valid(self) -> bool:
         return True
 
+    def swap_uuid(self, old_uuid: uuid.UUID, new_uuid: uuid.UUID) -> bool:
+        performed_swap = False
+        if self.axis_in1.device_guid == old_uuid:
+            self.axis_in1.device_guid = new_uuid
+            performed_swap = True
+        if self.axis_in2.device_guid == old_uuid:
+            self.axis_in2.device_guid = new_uuid
+            performed_swap = True
+        return performed_swap
+
     @classmethod
     def _do_create(
             cls,

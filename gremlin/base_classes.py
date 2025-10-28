@@ -372,6 +372,22 @@ class AbstractActionData(ABC):
         clone._id = uuid.uuid4()
         return clone
 
+    def swap_uuid(self, old_uuid: uuid.UUID, new_uuid: uuid.UUID) -> bool:
+        """Swaps occurrences of the old UUID with the new one for this action.
+
+        This enables actions to swap device UUIDs when desired. The swap is
+        only concerned with the device UUID and not any possible change
+        of input identifiers.
+
+        Args:
+            old_uuid: The old UUID to replace
+            new_uuid: The new UUID to use as replacement.
+
+        Returns:
+            True if a replacement was made, False otherwise.
+        """
+        return False
+
     @classmethod
     def _do_create(
             cls,
