@@ -62,6 +62,7 @@ Item {
                 model: [
                     {value: "joystick", text: "Joystick"},
                     {value: "key", text: "Keyboard"},
+                    {value: "logical-device", text: "Logical Device"},
                     {value: "mouse-button", text: "Mouse Button"},
                     {value: "mouse-motion", text: "Mouse Motion"},
                     {value: "pause", text: "Pause"},
@@ -263,6 +264,96 @@ Item {
                 }
             }
         }
+
+        // Logical device action
+        DelegateChoice {
+            roleValue: "logical-device"
+
+            DraggableAction {
+                icon: bsi.icons.icon_logical_device
+                label: "Logical device"
+
+                actionItem: RowLayout {
+                    LogicalDeviceSelector {
+                        // The ordering is important, swapping it will result in the
+                        // wrong item being displayed.
+                        validTypes: ["axis", "button", "hat"]
+                        logicalInputIdentifier: modelData.logicalInputIdentifier
+
+                        onLogicalInputIdentifierChanged: () => {
+                            modelData.logicalInputIdentifier = logicalInputIdentifier
+                        }
+                    }
+
+                    LayoutHorizontalSpacer {}
+
+                    // Show different components based on input
+                    PressOrRelease {
+                        visible: modelData.inputType === "button"
+
+                        checked: modelData.isPressed
+                        onCheckedChanged: () => {
+                            modelData.isPressed = checked
+                        }
+                    }
+                    RowLayout {
+                        visible: modelData.inputType === "axis"
+
+                        FloatSpinBox {
+                            minValue: -1.0
+                            maxValue: 1.0
+                            value: modelData.axisValue
+
+                            onValueModified: (newValue) => {
+                                modelData.axisValue = newValue
+                            }
+                        }
+                        Label {
+                            Layout.leftMargin: 50
+                            text: "Mode: Relative"
+                        }
+                        Switch {
+                            text:"Absolute"
+                            checked: modelData.axisMode === "absolute"
+
+                            onToggled: () => {
+                                modelData.axisMode = checked ? "absolute" : "relative"
+                            }
+                        }
+                    }
+                    ComboBox {
+                        visible: modelData.inputType === "hat"
+
+                        textRole: "text"
+                        valueRole: "value"
+
+                        model: [
+                            {value: "center", text: "Center"},
+                            {value: "north", text: "North"},
+                            {value: "north-east", text: "North East"},
+                            {value: "east", text: "East"},
+                            {value: "south-east", text: "South East"},
+                            {value: "south", text: "South"},
+                            {value: "south-west", text: "South West"},
+                            {value: "west", text: "West"},
+                            {value: "north-west", text: "North West"}
+                        ]
+
+                        currentIndex: indexOfValue(modelData.hatDirection)
+                        Component.onCompleted: () => {
+                            currentIndex = Qt.binding(
+                                () => {return indexOfValue(modelData.hatDirection)}
+                            )
+                        }
+
+                        onActivated: () => {
+                            modelData.hatDirection = currentValue
+                        }
+                    }
+                }
+            }
+        }
+
 
         // Mouse button
         DelegateChoice {

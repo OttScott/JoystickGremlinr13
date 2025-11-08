@@ -45,4 +45,5 @@ QtObject {
     readonly property string icon_keyboard: "\uF451"
     readonly property string icon_pause: "\uF4C3"
     readonly property string icon_joystick: "\uF448"
+    readonly property string icon_logical_device: "\uF2D6"
 }

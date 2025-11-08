@@ -32,22 +32,28 @@ from gremlin import device_helpers, event_handler, keyboard, macro, util
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
     Value
 from gremlin.error import GremlinError, MissingImplementationError, ProfileError
+from gremlin.logical_device import LogicalDevice
 from gremlin.macro import KeyAction
 from gremlin.profile import Library
 from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, \
     MouseButton, HatDirection, DataCreationMode
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.device import InputIdentifier
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
+    import gremlin.ui.type_aliases as ta
 
 
 class AbstractActionModel(QtCore.QObject):
 
-    def __init__(self, action: macro.AbstractAction, parent=None):
+    def __init__(
+        self,
+        action: macro.AbstractAction,
+        parent: ta.OQO=None
+    ) -> None:
         super().__init__(parent)
-
         self._action = action
 
     @Property(str, constant=True)
@@ -64,7 +70,11 @@ class JoystickActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.JoystickAction, parent=None):
+    def __init__(
+        self,
+        action: macro.JoystickAction,
+        parent: ta.OQO=None
+    ) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -161,7 +171,7 @@ class KeyActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.KeyAction, parent=None):
+    def __init__(self, action: macro.KeyAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -199,9 +209,125 @@ class KeyActionModel(AbstractActionModel):
         notify=changed
     )
 
-    key = Property(
+    key = Property(str, fget=_get_key, notify=changed)
+
+
+class LogicalDeviceActionModel(AbstractActionModel):
+
+    changed = Signal()
+
+    def __init__(
+        self,
+        action: macro.LogicalDeviceAction,
+        parent: ta.OQO=None
+    ) -> None:
+        super().__init__(action, parent)
+
+    def _action_type(self) -> str:
+        return "logical-device"
+
+    def _get_logical_input_identifier(self) -> InputIdentifier:
+        return InputIdentifier(
+            LogicalDevice.device_guid,
+            self._action.input_type,
+            self._action.input_id,
+            parent=self
+        )
+
+    def _set_logical_input_identifier(self, identifier: InputIdentifier) -> None:
+        if (identifier.input_type != self._action.input_type) or \
+                (identifier.input_id != self._action.input_id):
+            self._action.input_id = identifier.input_id
+            if identifier.input_type != self._action.input_type:
+                self._action.input_type = identifier.input_type
+                if identifier.input_type == InputType.JoystickAxis:
+                    self._action.value = 0.0
+                elif identifier.input_type == InputType.JoystickButton:
+                    self._action.value = False
+                elif identifier.input_type == InputType.JoystickHat:
+                    self._action.value = HatDirection.Center
+            self.changed.emit()
+
+    def _get_input_type(self) -> str:
+        return InputType.to_string(self._action.input_type)
+
+    def _get_is_pressed(self) -> bool:
+        if self._action.input_type == InputType.JoystickButton:
+            return self._action.value
+
+    def _set_is_pressed(self, value: bool) -> None:
+        if self._action.input_type != InputType.JoystickButton:
+            return
+        if value != self._action.value:
+            self._action.value = value
+            self.changed.emit()
+
+    def _get_axis_value(self) -> float:
+        if self._action.input_type == InputType.JoystickAxis:
+            return self._action.value
+
+    def _set_axis_value(self, value: float) -> None:
+        if self._action.input_type != InputType.JoystickAxis:
+            return
+        if value != self._action.value:
+            self._action.value = value
+            self.changed.emit()
+
+    def _get_axis_mode(self) -> str:
+        return AxisMode.to_string(self._action.axis_mode)
+
+    def _set_axis_mode(self, value: str) -> None:
+        mode = AxisMode.to_enum(value)
+        if mode != self._action.axis_mode:
+            self._action.axis_mode = mode
+            self.changed.emit()
+
+    def _get_hat_direction(self) -> str:
+        if self._action.input_type == InputType.JoystickHat:
+            return HatDirection.to_string(self._action.value)
+
+    def _set_hat_direction(self, value: str) -> None:
+        if self._action.input_type != InputType.JoystickHat:
+            return
+        direction = HatDirection.to_enum(value)
+        if direction != self._action.value:
+            self._action.value = direction
+            self.changed.emit()
+
+    logicalInputIdentifier = Property(
+        InputIdentifier,
+        fget=_get_logical_input_identifier,
+        fset=_set_logical_input_identifier,
+        notify=changed
+    )
+
+    inputType = Property(str, fget=_get_input_type, notify=changed)
+
+    isPressed = Property(
+        bool,
+        fget=_get_is_pressed,
+        fset=_set_is_pressed,
+        notify=changed
+    )
+
+    axisValue = Property(
+        float,
+        fget=_get_axis_value,
+        fset=_set_axis_value,
+        notify=changed
+    )
+
+    axisMode = Property(
         str,
-        fget=_get_key,
+        fget=_get_axis_mode,
+        fset=_set_axis_mode,
+        notify=changed
+    )
+
+    hatDirection = Property(
+        str,
+        fget=_get_hat_direction,
+        fset=_set_hat_direction,
         notify=changed
     )
 
@@ -210,7 +336,11 @@ class MouseButtonActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.MouseButtonAction, parent=None):
+    def __init__(
+        self,
+        action: macro.MouseButtonAction,
+        parent: ta.OQO=None
+    ) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -248,18 +378,18 @@ class MouseButtonActionModel(AbstractActionModel):
         notify=changed
     )
 
-    button = Property(
-        str,
-        fget=_get_button,
-        notify=changed
-    )
+    button = Property(str, fget=_get_button, notify=changed)
 
 
 class MouseMotionActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.MouseMotionAction, parent=None):
+    def __init__(
+        self,
+        action: macro.MouseMotionAction,
+        parent: ta.OQO=None
+    ) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -281,26 +411,15 @@ class MouseMotionActionModel(AbstractActionModel):
             self._action.dy = value
             self.changed.emit()
 
-    dx = Property(
-        int,
-        fget=_get_dx,
-        fset=_set_dx,
-        notify=changed
-    )
-
-    dy = Property(
-        int,
-        fget=_get_dy,
-        fset=_set_dy,
-        notify=changed
-    )
+    dx = Property(int, fget=_get_dx, fset=_set_dx, notify=changed)
+    dy = Property(int, fget=_get_dy, fset=_set_dy, notify=changed)
 
 
 class PauseActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.PauseAction, parent=None):
+    def __init__(self, action: macro.PauseAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -326,7 +445,7 @@ class VJoyActionModel(AbstractActionModel):
 
     changed = Signal()
 
-    def __init__(self, action: macro.VJoyAction, parent=None):
+    def __init__(self, action: macro.VJoyAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
 
     def _action_type(self) -> str:
@@ -456,7 +575,6 @@ class VJoyActionModel(AbstractActionModel):
     )
 
 
-
 class MacroRepeatModes(enum.Enum):
 
     Single = 1
@@ -481,7 +599,7 @@ class MacroRepeatModes(enum.Enum):
 
 class MacroRepeatData:
 
-    def __init__(self, delay: float=0.1, count: int=1):
+    def __init__(self, delay: float=0.1, count: int=1) -> None:
         self.count = count
         self.delay = delay
 
@@ -490,7 +608,7 @@ class MacroFunctor(AbstractFunctor):
 
     """Implements the function executed of the Description action at runtime."""
 
-    def __init__(self, action: DescriptionData):
+    def __init__(self, action: MacroData) -> None:
         super().__init__(action)
 
         self.macro = macro.Macro()
@@ -514,7 +632,7 @@ class MacroFunctor(AbstractFunctor):
 
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
             properties: list[ActionProperty]=[]
     ) -> None:
@@ -535,6 +653,7 @@ class MacroModel(ActionModel):
     action_lookup = {
         "joystick": macro.JoystickAction.create,
         "key": macro.KeyAction.create,
+        "logical-device": macro.LogicalDeviceAction.create,
         "mouse-button": macro.MouseButtonAction.create,
         "mouse-motion": macro.MouseMotionAction.create,
         "pause": macro.PauseAction.create,
@@ -543,10 +662,11 @@ class MacroModel(ActionModel):
 
     model_lookup = {
         "joystick": JoystickActionModel,
-        "pause": PauseActionModel,
+        "logical-device": LogicalDeviceActionModel,
+        "key": KeyActionModel,
         "mouse-button": MouseButtonActionModel,
         "mouse-motion": MouseMotionActionModel,
-        "key": KeyActionModel,
+        "pause": PauseActionModel,
         "vjoy": VJoyActionModel
     }
 
@@ -557,7 +677,7 @@ class MacroModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -590,7 +710,12 @@ class MacroModel(ActionModel):
             self.changed.emit()
 
     @Slot(int, int, str)
-    def dropCallback(self, target_index, source_index, mode):
+    def dropCallback(
+        self,
+        target_index: int,
+        source_index: int,
+        mode: str
+    ) -> None:
         source_item = self._data.actions[source_index]
         target_item = self._data.actions[target_index]
         self._data.actions.remove(source_item)
@@ -690,18 +815,18 @@ class MacroData(AbstractActionData):
     functor = MacroFunctor
     model = MacroModel
 
-    properties = [
-        ActionProperty.ActivateOnPress
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateOnPress,
+    )
+    input_types = (
         InputType.JoystickButton,
         InputType.Keyboard
-    ]
+    )
 
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         # Model variables
@@ -714,6 +839,7 @@ class MacroData(AbstractActionData):
         type_lookup = {
             "joystick": macro.JoystickAction.create,
             "key": macro.KeyAction.create,
+            "logical-device": macro.LogicalDeviceAction.create,
             "mouse-button": macro.MouseButtonAction.create,
             "mouse-motion": macro.MouseMotionAction.create,
             "pause": macro.PauseAction.create,

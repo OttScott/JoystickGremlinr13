@@ -572,6 +572,8 @@ class LogicalDeviceAction(AbstractAction):
         self.input_id = input_id
         self.value = value
         self.axis_mode = axis_mode
+        self._event_listener = event_handler.EventListener()
+        self._mode_manager = mode_manager.ModeManager()
 
     @classmethod
     def create(cls) -> LogicalDeviceAction:
@@ -588,15 +590,30 @@ class LogicalDeviceAction(AbstractAction):
         ld = LogicalDevice()[
             LogicalDevice.Input.Identifier(self.input_type, self.input_id)
         ]
-        if self.input_type == InputType.JoystickAxis:
-            if self.axis_mode == AxisMode.Absolute:
-                ld.value = self.value
-            elif self.axis_mode == AxisMode.Relative:
-                ld.value = max(-1.0, min(1.0, ld.value + self.value))
-        elif self.input_type == InputType.JoystickButton:
-            ld.is_pressed = self.value
-        elif self.input_type == InputType.JoystickHat:
-            ld.direction = self.value
+        # Update the state of the logical device and then emit the corresponding
+        # event to trigger further processing.
+        match self.input_type:
+            case InputType.JoystickAxis:
+                if self.axis_mode == AxisMode.Absolute:
+                    ld.update(self.value)
+                elif self.axis_mode == AxisMode.Relative:
+                    ld.update(max(-1.0, min(1.0, ld.value + self.value)))
+            case InputType.JoystickButton:
+                ld.update(self.value)
+            case InputType.JoystickHat:
+                ld.update(self.value)
+
+        self._event_listener.joystick_event.emit(
+            event_handler.Event(
+                event_type=self.input_type,
+                identifier=self.input_id,
+                device_guid=LogicalDevice.device_guid,
+                mode=self._mode_manager.current.name,
+                value=self.value,
+                is_pressed=self.value == True,
+                raw_value=self.value
+            )
+        )
 
     def to_xml(self) -> ElementTree.Element:
         node = self._create_node(self.tag)
