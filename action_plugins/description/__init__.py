@@ -17,18 +17,17 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
 from PySide6.QtCore import Property, Signal
 
 from gremlin import event_handler, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.error import GremlinError
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationMode
+from gremlin.types import ActionProperty, InputType, PropertyType
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 
@@ -40,12 +39,12 @@ class DescriptionFunctor(AbstractFunctor):
 
     """Implements the function executed of the Description action at runtime."""
 
-    def __init__(self, action: DescriptionData):
+    def __init__(self, action: DescriptionData) -> None:
         super().__init__(action)
 
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
             properties: list[ActionProperty] = []
     ) -> None:
@@ -64,7 +63,7 @@ class DescriptionModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -106,20 +105,20 @@ class DescriptionData(AbstractActionData):
     functor = DescriptionFunctor
     model = DescriptionModel
 
-    properties = [
-        ActionProperty.ActivateDisabled
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateDisabled,
+    )
+    input_types = (
         InputType.JoystickAxis,
         InputType.JoystickButton,
         InputType.JoystickHat,
         InputType.Keyboard
-    ]
+    )
 
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         # Model variables

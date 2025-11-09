@@ -22,19 +22,18 @@ import copy
 import logging
 import threading
 import time
-from typing import Any, List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
+from PySide6.QtCore import Property, Signal
 
 from gremlin import event_handler, fsm, util
 from gremlin.error import GremlinError, ProfileError
 from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
 from gremlin.config import Configuration
 from gremlin.profile import Library
-from gremlin.tree import TreeNode
-from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationMode
+from gremlin.types import ActionProperty, InputType, PropertyType
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 
@@ -44,7 +43,7 @@ if TYPE_CHECKING:
 
 class DoubleTapFunctor(AbstractFunctor):
 
-    def __init__(self, action: DoubleTapData):
+    def __init__(self, action: DoubleTapData) -> None:
         super().__init__(action)
 
         self.timer = None
@@ -54,7 +53,7 @@ class DoubleTapFunctor(AbstractFunctor):
 
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
             properties: list[ActionProperty] = []
     ) -> None:
@@ -163,7 +162,7 @@ class DoubleTapModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -215,15 +214,18 @@ class DoubleTapData(AbstractActionData):
     functor = DoubleTapFunctor
     model = DoubleTapModel
 
-    properties = [
-        ActionProperty.ActivateDisabled
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateDisabled,
+    )
+    input_types = (
         InputType.JoystickButton,
         InputType.Keyboard
-    ]
+    )
 
-    def __init__(self, behavior_type: InputType=InputType.JoystickButton):
+    def __init__(
+        self,
+        behavior_type: InputType=InputType.JoystickButton
+    ) -> None:
         super().__init__(behavior_type)
 
         self.single_actions = []
