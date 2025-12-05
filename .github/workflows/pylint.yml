@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.13"]
         poetry-version: ["latest"]
     steps:
     - uses: actions/checkout@v4
