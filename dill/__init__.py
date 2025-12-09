@@ -1,6 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
+# Copyright (C) 2019 Lionel Ott
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ import ctypes.wintypes as ctwt
 from enum import Enum
 import os
 import sys
-import time
 from typing import Callable
 import uuid
 
@@ -33,7 +32,7 @@ class DILLError(Exception):
 
     """Exception raised when an error occurs within the DILL module."""
 
-    def __init__(self, value: str):
+    def __init__(self, value: str) -> None:
         """Creates a new error instance with the given message.
 
         Args:
@@ -52,6 +51,23 @@ class _GUID(ctypes.Structure):
         ("Data3", ctypes.c_ushort),
         ("Data4", ctypes.c_uint8 * 8)
     ]
+
+
+def _attempt_decoding_device_name(data: bytes) -> str:
+    """Attempts to decode the device name using the system's ANSI code page.
+
+    Should errors occur during decoding, the errors are ignored and the
+    undecodable bytes are simply dropped.
+
+    Args:
+        data: The raw bytes representing the device name.
+
+    Returns:
+        The decoded device name.
+    """
+    ansi_code_page = f"cp{ctypes.windll.kernel32.GetACP()}"
+    return data.decode(ansi_code_page, errors="ignore")
+
 
 
 _GUID_SysKeyboard = _GUID()
@@ -150,7 +166,7 @@ class GUID:
 
     """Python GUID class."""
 
-    def __init__(self, guid: _GUID):
+    def __init__(self, guid: _GUID) -> None:
         """Creates a new instance.
 
         Args:
@@ -300,7 +316,7 @@ class InputType(Enum):
     Hat = 3
 
     @staticmethod
-    def from_ctype(value: int):
+    def from_ctype(value: int) -> InputType:
         """Returns the enum type corresponding to the provided value.
 
         Args:
@@ -316,7 +332,7 @@ class InputType(Enum):
         elif value == 3:
             return InputType.Hat
         else:
-            raise DILLError("Invalid input type value {:d}".format(value))
+            raise DILLError(f"Invalid input type value {value}")
 
 
 class DeviceActionType(Enum):
@@ -327,7 +343,7 @@ class DeviceActionType(Enum):
     Disconnected = 2
 
     @staticmethod
-    def from_ctype(value: int):
+    def from_ctype(value: int) -> DeviceActionType:
         """Returns the enum type corresponding to the provided value.
 
         Args:
@@ -352,7 +368,7 @@ class InputEvent:
     input, the index, and the new value as well as device GUID are reported.
     """
 
-    def __init__(self, data: _JoystickInputData):
+    def __init__(self, data: _JoystickInputData) -> None:
         """Creates a new instance.
 
         Args:
@@ -372,7 +388,7 @@ class AxisMap:
     descriptive DirectInput axis index.
     """
 
-    def __init__(self, data: _AxisMap):
+    def __init__(self, data: _AxisMap) -> None:
         """Creates a new instance.
 
         Args:
@@ -389,7 +405,7 @@ class DeviceSummary:
     This summary holds static information about a single device's layout.
     """
 
-    def __init__(self, data: _DeviceSummary):
+    def __init__(self, data: _DeviceSummary) -> None:
         """Creates a new instance.
 
         Args:
@@ -399,10 +415,10 @@ class DeviceSummary:
         self.vendor_id = data.vendor_id
         self.product_id = data.product_id
         self.joystick_id = data.joystick_id
-        # Some manufacturers seem to have tighter tolerances for what they supply for name. The Moza R12 seems to
-        # have an issue where it outputs some garbage bytes. This fix requires the name is escaped consistently after
-        # entering Gremlin.
-        self.name = data.name.decode("utf-8", errors="ignore")
+        # The name of devices is encoded based on the system's local code page.
+        # Thus we attempt to decode them, but failures simply result in
+        # dropper characters.
+        self.name = _attempt_decoding_device_name(data.name)
         self.axis_count = data.axis_count
         self.button_count = data.button_count
         self.hat_count = data.hat_count
