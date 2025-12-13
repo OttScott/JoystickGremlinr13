@@ -13,7 +13,6 @@ for root, _, files in os.walk("action_plugins"):
         action_plugins_files.append((os.path.join(root, fname), root))
 
 datas = [
-    ("about", "about"),
     ("doc", "doc"),
     ("gfx", "gfx"),
     ("qml", "qml"),
