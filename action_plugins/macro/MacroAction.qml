@@ -118,13 +118,12 @@ Item {
                 }
             }
 
-            SpinBox {
+            JGSpinBox {
                 visible: _repeatMode.currentValue === "count"
 
                 value: _root.action.repeatCount
                 from: 1
                 to: 100
-                editable: true
 
                 onValueModified: function () {
                     _root.action.repeatCount = value
@@ -395,9 +394,8 @@ Item {
                     Label {
                         text: "X-Axis"
                     }
-                    SpinBox {
+                    JGSpinBox {
                         value: modelData.dx
-                        editable: true
 
                         onValueModified: function () {
                             modelData.dx = value
@@ -409,9 +407,8 @@ Item {
 
                         leftPadding: 25
                     }
-                    SpinBox {
+                    JGSpinBox {
                         value: modelData.dy
-                        editable: true
 
                         onValueModified: function () {
                             modelData.dy = value

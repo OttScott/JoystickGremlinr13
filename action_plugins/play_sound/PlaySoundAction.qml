@@ -38,8 +38,6 @@ Item {
         anchors.right: parent.right
 
         Label {
-            id: _label
-
             Layout.preferredWidth: 110
 
             text: "Audio filename"
@@ -50,43 +48,43 @@ Item {
 
             Layout.fillWidth: true
 
-            placeholderText: null != action ? null : "Input the name of the audio file to play."
             text: action.soundFilename
+            placeholderText: null != action ? null : "Input the name of the audio file to play."
             selectByMouse: true
 
-            onTextChanged: {
-                action.soundFilename = text
-            }
+            onTextChanged: () => { action.soundFilename = text }
         }
 
         Button {
             text: "Select File"
-            onClicked: _fileDialog.open()
+
+            onClicked: () => { _fileDialog.open() }
         }
 
         Label {
             Layout.preferredWidth: 50
+
             text: "Volume"
         }
 
-        SpinBox {
-            id: _soundVolume
+        JGSpinBox {
             Layout.preferredWidth: 100
+
             value: action.soundVolume
             from: 0
             to: 100
-            editable: true
-            onValueModified: {
-                action.soundVolume = value
-            }
+
+            onValueModified: () => { action.soundVolume = value }
         }
    }
 
    FileDialog {
         id: _fileDialog
+
         nameFilters: ["Audio files (*.wav *.mp3 *.ogg)"]
         title: "Select a File"
-        onAccepted: {
+
+        onAccepted: () => {
             _soundFilename.text = selectedFile.toString().substring("file:///".length)
         }
     }

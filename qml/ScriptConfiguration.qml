@@ -103,7 +103,7 @@ JGListView {
                     isValid: modelData.isValid
                 }
 
-                SpinBox {
+                JGSpinBox {
                     Layout.alignment: Qt.AlignRight
 
                     from: modelData.minValue

@@ -283,11 +283,9 @@ Window {
         }
     }
 
-    component CalibrationSpinBox : SpinBox {
+    component CalibrationSpinBox : JGSpinBox {
         from: -32768
         to: 32767
         value: 0
-
-        editable: true
     }
 }

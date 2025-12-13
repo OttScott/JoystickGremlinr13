@@ -84,7 +84,7 @@ ColumnLayout {
 
                     text: checked ? "On" : "Off"
 
-                    onToggled: () => value = checked
+                    onToggled: () => { value = checked }
                 }
 
                 UIText {
@@ -123,12 +123,12 @@ ColumnLayout {
                     text: description
                 }
 
-                SpinBox {
+                JGSpinBox {
                     value: model.value
                     from: properties.min
                     to: properties.max
 
-                    onValueModified: () => model.value = value
+                    onValueModified: () => { model.value = value }
                 }
             }
         }
@@ -148,7 +148,7 @@ ColumnLayout {
 
                     Layout.fillWidth: true
 
-                    onTextEdited: () => value = text
+                    onTextEdited: () => { value = text }
                 }
             }
         }

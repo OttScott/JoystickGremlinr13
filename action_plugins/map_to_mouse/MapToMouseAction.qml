@@ -111,7 +111,7 @@ Item {
                 text: "Minimum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _min_speed_button
 
                 Layout.fillWidth: true
@@ -119,7 +119,6 @@ Item {
                 value: _root.action.minSpeed
                 from: limitLow
                 to: _max_speed_button.value
-                editable: true
 
                 onValueModified: function() {
                     _root.action.minSpeed = value
@@ -137,7 +136,7 @@ Item {
                 text: "Maximum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _max_speed_button
 
                 Layout.fillWidth: true
@@ -145,7 +144,6 @@ Item {
                 value: _root.action.maxSpeed
                 from: _min_speed_button.value
                 to: limitHigh
-                editable: true
 
                 onValueModified: function() {
                     _root.action.maxSpeed = value
@@ -174,12 +172,11 @@ Item {
                 text: "Direction"
             }
 
-            SpinBox {
+            JGSpinBox {
                 value: _root.action.direction
                 from: 0
                 to: 360
                 stepSize: 15
-                editable: true
 
                 onValueModified: function() {
                     _root.action.direction = value
@@ -232,7 +229,7 @@ Item {
                 text: "Minimum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _min_speed_axis
 
                 Layout.fillWidth: true
@@ -240,7 +237,6 @@ Item {
                 value: _root.action.minSpeed
                 from: limitLow
                 to: _max_speed_axis.value
-                editable: true
 
                 onValueModified: function() {
                     _root.action.minSpeed = value
@@ -253,7 +249,7 @@ Item {
                 text: "Maximum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _max_speed_axis
 
                 Layout.fillWidth: true
@@ -261,7 +257,6 @@ Item {
                 value: _root.action.maxSpeed
                 from: _min_speed_axis.value
                 to: limitHigh
-                editable: true
 
                 onValueModified: function() {
                     _root.action.maxSpeed = value
@@ -281,7 +276,7 @@ Item {
                 text: "Minimum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _min_speed_hat
 
                 Layout.fillWidth: true
@@ -289,7 +284,6 @@ Item {
                 value: _root.action.minSpeed
                 from: limitLow
                 to: _max_speed_hat.value
-                editable: true
 
                 onValueModified: function() {
                     _root.action.minSpeed = value
@@ -302,7 +296,7 @@ Item {
                 text: "Maximum speed"
             }
 
-            SpinBox {
+            JGSpinBox {
                 id: _max_speed_hat
 
                 Layout.fillWidth: true
@@ -310,7 +304,6 @@ Item {
                 value: _root.action.maxSpeed
                 from: _min_speed_hat.value
                 to: limitHigh
-                editable: true
 
                 onValueModified: function() {
                     _root.action.maxSpeed = value

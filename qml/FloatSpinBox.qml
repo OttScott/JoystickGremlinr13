@@ -53,6 +53,7 @@ Item {
         from: toInt(_root.minValue)
         to: toInt(_root.maxValue)
         stepSize: toInt(_root.stepSize)
+
         editable: true
 
         validator: DoubleValidator {
