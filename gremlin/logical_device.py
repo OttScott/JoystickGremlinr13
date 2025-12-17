@@ -122,6 +122,23 @@ class LogicalDevice(metaclass=SingletonMetaclass):
     def __getitem__(self, identifier_or_label: Input.Identifier | str) -> Input:
         return self._inputs[self._resolve_to_identifier(identifier_or_label)]
 
+    def exists(self, identifier_or_label: Input.Identifier | str) -> bool:
+        """Returns whether an input with the specified identifier or label
+        exists.
+
+        Args:
+            identifier_or_label: Identifier or label of the input to check for
+
+        Returns:
+            True if an input with the specified identifier or label exists,
+            False otherwise
+        """
+        try:
+            identifier = self._resolve_to_identifier(identifier_or_label)
+            return identifier in self._inputs
+        except GremlinError:
+            return False
+
     def create(
             self,
             type: InputType,

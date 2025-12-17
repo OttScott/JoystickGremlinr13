@@ -21,20 +21,43 @@ import math
 import logging
 import time
 import uuid
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING
+from typing import (
+    Any,
+    Dict,
+    List,
+    Tuple,
+    TYPE_CHECKING,
+)
 
-from PySide6 import QtCharts, QtCore, QtQml
-from PySide6.QtCore import Property, Signal, Slot
+from PySide6 import (
+    QtCharts,
+    QtCore,
+    QtQml,
+)
+from PySide6.QtCore import (
+    Property,
+    Signal,
+    Slot,
+)
 
 import dill
 
-from gremlin import common, device_initialization, event_handler, \
-    shared_state, util
+from gremlin import (
+    common,
+    device_initialization,
+    event_handler,
+    signal,
+    shared_state,
+    util,
+)
 from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.input_cache import DeviceDatabase
 from gremlin.logical_device import LogicalDevice
-from gremlin.types import InputType, PropertyType
+from gremlin.types import (
+    InputType,
+    PropertyType,
+)
 
 if TYPE_CHECKING:
     import gremlin.ui.type_aliases as ta
@@ -185,11 +208,11 @@ class DeviceListModel(QtCore.QAbstractListModel):
         new_count = len(self._devices)
         self.rowsRemoved.emit(self.parent(), 0, new_count)
         self.rowsInserted.emit(self.parent(), 0, new_count)
-    
+
     @QtCore.Property(int, notify=selectedIndexChanged)
     def selectedIndex(self):
         return self._selected_index
-        
+
     @selectedIndex.setter
     def selectedIndex(self, index):
         if 0 <= index < len(self._devices) and index != self._selected_index:
@@ -392,6 +415,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
             self.createIndex(0, 0),
             self.createIndex(self.rowCount(), 0)
         )
+        signal.signal.logicalDeviceModified.emit()
 
     @Slot(str, str)
     def changeName(self, old_label: str, new_label: str) -> None:
@@ -401,6 +425,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
                 self.createIndex(0, 0),
                 self.createIndex(self.rowCount(), 0)
             )
+            signal.signal.logicalDeviceModified.emit()
         except GremlinError:
             # FIXME: Somehow needs to reset the text field to the previous value
             pass
@@ -415,6 +440,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
             self.createIndex(0, 0),
             self.createIndex(self.rowCount(), 0)
         )
+        signal.signal.logicalDeviceModified.emit()
 
     def _get_guid(self) -> str:
         return str(self._logical.device_guid)
@@ -533,6 +559,8 @@ class LogicalDeviceSelectorModel(QtCore.QAbstractListModel):
         self._current_index = -1
         self._current_identifier = InputIdentifier(parent=self)
 
+        signal.signal.logicalDeviceModified.connect(self._refresh_model)
+
     def rowCount(self, parent: ta.ModelIndex=QtCore.QModelIndex()) -> int:
         return len(self._logical.labels_of_type(self._valid_types))
 
@@ -597,6 +625,11 @@ class LogicalDeviceSelectorModel(QtCore.QAbstractListModel):
             )
             self._current_index = index
             self.selectionChanged.emit()
+
+    def _refresh_model(self) -> None:
+        # Reset the complete model as the number of entries can have changed.
+        self.beginResetModel()
+        self.endResetModel()
 
     validTypes = Property(
         list,

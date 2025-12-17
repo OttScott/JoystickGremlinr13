@@ -30,16 +30,34 @@ import random
 import string
 import threading
 import time
-from typing import Any, Callable, override
+from typing import (
+    override,
+    Any,
+    Callable,
+    List,
+)
 import uuid
 from xml.etree import ElementTree
 
 import dill
 from vjoy.vjoy import VJoyProxy
 
-from gremlin.input_cache import Joystick, Keyboard
-from gremlin.types import HatDirection, InputType, PropertyType
-from gremlin import error, event_handler, shared_state, util
+from gremlin.input_cache import (
+    Joystick,
+    Keyboard,
+)
+from gremlin.logical_device import LogicalDevice
+from gremlin.types import (
+    HatDirection,
+    InputType,
+    PropertyType,
+)
+from gremlin import (
+    error,
+    event_handler,
+    shared_state,
+    util,
+)
 
 
 def _resolve_path(script_path: Path) -> Path:
@@ -475,6 +493,7 @@ class Script:
             "bool": BoolVariable,
             "float": FloatVariable,
             "int": IntegerVariable,
+            "logical-device": LogicalDeviceVariable,
             "mode": ModeVariable,
             "physical-input": PhysicalInputVariable,
             "selection": SelectionVariable,
@@ -804,6 +823,63 @@ class IntegerVariable(AbstractVariable):
         self._value = other.value
 
 
+class LogicalDeviceVariable(AbstractVariable):
+
+    xml_tag = "logical-device"
+
+    def __init__(
+            self,
+            name: str,
+            description: str,
+            is_optional: bool,
+            valid_types: List[InputType],
+    ):
+        super().__init__(name, description, is_optional)
+
+        self._ld = LogicalDevice()
+        self._valid_types = valid_types
+        inputs = self._ld.inputs_of_type(valid_types)
+        # Create a valid entry if none exists/
+        if not inputs:
+            inputs = [self._ld.create(self._valid_types[0])]
+        self._identifier = inputs[0].identifier
+        self._initialize_from_registry()
+
+    @property
+    def value(self) -> LogicalDevice.Input:
+        return self._ld[self._identifier]
+
+    @value.setter
+    def value(self, value: LogicalDevice.Input.Identifier) -> None:
+        self._identifier = value
+
+    @property
+    def valid_types(self) -> list[InputType]:
+        return self._valid_types
+
+    def is_valid(self) -> bool:
+        return self._ld.exists(self._identifier)
+
+    def _from_xml(self, node: ElementTree.Element) -> None:
+        input_type = util.read_property(
+            node, "input-type", PropertyType.InputType
+        )
+        input_id = util.read_property(node, "input-id", PropertyType.Int)
+        self._identifier = LogicalDevice.Input.Identifier(input_type, input_id)
+
+    def _to_xml(self, node: ElementTree.Element) -> None:
+        util.append_property_nodes(
+            node,
+            [
+                ["input-type", self._identifier.type, PropertyType.InputType],
+                ["input-id", self._identifier.id, PropertyType.Int],
+            ]
+        )
+
+    def _assign_value_from(self, other: LogicalDeviceVariable) -> None:
+        self._identifier = other._identifier
+
+
 class ModeVariable(AbstractVariable):
 
     xml_tag = "mode"
@@ -1050,7 +1126,7 @@ class VirtualInputVariable(AbstractVariable):
             name: str,
             description: str,
             is_optional: bool,
-            valid_types: list[InputType],
+            valid_types: List[InputType],
     ):
         super().__init__(name, description, is_optional)
 
@@ -1061,7 +1137,7 @@ class VirtualInputVariable(AbstractVariable):
         self._initialize_from_registry()
 
     @property
-    def value(self) -> bool:
+    def value(self) -> None:
         pass
 
     @value.setter

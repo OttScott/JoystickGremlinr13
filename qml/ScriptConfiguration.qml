@@ -123,6 +123,34 @@ JGListView {
         }
 
         DelegateChoice {
+            roleValue: "logical-device"
+
+            RowLayout {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 10
+
+                DescriptiveText {
+                    text: modelData.name
+                    description: modelData.description
+                    isValid: modelData.isValid
+                }
+
+                LogicalDeviceSelector {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignRight
+
+                    validTypes: modelData.validTypes
+                    logicalInputIdentifier: modelData.logicalInputIdentifier
+
+                    onLogicalInputIdentifierChanged: () => {
+                        modelData.logicalInputIdentifier = logicalInputIdentifier
+                    }
+                }
+            }
+        }
+
+        DelegateChoice {
             roleValue: "mode"
 
             RowLayout {

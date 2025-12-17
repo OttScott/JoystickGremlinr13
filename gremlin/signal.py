@@ -35,5 +35,7 @@ class Signal(QtCore.QObject):
 
     profileChanged = Signal()
 
+    logicalDeviceModified = Signal()
+
 
 signal = Signal()

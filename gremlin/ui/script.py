@@ -25,6 +25,7 @@ from PySide6.QtCore import Property, Signal, Slot
 
 from gremlin import user_script
 from gremlin.error import GremlinError
+from gremlin.logical_device import LogicalDevice
 from gremlin.profile import ScriptManager
 from gremlin.types import InputType
 from gremlin.ui.device import InputIdentifier
@@ -160,6 +161,51 @@ class IntegerVariableModel(AbstractVariableModel):
         notify=changed
     )
 
+
+@QtQml.QmlElement
+class LogicalDeviceModel(AbstractVariableModel):
+
+    changed = Signal()
+
+    def __init__(
+            self,
+            variable: user_script.LogicalDeviceVariable,
+            parent=None
+    ):
+        super().__init__(variable, parent)
+
+    @Property(str, notify=changed)
+    def label(self) -> str:
+        return self._variable.value.label
+
+    @Property(list, constant=True)
+    def validTypes(self) -> list[str]:
+        return [InputType.to_string(v) for v in self._variable.valid_types]
+
+    def _get_logical_input_identifier(self) -> InputIdentifier:
+        return InputIdentifier(
+            LogicalDevice.device_guid,
+            self._variable.value.type,
+            self._variable.value.id,
+            parent=self
+        )
+
+    def _set_logical_input_identifier(self, identifier: InputIdentifier) -> None:
+        if identifier.input_type not in self._variable.valid_types:
+            return
+
+        self._variable.value = LogicalDevice.Input.Identifier(
+            identifier.input_type,
+            identifier.input_id
+        )
+        self.changed.emit()
+
+    logicalInputIdentifier = Property(
+        InputIdentifier,
+        fget=_get_logical_input_identifier,
+        fset=_set_logical_input_identifier,
+        notify=changed
+    )
 
 @QtQml.QmlElement
 class ModeVariableModel(AbstractVariableModel):
@@ -366,6 +412,7 @@ class ScriptListModel(QtCore.QAbstractListModel):
         user_script.BoolVariable: BoolVariableModel,
         user_script.FloatVariable: FloatVariableModel,
         user_script.IntegerVariable: IntegerVariableModel,
+        user_script.LogicalDeviceVariable: LogicalDeviceModel,
         user_script.ModeVariable: ModeVariableModel,
         user_script.SelectionVariable: SelectionVariableModel,
         user_script.StringVariable: StringVariableModel,
