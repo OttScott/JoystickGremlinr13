@@ -101,7 +101,7 @@ Item {
                 model: [
                     {value: "single", text: "Single"},
                     {value: "count", text: "Count"},
-                    {value: "toggle", text: "Togle"},
+                    {value: "toggle", text: "Toggle"},
                     {value: "hold", text: "Hold"},
                 ]
             }
