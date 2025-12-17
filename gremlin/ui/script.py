@@ -357,9 +357,9 @@ class ScriptListModel(QtCore.QAbstractListModel):
     instancesChanged = Signal()
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("path".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("variables".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray("path".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray("name".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray("variables".encode()),
     }
 
     data_class_lookup = {
@@ -399,7 +399,10 @@ class ScriptListModel(QtCore.QAbstractListModel):
             new_name: str
     ) -> None:
         self._script_manager.rename_script(Path(path), old_name, new_name)
-        self.modelReset.emit()
+        self.dataChanged.emit(
+            self.createIndex(0, 0),
+            self.createIndex(self.rowCount(), 0)
+        )
 
     def rowCount(self, parent=QtCore.QModelIndex) -> int:
         return len(self._script_manager.scripts)

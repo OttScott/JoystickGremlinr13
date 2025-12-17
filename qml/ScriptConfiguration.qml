@@ -30,6 +30,8 @@ JGListView {
     delegate: _variableRenderer
     spacing: 10
 
+    readonly property int labelWidth: 250
+
     DelegateChooser {
         id: _variableRenderer
         role: "type"
@@ -51,9 +53,10 @@ JGListView {
                 }
 
                 Switch {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop | Qt.AlignRight
-                    checked: modelData.value
 
+                    checked: modelData.value
                     text: checked ? "On" : "Off"
 
                     onToggled: () => modelData.value = checked
@@ -76,6 +79,7 @@ JGListView {
                 }
 
                 FloatSpinBox {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     minValue: modelData.minValue
@@ -104,6 +108,7 @@ JGListView {
                 }
 
                 JGSpinBox {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     from: modelData.minValue
@@ -132,6 +137,7 @@ JGListView {
                 }
 
                 ComboBox {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     model: backend.modeHierarchy.modeList
@@ -139,11 +145,9 @@ JGListView {
                     textRole: "name"
                     valueRole: "name"
 
-                    onActivated: {
-                        modelData.value = currentText
-                    }
+                    onActivated: () => { modelData.value = currentText }
 
-                    Component.onCompleted: function() {
+                    Component.onCompleted: () => {
                         currentIndex = find(modelData.value)
                     }
                 }
@@ -165,16 +169,53 @@ JGListView {
                 }
 
                 ComboBox {
+                    id: _selection
+
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     model: modelData.options
 
-                    onActivated: {
-                        modelData.value = currentText
+                    delegate: ItemDelegate {
+                        required property var model
+                        required property int index
+
+                        width: ListView.view.width
+                        text: model[_selection.textRole]
+                        font.weight: _selection.currentIndex === index ? Font.DemiBold : Font.Normal
+                        highlighted: _selection.highlightedIndex === index
+                        hoverEnabled: _selection.hoverEnabled
+
+                        ToolTip {
+                            text: parent.text
+                            // Set an upper width of the tooltip to force word
+                            // wrap on texts.
+                            width: contentWidth > 500 ? 500 : contentWidth + 20
+                            visible: parent.hovered
+                            delay: 500
+                        }
+
                     }
 
-                    Component.onCompleted: function() {
+                    onActivated: () => { modelData.value = currentText }
+
+                    Component.onCompleted: () => {
                         currentIndex = find(modelData.value)
+                    }
+
+                    ToolTip {
+                        text: parent.currentText
+                        // Set an upper width of the tooltip to force word wrap
+                        // on long selection names.
+                        width: contentWidth > 500 ? 500 : contentWidth + 20
+                        visible: _hoverHandler.hovered
+                        delay: 500
+                    }
+
+                    HoverHandler {
+                        id: _hoverHandler
+                        acceptedDevices: PointerDevice.Mouse |
+                            PointerDevice.TouchPad
                     }
                 }
             }
@@ -195,14 +236,12 @@ JGListView {
                 }
 
                 JGTextInput {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
-                    Layout.fillWidth: true
                     text: modelData.value
 
-                    onTextEdited: function() {
-                        modelData.value = text
-                    }
+                    onTextEdited: () => { modelData.value = text }
                 }
             }
         }
@@ -222,9 +261,11 @@ JGListView {
                 }
 
                 InputListener {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     buttonLabel: modelData.label
+                    buttonWidth: width
                     callback: (inputs) => { modelData.updateJoystick(inputs) }
                     multipleInputs: false
                     eventTypes: modelData.validTypes
@@ -247,15 +288,22 @@ JGListView {
                 }
 
                 VJoySelector {
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
                     validTypes: modelData.validTypes
 
-                    onVjoyInputIdChanged: { modelData.inputId = vjoyInputId }
-                    onVjoyDeviceIdChanged: { modelData.vjoyId = vjoyDeviceId }
-                    onVjoyInputTypeChanged: { modelData.inputType = vjoyInputType }
+                    onVjoyInputIdChanged: () => {
+                        modelData.inputId = vjoyInputId
+                    }
+                    onVjoyDeviceIdChanged: () => {
+                        modelData.vjoyId = vjoyDeviceId
+                    }
+                    onVjoyInputTypeChanged: () => {
+                        modelData.inputType = vjoyInputType
+                    }
 
-                    Component.onCompleted: {
+                    Component.onCompleted: () => {
                         vjoyInputType = modelData.inputType
                         vjoyInputId = modelData.inputId
                         vjoyDeviceId = modelData.vjoyId
@@ -283,15 +331,19 @@ JGListView {
             id: _text
 
             text: `${parent.text} ${modelData.isOptional ? '' : '(req)'}`
+            wrapMode: Text.WordWrap
 
             Layout.minimumWidth: 150
-            Layout.preferredWidth: 150
+            Layout.preferredWidth: labelWidth
 
             font.pointSize: 11
             font.family: "Segoe UI"
 
             ToolTip {
                 id: _tooltip
+                // Set an upper width of the tooltip to force word wrap on
+                // long description texts.
+                width: contentWidth > 500 ? 500 : contentWidth + 20
                 visible: _hoverHandler.hovered
                 delay: 500
             }
