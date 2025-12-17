@@ -126,9 +126,25 @@ Item {
             id: _path
 
             Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: _view.width - 400
 
             text: _item.path
             leftPadding: 10
+            elide: Text.ElideMiddle
+
+            ToolTip {
+                text: _path.text
+                // Set an upper width of the tooltip to force word wrap on
+                // long texts.
+                width: contentWidth > 500 ? 500 : contentWidth + 20
+                visible: _hoverPath.hovered
+                delay: 500
+            }
+
+            HoverHandler {
+                id: _hoverPath
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            }
         }
 
         LayoutHorizontalSpacer {}
@@ -141,6 +157,21 @@ Item {
 
             text: _item.name
             rightPadding: 50
+            elide: Text.ElideMiddle
+
+            ToolTip {
+                text: _name.text
+                // Set an upper width of the tooltip to force word wrap on
+                // long texts.
+                width: contentWidth > 500 ? 500 : contentWidth + 20
+                visible: _hoverName.hovered
+                delay: 500
+            }
+
+            HoverHandler {
+                id: _hoverName
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            }
         }
 
         IconButton {

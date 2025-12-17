@@ -31,6 +31,7 @@ Item {
     property alias eventTypes: _listener.eventTypes
     property alias multipleInputs: _listener.multipleInputs
     property alias buttonLabel: _button.text
+    property alias buttonWidth: _button.width
     property var callback
 
     implicitHeight: _button.height
@@ -90,10 +91,22 @@ Item {
         id: _button
         text: "Record Inputs"
 
-        onClicked: function()
-        {
-            _popup.open()
+        onClicked: () => { _popup.open() }
+
+        ToolTip {
+            text: _button.text
+            // Set an upper width of the tooltip to force word wrap on
+            // long description texts.
+            width: contentWidth > 500 ? 500 : contentWidth + 20
+            visible: _hoverHandler.hovered
+            delay: 500
         }
+
+        HoverHandler {
+            id: _hoverHandler
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        }
+
     }
 
     Popup {
