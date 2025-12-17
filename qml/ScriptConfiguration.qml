@@ -211,6 +211,21 @@ JGListView {
                     Component.onCompleted: () => {
                         currentIndex = find(modelData.value)
                     }
+
+                    ToolTip {
+                        text: parent.currentText
+                        // Set an upper width of the tooltip to force word wrap
+                        // on long selection names.
+                        width: contentWidth > 500 ? 500 : contentWidth + 20
+                        visible: _hoverHandler.hovered
+                        delay: 500
+                    }
+
+                    HoverHandler {
+                        id: _hoverHandler
+                        acceptedDevices: PointerDevice.Mouse |
+                            PointerDevice.TouchPad
+                    }
                 }
             }
         }
