@@ -845,6 +845,32 @@ class LogicalDeviceVariable(AbstractVariable):
         self._identifier = inputs[0].identifier
         self._initialize_from_registry()
 
+    def decorator(self, mode: ModeVariable) -> Callable:
+        dec = self.create_decorator(mode.value)
+        match self._identifier.type:
+            case InputType.JoystickButton:
+                return dec.button(self._identifier.id)
+            case InputType.JoystickAxis:
+                return dec.axis(self._identifier.id)
+            case InputType.JoystickHat:
+                return dec.hat(self._identifier.id)
+            case _:
+                raise error.GremlinError(
+                    f"Received invalid input type '{self._identifier.type}'"
+                )
+
+    def create_decorator(self, mode: str):
+        if not self.is_valid():
+            return JoystickDecorator(
+                "", str(dill.GUID_Invalid), ""
+            )
+        else:
+            return JoystickDecorator(
+                "Logical Device",
+                str(LogicalDevice.device_guid),
+                mode
+            )
+
     @property
     def value(self) -> LogicalDevice.Input:
         return self._ld[self._identifier]
