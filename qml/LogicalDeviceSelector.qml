@@ -47,16 +47,15 @@ Item {
         anchors.right: parent.right
         spacing: 10
 
-        ComboBox {
+        JGComboBox {
             id: _combobox
 
-            Layout.minimumWidth: 250
+            Layout.minimumWidth: 200
             Layout.fillWidth: true
 
             model: _model
             textRole: "label"
             currentIndex: _model.currentIndex
-            delegate: OptionDelegate {}
 
             onActivated: () => {
                 if (_model.currentIndex !== currentIndex) {
@@ -64,14 +63,6 @@ Item {
                 }
             }
         }
-    }
-
-    component OptionDelegate : ItemDelegate {
-        required property int index
-        required property string label
-
-        width: parent.width
-        text: label
     }
 
 }

@@ -136,7 +136,9 @@ JGListView {
                     isValid: modelData.isValid
                 }
 
-                ComboBox {
+                JGComboBox {
+                    id: _mode
+
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
@@ -168,7 +170,7 @@ JGListView {
                     isValid: modelData.isValid
                 }
 
-                ComboBox {
+                JGComboBox {
                     id: _selection
 
                     Layout.fillWidth: true
@@ -176,46 +178,10 @@ JGListView {
 
                     model: modelData.options
 
-                    delegate: ItemDelegate {
-                        required property var model
-                        required property int index
-
-                        width: ListView.view.width
-                        text: model[_selection.textRole]
-                        font.weight: _selection.currentIndex === index ? Font.DemiBold : Font.Normal
-                        highlighted: _selection.highlightedIndex === index
-                        hoverEnabled: _selection.hoverEnabled
-
-                        ToolTip {
-                            text: parent.text
-                            // Set an upper width of the tooltip to force word
-                            // wrap on texts.
-                            width: contentWidth > 500 ? 500 : contentWidth + 20
-                            visible: parent.hovered
-                            delay: 500
-                        }
-
-                    }
-
                     onActivated: () => { modelData.value = currentText }
 
                     Component.onCompleted: () => {
                         currentIndex = find(modelData.value)
-                    }
-
-                    ToolTip {
-                        text: parent.currentText
-                        // Set an upper width of the tooltip to force word wrap
-                        // on long selection names.
-                        width: contentWidth > 500 ? 500 : contentWidth + 20
-                        visible: _hoverHandler.hovered
-                        delay: 500
-                    }
-
-                    HoverHandler {
-                        id: _hoverHandler
-                        acceptedDevices: PointerDevice.Mouse |
-                            PointerDevice.TouchPad
                     }
                 }
             }

@@ -67,7 +67,7 @@ Item {
                 text: "Switch to mode"
             }
 
-            ComboBox {
+            JGComboBox {
                 id: _switch_combo
 
                 model: _root.modes.modeList
@@ -133,7 +133,7 @@ Item {
                     RowLayout {
                         required property int index
 
-                        ComboBox {
+                        JGComboBox {
                             model: _root.modes.modeList
                             textRole: "name"
                             valueRole: "name"
@@ -176,7 +176,7 @@ Item {
                 text: "Temporarily switch to mode"
             }
 
-            ComboBox {
+            JGComboBox {
                 id: temporary_combo
 
                 model: _root.modes.modeList
