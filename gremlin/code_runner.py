@@ -264,7 +264,7 @@ class CallbackObject:
         # handle the virtual button events.
         # Create virtual InputItem instance
         virt_item = profile.InputItem(self._binding.input_item.library)
-        virt_item.device_id = dill.GUID_Virtual
+        virt_item.device_id = dill.UUID_Virtual
         virt_item.input_type = InputType.VirtualButton
         virt_item.input_id = self._virtual_identifier
         virt_item.mode = self._binding.input_item.mode
@@ -281,7 +281,7 @@ class CallbackObject:
         # virtual binding that mirrors the original physical one
         eh = event_handler.EventHandler()
         eh.add_callback(
-            dill.GUID_Virtual,
+            dill.UUID_Virtual,
             self._binding.input_item.mode,
             virtual_event,
             CallbackObject(virt_binding)
