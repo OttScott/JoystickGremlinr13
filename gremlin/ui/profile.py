@@ -686,7 +686,7 @@ class InputItemModel(QtCore.QAbstractListModel):
             self.rowCount(),
             self.rowCount()
         )
-        self._input_item.action_sequences.append(self._input_item.add_item_binding())
+        self._input_item.add_item_binding()
         self.endInsertRows()
         signal.inputItemChanged.emit(self._enumeration_index)
 
