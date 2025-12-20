@@ -49,16 +49,16 @@ class TempoFunctor(AbstractFunctor):
 
         # self.start_time = 0
         self.timer = None
-        self.value_press = None
-        self.event_press = None
+        self.value_press : Value = Value(None)
+        self.event_press : event_handler.Event = None
         self.fsm = self._create_fsm()
 
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty] = []
+            properties: List[ActionProperty] = []
     ) -> None:
         if not isinstance(value.current, bool):
             logging.getLogger("system").warning(
@@ -81,12 +81,7 @@ class TempoFunctor(AbstractFunctor):
 
     def _create_fsm(self) -> fsm.FiniteStateMachine:
         T = fsm.Transition
-        short_pulse = lambda e, v, p: self._pulse_event(
-            self.functors["short"],
-            self.event_press,
-            self.value_press,
-            p
-        )
+        short_pulse = lambda e, v, p: self._short_pulse(p)
         short_press = lambda e, v, p: self._process_event(
             self.functors["short"],
             self.event_press,
@@ -136,6 +131,16 @@ class TempoFunctor(AbstractFunctor):
             self.timer.cancel()
         self.timer = threading.Timer(self.data.threshold, self._timeout)
         self.timer.start()
+
+    def _short_pulse(self, properties: List[ActionProperty]) -> None:
+        if self.timer:
+            self.timer.cancel()
+        self._pulse_event(
+            self.functors["short"],
+            self.event_press,
+            self.value_press,
+            properties
+        )
 
     def _timeout(self) -> None:
         self.fsm.perform("timeout", self.event_press, self.value_press, [])

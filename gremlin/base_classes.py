@@ -560,7 +560,7 @@ class AbstractFunctor(Generic[T], ABC):
             functors: List[AbstractFunctor],
             event_press: event_handler.Event,
             value_press: Value,
-            properties: list[ActionProperty] = []
+            properties: List[ActionProperty] = []
     ):
         """Processes the provided event as a pulse with every provided functor.
 
