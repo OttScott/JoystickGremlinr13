@@ -41,7 +41,7 @@ Item {
         LogicalDeviceSelector {
             // The ordering is important, swapping it will result in the
             // wrong item being displayed.
-            validTypes: [inputBinding.behavior]
+            validTypes: [action.actionBehavior]
             logicalInputType: inputBinding.behavior
             logicalInputIdentifier: _root.action.logicalInputIdentifier
 

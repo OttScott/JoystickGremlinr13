@@ -31,7 +31,7 @@ class Transition:
 
     def __init__(
             self,
-            callbacks: List[Callable[[*Tuple[Any, ...]], Any]],
+            callbacks: List[Callable[..., Any]],
             new_state: str
     ):
         """Creates a new Transition object.

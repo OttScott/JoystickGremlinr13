@@ -17,23 +17,38 @@
 
 from __future__ import annotations
 
-import copy
-import time
 from collections.abc import Callable
-from typing import Any, List, Optional, TYPE_CHECKING, override
+import logging
+from typing import (
+    override,
+    Dict,
+    List,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
+from PySide6.QtCore import (
+    Property,
+    Signal,
+    Slot,
+)
 
 from gremlin import event_handler, fsm, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.error import GremlinError
 from gremlin.plugin_manager import PluginManager
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, HatDirection, InputType, \
-    PropertyType, DataCreationMode
+from gremlin.types import (
+    ActionProperty,
+    HatDirection,
+    InputType,
+    PropertyType,
+)
 
 from gremlin.ui.action_model import SequenceIndex, ActionModel
 
@@ -64,7 +79,11 @@ class DirectionalButton:
         "North West": HatDirection.NorthWest,
     }
 
-    def __init__(self, functors: Dict[str, List[Callable]], direction: str):
+    def __init__(
+        self,
+        functors: Dict[str, List[Callable]],
+        direction: str
+    ) -> None:
         self.functors = functors
         self.functor_direction = direction
         self.type_direction = DirectionalButton.resolve_direction[direction]
@@ -85,12 +104,11 @@ class DirectionalButton:
         }
         return fsm.FiniteStateMachine("up", states, actions, transitions)
 
-    @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty] = []
+            properties: List[ActionProperty] = []
     ) -> None:
         is_pressed = event.value == self.type_direction
         action = "press" if is_pressed else "release"
@@ -108,7 +126,7 @@ class DirectionalButton:
             self,
             event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty] = []
+            properties: List[ActionProperty] = []
     ) -> None:
         for functor in self.functors[self.functor_direction]:
             functor(event, value, properties)
@@ -118,7 +136,7 @@ class HatButtonsFunctor(AbstractFunctor):
 
     """Implements the function executed of the Description action at runtime."""
 
-    def __init__(self, action: HatButtonsData):
+    def __init__(self, action: HatButtonsData) -> None:
         super().__init__(action)
 
         self.buttons = []
@@ -127,9 +145,9 @@ class HatButtonsFunctor(AbstractFunctor):
 
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty]=[]
+            properties: List[ActionProperty]=[]
     ) -> None:
         for button in self.buttons:
             button(event, value, properties)
@@ -162,7 +180,7 @@ class HatButtonsModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -171,7 +189,7 @@ class HatButtonsModel(ActionModel):
         ).fileName()
 
     def _action_behavior(self) -> str:
-        return  "button"
+        return "button"
 
     @Slot(int, result=str)
     def buttonName(self, index: int) -> str:
@@ -203,7 +221,6 @@ class HatButtonsModel(ActionModel):
     )
 
 
-
 class HatButtonsData(AbstractActionData):
 
     """Model of a description action."""
@@ -216,12 +233,12 @@ class HatButtonsData(AbstractActionData):
     functor = HatButtonsFunctor
     model = HatButtonsModel
 
-    properties = [
-        ActionProperty.ActivateDisabled
-    ]
-    input_types = [
-        InputType.JoystickHat
-    ]
+    properties = (
+        ActionProperty.ActivateDisabled,
+    )
+    input_types = (
+        InputType.JoystickHat,
+    )
 
     name_list = {
         4: ["North", "East", "South", "West"],
@@ -232,12 +249,12 @@ class HatButtonsData(AbstractActionData):
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(InputType.JoystickButton)
 
         self.button_count = 4
         self.direction = {}
-        for name in HatButtonsData. name_list[self.button_count]:
+        for name in HatButtonsData.name_list[self.button_count]:
             self.direction[name] = []
 
     @override
@@ -247,7 +264,7 @@ class HatButtonsData(AbstractActionData):
             node, "button-count", PropertyType.Int
         )
         self.direction = {}
-        for name in HatButtonsData. name_list[self.button_count]:
+        for name in HatButtonsData.name_list[self.button_count]:
             self.direction[name] = []
         # Extract action ids for each direction
         for elem in node.findall(".//action-id/.."):
@@ -272,11 +289,11 @@ class HatButtonsData(AbstractActionData):
         return True
 
     @override
-    def _valid_selectors(self) -> List[str]:
+    def _valid_selectors(self) -> list[str]:
         return list(self.direction.keys())
 
     @override
-    def _get_container(self, selector: str) -> List[AbstractActionData]:
+    def _get_container(self, selector: str) -> list[AbstractActionData]:
         if selector not in self.direction:
             raise GremlinError(f"Key {selector} invalid as hat direction")
         return self.direction[selector]
