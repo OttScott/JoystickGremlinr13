@@ -26,7 +26,7 @@ from typing import (
 )
 
 import pytest
-from pytestqt.qtbot import QtBot
+import pytestqt.qtbot
 
 from gremlin import code_runner
 from gremlin import event_handler
@@ -56,7 +56,7 @@ class EventSpec:
         expected_value: float | bool | HatDirection
     ) -> None:
         """Creates a new EventSpec instance.
-        
+
         Args:
             event_type: The type of the event.
             input_id: The identifier of the input generating the event.
@@ -68,7 +68,7 @@ class EventSpec:
 
     def __repr__(self) -> str:
         """Returns a string representation of the EventSpec instance.
-        
+
         Returns:
             A string representation of the EventSpec instance.
         """
@@ -77,7 +77,7 @@ class EventSpec:
 
     def _repr_compare(self, other: Any) -> list[str]:
         """Returns information used when the comparison fails.
-        
+
         Returns:
             A list of strings describing the comparison failure.
         """
@@ -89,10 +89,10 @@ class EventSpec:
 
     def __eq__(self, event: Any) -> bool:
         """Compares the EventSpec instance with an Event instance.
-        
+
         Args:
             event: The Event instance to compare with.
-        
+
         Returns:
             True if the Event instance matches the EventSpec, False otherwise.
         """
@@ -117,9 +117,9 @@ class EventLogger:
 
     """Helper class which logs all events received from Gremlin."""
 
-    def __init__(self, qtbot: QtBot) -> None:
+    def __init__(self, qtbot: pytestqt.qtbot.QtBot) -> None:
         """Creates a new EventLogger instance.
-        
+
         Args:
             qtbot: The QtBot instance used for timing and event processing.
         """
@@ -131,6 +131,11 @@ class EventLogger:
             self._process_event
         )
 
+    def clear(self) -> None:
+        """Clears all logged events."""
+        self.logged_events.clear()
+        self.emitted_events.clear()
+
     def pop(self) -> event_handler.Event:
         """Returns the next logged event.
 
@@ -140,17 +145,19 @@ class EventLogger:
         Returns:
             The next logged event.
         """
-        # Wait to receive a new event, if we timeout an exception is raised.
-        if not self.logged_events:
+        # Wait until the next event not emitted by the user (directly or
+        # delayed) is received.
+        while len(self.logged_events) == 0:
             self._qtbot.waitSignal(
                 event_handler.EventListener().joystick_event,
-                timeout=500
+                timeout=500,
+                raising=True
             ).wait()
         return self.logged_events.pop(0)
 
     def _process_event(self, event: event_handler.Event) -> None:
         """Record all events we receive unless they were actively emitted.
-        
+
         Args:
             event: The event to process.
         """
@@ -167,9 +174,9 @@ class JoystickGremlinBot:
     """Helper class which allows interfacing with Gremlin for input simulation
     and output verification."""
 
-    def __init__(self, qtbot: QtBot) -> None:
+    def __init__(self, qtbot: pytestqt.qtbot.QtBot) -> None:
         """Creates a new GremlinBot instance.
-        
+
         Args:
             qtbot: The QtBot instance used for timing and event processing.
         """
@@ -182,9 +189,14 @@ class JoystickGremlinBot:
         self._mode_manager = mode_manager.ModeManager()
         self._event_logger = EventLogger(self._qtbot)
 
+    @property
+    def qtbot(self) -> pytestqt.qtbot.QtBot:
+        """The QtBot instance used for timing and event processing."""
+        return self._qtbot
+
     def load_profile(self, profile_path: str | Path) -> None:
         """Loads the specified profile and starts listening for events.
-        
+
         Args:
             profile_path: The path to the profile XML file to load.
         """
@@ -223,12 +235,16 @@ class JoystickGremlinBot:
         """
         return self._event_logger.pop()
 
+    def clear_events(self) -> None:
+        """Clears all logged events."""
+        self._event_logger.clear()
+
     def axis(self, input_id: int) -> float:
         """Retrieves the current value of the specified axis.
-        
+
         Args:
             input_id: The identifier of the axis input.
-        
+
         Returns:
             The current value of the specified axis.
         """
@@ -240,7 +256,7 @@ class JoystickGremlinBot:
 
     def button(self, input_id: int) -> bool:
         """Retrieves the current state of the specified button.
-        
+
         Args:
             input_id: The identifier of the button input.
 
@@ -270,7 +286,7 @@ class JoystickGremlinBot:
 
     def send_button(self, button_id: int, pressed: bool) -> None:
         """Sends a button press or release event.
-        
+
         Args:
             button_id: The identifier of the button input.
             pressed: True to press the button, False to release it.
@@ -279,7 +295,7 @@ class JoystickGremlinBot:
 
     def press_button(self, button_id: int) -> None:
         """Sends a button press event.
-        
+
         Args:
             button_id: The identifier of the button input.
         """
@@ -287,7 +303,7 @@ class JoystickGremlinBot:
 
     def release_button(self, button_id: int) -> None:
         """Sends a button release event.
-        
+
         Args:
             button_id: The identifier of the button input.
         """
@@ -295,7 +311,7 @@ class JoystickGremlinBot:
 
     def hold_button(self, button_id: int, duration: float) -> None:
         """Holds a button pressed for the specified duration.
-        
+
         This returns immediately after pressing the button. The release event
         is emitted after the specified delay in the background while other
         interactions with Gremlin can happen.
@@ -310,7 +326,7 @@ class JoystickGremlinBot:
 
     def tap_button(self, button_id: int) -> None:
         """Taps a button (press and release) quickly.
-        
+
         This is a blocking call that returns only after the button has been
         released. This is for convenience purposes.
 
@@ -327,7 +343,7 @@ class JoystickGremlinBot:
         Args:
             axis_id: The identifier of the axis input.
             value: The absolute value to set the axis to.
-        """        
+        """
         self._emit_event(InputType.JoystickAxis, axis_id, value)
 
     def set_axis_relative(self, axis_id: int, delta: float) -> None:
@@ -349,7 +365,7 @@ class JoystickGremlinBot:
 
     def set_hat_direction(self, hat_id: int, direction: HatDirection) -> None:
         """Sets the specified hat to the given direction.
-        
+
         Args:
             hat_id: The identifier of the hat input.
             direction: The direction to set the hat to.
@@ -364,7 +380,7 @@ class JoystickGremlinBot:
     ) -> None:
         """Creates an Event instance based on the given information and then
         emits it.
-        
+
         Args:
             input_type: The type of the input generating the event.
             input_id: The identifier of the input generating the event.
@@ -402,7 +418,7 @@ class JoystickGremlinBot:
 
 
 @pytest.fixture
-def jgbot(qtbot: QtBot) -> Generator[JoystickGremlinBot]:
+def jgbot(qtbot: pytestqt.qtbotQtBot) -> Generator[JoystickGremlinBot]:
     bot = JoystickGremlinBot(qtbot)
     gremlin.ui.backend.Backend().minimize()
     yield bot

@@ -7,7 +7,7 @@
             <mode>Default</mode>
             <input-id>1</input-id>
             <action-configuration>
-                <root-action>9b97e8fa-49f6-4e0e-9f9c-bd245ef921cd</root-action>
+                <root-action>649fcaca-0db8-4666-b93e-b10e23bdb84f</root-action>
                 <behavior>button</behavior>
             </action-configuration>
         </input>
@@ -139,42 +139,7 @@
         </input>
     </logical-device>
     <library>
-        <action id="65ec5eac-dff7-4eff-8e99-0704e2120bda" type="map-to-logical-device">
-            <property type="int">
-                <name>logical-input-id</name>
-                <value>11</value>
-            </property>
-            <property type="input_type">
-                <name>logical-input-type</name>
-                <value>button</value>
-            </property>
-            <property type="bool">
-                <name>button-inverted</name>
-                <value>True</value>
-            </property>
-            <property type="string">
-                <name>action-label</name>
-                <value>Map to Logical Device</value>
-            </property>
-            <property type="activation-mode">
-                <name>activation-mode</name>
-                <value>both</value>
-            </property>
-        </action>
-        <action id="65651695-92ff-4799-b0a1-6c1de60d753b" type="root">
-            <actions>
-                <action-id>65ec5eac-dff7-4eff-8e99-0704e2120bda</action-id>
-            </actions>
-            <property type="string">
-                <name>action-label</name>
-                <value>Root</value>
-            </property>
-            <property type="activation-mode">
-                <name>activation-mode</name>
-                <value>disallowed</value>
-            </property>
-        </action>
-        <action id="5e5bf781-5f7b-48c0-b726-e3cb278c113a" type="map-to-logical-device">
+        <action id="8f677867-027e-4cb9-a682-b6b21ad422bc" type="map-to-logical-device">
             <property type="int">
                 <name>logical-input-id</name>
                 <value>11</value>
@@ -196,26 +161,87 @@
                 <value>both</value>
             </property>
         </action>
-        <action id="2b33c005-5271-4f0c-851a-64ad07fdceca" type="smart-toggle">
-            <actions>
-                <action-id>5e5bf781-5f7b-48c0-b726-e3cb278c113a</action-id>
-            </actions>
+        <action id="abe05a1f-3d09-40f1-8f13-f403680acf60" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Toggle</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>1</value>
+            </property>
             <property type="float">
-                <name>delay</name>
+                <name>repeat-delay</name>
+                <value>0.2</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>button</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>12</value>
+                </property>
+                <property type="bool">
+                    <name>value</name>
+                    <value>True</value>
+                </property>
+            </macro-action>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>button</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>12</value>
+                </property>
+                <property type="bool">
+                    <name>value</name>
+                    <value>False</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>press</value>
+            </property>
+        </action>
+        <action id="52979a05-7ba1-47c0-931b-5f4b706aee4c" type="tempo">
+            <short-actions>
+                <action-id>8f677867-027e-4cb9-a682-b6b21ad422bc</action-id>
+            </short-actions>
+            <long-actions>
+                <action-id>abe05a1f-3d09-40f1-8f13-f403680acf60</action-id>
+            </long-actions>
+            <property type="float">
+                <name>threshold</name>
                 <value>0.2</value>
             </property>
             <property type="string">
+                <name>activate-on</name>
+                <value>release</value>
+            </property>
+            <property type="string">
                 <name>action-label</name>
-                <value>Smart Toggle</value>
+                <value>Tempo</value>
             </property>
             <property type="activation-mode">
                 <name>activation-mode</name>
                 <value>disallowed</value>
             </property>
         </action>
-        <action id="9b97e8fa-49f6-4e0e-9f9c-bd245ef921cd" type="root">
+        <action id="649fcaca-0db8-4666-b93e-b10e23bdb84f" type="root">
             <actions>
-                <action-id>2b33c005-5271-4f0c-851a-64ad07fdceca</action-id>
+                <action-id>52979a05-7ba1-47c0-931b-5f4b706aee4c</action-id>
             </actions>
             <property type="string">
                 <name>action-label</name>

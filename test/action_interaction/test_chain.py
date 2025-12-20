@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import pytest
-import pytestqt.qtbot
 
 from gremlin.types import InputType
 from gremlin.macro import MacroManager
@@ -42,24 +41,30 @@ def test_cycling_option1(
 
     with subtests.test("Chain 1"):
         jgbot.press_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_1, True) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_1, True) == jgbot.next_event()
         jgbot.release_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_1, False) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_1, False) == jgbot.next_event()
 
     with subtests.test("Chain 2"):
         jgbot.press_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_2, True) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_2, True) == jgbot.next_event()
         jgbot.release_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_2, False) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_2, False) == jgbot.next_event()
 
     with subtests.test("Chain 3"):
         jgbot.press_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_3, True) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_3, True) == jgbot.next_event()
         jgbot.release_button(IN_BUTTON_1)
-        assert EventSpec(InputType.JoystickButton, OUT_BUTTON_3, False) == jgbot.next_event()
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_3, False) == jgbot.next_event()
 
     # Ensure no additional events are generated.
-    with pytest.raises(pytestqt.qtbot.TimeoutError):
+    with pytest.raises(jgbot.qtbot.TimeoutError):
         jgbot.next_event()
 
 
