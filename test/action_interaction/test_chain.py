@@ -31,50 +31,64 @@ from .conftest import (
 from .input_definitions import *
 
 
-def test_cycling_option1(
+def test_cycling_wrap_around(
     jgbot: JoystickGremlinBot,
     profile_dir: Path,
     subtests: pytest.Subtests
 ) -> None:
     jgbot.load_profile(profile_dir / "chain.xml")
-    MacroManager().default_delay = 0.0
 
     with subtests.test("Chain 1"):
         jgbot.press_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_1, True) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_1) == True
         jgbot.release_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_1, False) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_1) == False
 
     with subtests.test("Chain 2"):
         jgbot.press_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_2, True) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_2) == True
         jgbot.release_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_2, False) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_2) == False
 
     with subtests.test("Chain 3"):
         jgbot.press_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_3, True) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_3) == True
         jgbot.release_button(IN_BUTTON_1)
         assert EventSpec(
             InputType.JoystickButton, OUT_BUTTON_3, False) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_3) == False
+
+    with subtests.test("Chain 1"):
+        jgbot.press_button(IN_BUTTON_1)
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_1, True) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_1) == True
+        jgbot.release_button(IN_BUTTON_1)
+        assert EventSpec(
+            InputType.JoystickButton, OUT_BUTTON_1, False) == jgbot.next_event()
+        assert jgbot.button(OUT_BUTTON_1) == False
 
     # Ensure no additional events are generated.
     with pytest.raises(jgbot.qtbot.TimeoutError):
         jgbot.next_event()
 
 
-def test_cycling_option2(
+def test_no_early_timeout(
     jgbot: JoystickGremlinBot,
     profile_dir: Path,
     subtests: pytest.Subtests
 ) -> None:
     jgbot.load_profile(profile_dir / "chain.xml")
-    MacroManager().default_delay = 0.0
 
     with subtests.test("Chain 1"):
         jgbot.press_button(IN_BUTTON_1)
@@ -82,18 +96,14 @@ def test_cycling_option2(
         jgbot.release_button(IN_BUTTON_1)
         assert jgbot.button(OUT_BUTTON_1) == False
 
-    with subtests.test("Chain 2"):
+    # Wait but not long enough for the timeout to trigger.
+    jgbot.wait(0.15)
+
+    with subtests.test("Chain 2 after wait"):
         jgbot.press_button(IN_BUTTON_1)
         assert jgbot.button(OUT_BUTTON_2) == True
         jgbot.release_button(IN_BUTTON_1)
         assert jgbot.button(OUT_BUTTON_2) == False
-
-    with subtests.test("Chain 3"):
-        jgbot.press_button(IN_BUTTON_1)
-        assert jgbot.button(OUT_BUTTON_3) == True
-        jgbot.release_button(IN_BUTTON_1)
-        assert jgbot.button(OUT_BUTTON_3) == False
-
 
 def test_timeout_reset(
     jgbot: JoystickGremlinBot,
@@ -108,7 +118,7 @@ def test_timeout_reset(
         jgbot.release_button(IN_BUTTON_1)
         assert jgbot.button(OUT_BUTTON_1) == False
 
-    # Wait for timeout to expire
+    # Wait for timeout to expire.
     jgbot.wait(0.3)
 
     with subtests.test("Chain 1 after timeout"):

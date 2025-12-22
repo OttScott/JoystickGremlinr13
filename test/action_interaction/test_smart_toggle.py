@@ -15,9 +15,10 @@ from .conftest import (
 from .input_definitions import *
 
 
-def test_short(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
-    jgbot.load_profile(profile_dir / "remap_smart_toggle.xml")
+def test_short_press(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
+    jgbot.load_profile(profile_dir / "smart_toggle.xml")
 
+    # Check that tapping the button toggles the output on and off.
     assert jgbot.button(OUT_BUTTON_1) == False
     jgbot.press_button(IN_BUTTON_1)
     assert jgbot.button(OUT_BUTTON_1) == True
@@ -28,6 +29,7 @@ def test_short(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
     jgbot.release_button(IN_BUTTON_1)
     assert jgbot.button(OUT_BUTTON_1) == False
 
+    # Ensure a short hold doesn't trigger the held behavior.
     jgbot.clear_events()
     jgbot.hold_button(IN_BUTTON_1, 0.1)
     assert EventSpec(
@@ -38,8 +40,11 @@ def test_short(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
         jgbot.next_event()
 
 
-def test_long(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
-    jgbot.load_profile(profile_dir / "remap_smart_toggle.xml")
+def test_long_press(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
+    jgbot.load_profile(profile_dir / "smart_toggle.xml")
+
+    # Ensure holding and releasing the button after the threshold time
+    # results in hold instead of toggle behavior.
     assert jgbot.button(OUT_BUTTON_1) == False
     jgbot.hold_button(IN_BUTTON_1, 0.25)
     assert EventSpec(

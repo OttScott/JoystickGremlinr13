@@ -418,7 +418,7 @@ class JoystickGremlinBot:
 
 
 @pytest.fixture
-def jgbot(qtbot: pytestqt.qtbotQtBot) -> Generator[JoystickGremlinBot]:
+def jgbot(qtbot: pytestqt.qtbot.QtBot) -> Generator[JoystickGremlinBot]:
     bot = JoystickGremlinBot(qtbot)
     gremlin.ui.backend.Backend().minimize()
     yield bot
