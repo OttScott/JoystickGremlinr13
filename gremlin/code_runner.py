@@ -165,6 +165,7 @@ class VirtualButtonFunctor:
             new_event.raw_value = state
             self._event_listener.virtual_event.emit(new_event)
 
+
 class CallbackObject:
 
     """Represents the callback executed in reaction to an input."""

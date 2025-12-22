@@ -21,7 +21,7 @@ import enum
 from typing import Any, List, Optional, TYPE_CHECKING, override
 from xml.etree import ElementTree
 
-from PySide6 import QtCore, QtGui, QtQml
+from PySide6 import QtCore, QtQml
 from PySide6.QtCore import Property, Signal, Slot, QCborTag
 
 from gremlin import event_handler, spline, util
@@ -87,9 +87,9 @@ class ResponseCurveFunctor(AbstractFunctor):
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty]=[]
+            properties: List[ActionProperty]=[]
     ) -> None:
         dz_value = deadzone(
             value.current,
