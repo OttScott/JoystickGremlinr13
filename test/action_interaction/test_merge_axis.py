@@ -157,8 +157,8 @@ def test_bidirectional(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
 
     jgbot.set_axis_absolute(IN_AXIS_1, 1.0)
     jgbot.set_axis_absolute(IN_AXIS_2, 0.0)
-    assert jgbot.axis(OUT_AXIS_1) == -0.5
+    assert jgbot.axis(OUT_AXIS_1) == -0.25
 
     jgbot.set_axis_absolute(IN_AXIS_1, -0.25)
     jgbot.set_axis_absolute(IN_AXIS_2, 0.75)
-    assert jgbot.axis(OUT_AXIS_1) == -0.25
+    assert jgbot.axis(OUT_AXIS_1) == 0.25

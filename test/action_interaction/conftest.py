@@ -239,6 +239,14 @@ class JoystickGremlinBot:
         """Clears all logged events."""
         self._event_logger.clear()
 
+    def event_count(self) -> int:
+        """Returns the number of logged events.
+
+        Returns:
+            The number of logged events.
+        """
+        return len(self._event_logger.logged_events)
+
     def axis(self, input_id: int) -> float:
         """Retrieves the current value of the specified axis.
 

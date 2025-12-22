@@ -180,19 +180,6 @@
                 <value>disallowed</value>
             </property>
         </action>
-        <action id="864397d9-4c86-45c0-9e19-ec63c5af17be" type="root">
-            <actions>
-                <action-id>82d132fe-508c-4bb1-96f7-5b36688406bb</action-id>
-            </actions>
-            <property type="string">
-                <name>action-label</name>
-                <value>Root</value>
-            </property>
-            <property type="activation-mode">
-                <name>activation-mode</name>
-                <value>disallowed</value>
-            </property>
-        </action>
         <action id="82d132fe-508c-4bb1-96f7-5b36688406bb" type="map-to-logical-device">
             <property type="int">
                 <name>logical-input-id</name>
@@ -219,19 +206,6 @@
                 <value>both</value>
             </property>
         </action>
-        <action id="5ebcdfc4-1682-4e49-b320-cbff4a6187ba" type="root">
-            <actions>
-                <action-id>9d6deff8-6880-4aab-95f2-747993da3200</action-id>
-            </actions>
-            <property type="string">
-                <name>action-label</name>
-                <value>Root</value>
-            </property>
-            <property type="activation-mode">
-                <name>activation-mode</name>
-                <value>disallowed</value>
-            </property>
-        </action>
         <action id="9d6deff8-6880-4aab-95f2-747993da3200" type="map-to-logical-device">
             <property type="int">
                 <name>logical-input-id</name>
@@ -254,19 +228,6 @@
                 <value>both</value>
             </property>
         </action>
-        <action id="86970f23-7f6f-4c97-ac93-626714be1965" type="root">
-            <actions>
-                <action-id>bc7d3ba9-5d3f-452b-bc69-372a01fe1515</action-id>
-            </actions>
-            <property type="string">
-                <name>action-label</name>
-                <value>Root</value>
-            </property>
-            <property type="activation-mode">
-                <name>activation-mode</name>
-                <value>disallowed</value>
-            </property>
-        </action>
         <action id="bc7d3ba9-5d3f-452b-bc69-372a01fe1515" type="map-to-logical-device">
             <property type="int">
                 <name>logical-input-id</name>
@@ -285,9 +246,104 @@
                 <value>both</value>
             </property>
         </action>
+        <action id="864397d9-4c86-45c0-9e19-ec63c5af17be" type="root">
+            <actions>
+                <action-id>82d132fe-508c-4bb1-96f7-5b36688406bb</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="5ebcdfc4-1682-4e49-b320-cbff4a6187ba" type="root">
+            <actions>
+                <action-id>9d6deff8-6880-4aab-95f2-747993da3200</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="86970f23-7f6f-4c97-ac93-626714be1965" type="root">
+            <actions>
+                <action-id>bc7d3ba9-5d3f-452b-bc69-372a01fe1515</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="718ac481-e12a-44b6-83d3-4dfe6b730611" type="root">
+            <actions>
+                <action-id>32c12465-947f-4043-b956-18d06c46a78c</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="32c12465-947f-4043-b956-18d06c46a78c" type="hat-buttons">
+            <property type="int">
+                <name>button-count</name>
+                <value>4</value>
+            </property>
+            <North>
+                <action-id>050fddd8-7133-4536-a9aa-b815e75983c3</action-id>
+            </North>
+            <East/>
+            <South/>
+            <West/>
+            <property type="string">
+                <name>action-label</name>
+                <value>Hat as Buttons</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="050fddd8-7133-4536-a9aa-b815e75983c3" type="map-to-logical-device">
+            <property type="int">
+                <name>logical-input-id</name>
+                <value>11</value>
+            </property>
+            <property type="input_type">
+                <name>logical-input-type</name>
+                <value>button</value>
+            </property>
+            <property type="bool">
+                <name>button-inverted</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>action-label</name>
+                <value>Map to Logical Device</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>both</value>
+            </property>
+        </action>
     </library>
     <modes>
         <mode>Default</mode>
     </modes>
     <scripts/>
+    <devices/>
 </profile>
