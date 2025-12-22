@@ -21,6 +21,26 @@
                 <behavior>button</behavior>
             </action-configuration>
         </input>
+        <input>
+            <device-id>f0af472f-8e17-493b-a1eb-7333ee8543f2</device-id>
+            <input-type>button</input-type>
+            <mode>Default</mode>
+            <input-id>3</input-id>
+            <action-configuration>
+                <root-action>3a208df0-0908-4824-94c9-3e43d9d368f9</root-action>
+                <behavior>button</behavior>
+            </action-configuration>
+        </input>
+        <input>
+            <device-id>f0af472f-8e17-493b-a1eb-7333ee8543f2</device-id>
+            <input-type>hat</input-type>
+            <mode>Default</mode>
+            <input-id>1</input-id>
+            <action-configuration>
+                <root-action>6227700f-eda5-4771-896d-6a3c1a44794d</root-action>
+                <behavior>hat</behavior>
+            </action-configuration>
+        </input>
     </inputs>
     <settings>
         <startup-mode>Default</startup-mode>
@@ -397,9 +417,303 @@
                 <value>disallowed</value>
             </property>
         </action>
+        <action id="b4b636b7-d421-44b4-9ffd-72c3896984db" type="root">
+            <actions/>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="a154e9fb-9638-49a7-95ce-36a046583c81" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Single</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>1</value>
+            </property>
+            <property type="float">
+                <name>repeat-delay</name>
+                <value>0.1</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>axis</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="float">
+                    <name>value</name>
+                    <value>0.05</value>
+                </property>
+                <property type="axis_mode">
+                    <name>axis-mode</name>
+                    <value>relative</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro 1</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>press</value>
+            </property>
+        </action>
+        <action id="415e6e88-0be7-4ef5-b972-c927849b3fb0" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Count</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>2</value>
+            </property>
+            <property type="float">
+                <name>repeat-delay</name>
+                <value>0.1</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>axis</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="float">
+                    <name>value</name>
+                    <value>0.1</value>
+                </property>
+                <property type="axis_mode">
+                    <name>axis-mode</name>
+                    <value>relative</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro 2</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>press</value>
+            </property>
+        </action>
+        <action id="8be44b05-e2da-4dba-8855-76361f041bc1" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Toggle</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>1</value>
+            </property>
+            <property type="float">
+                <name>repeat-delay</name>
+                <value>0.1</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>axis</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="float">
+                    <name>value</name>
+                    <value>0.1</value>
+                </property>
+                <property type="axis_mode">
+                    <name>axis-mode</name>
+                    <value>relative</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro 3</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>press</value>
+            </property>
+        </action>
+        <action id="dd8b88db-7303-462f-b9cc-7c4c13d003a4" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Hold</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>1</value>
+            </property>
+            <property type="float">
+                <name>repeat-delay</name>
+                <value>0.1</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>axis</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="float">
+                    <name>value</name>
+                    <value>0.1</value>
+                </property>
+                <property type="axis_mode">
+                    <name>axis-mode</name>
+                    <value>relative</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro 4</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>press</value>
+            </property>
+        </action>
+        <action id="7289a8c6-ea12-42cf-9199-16841e4ee15e" type="macro">
+            <property type="bool">
+                <name>is-exclusive</name>
+                <value>False</value>
+            </property>
+            <property type="string">
+                <name>repeat-mode</name>
+                <value>Single</value>
+            </property>
+            <property type="int">
+                <name>repeat-count</name>
+                <value>1</value>
+            </property>
+            <property type="float">
+                <name>repeat-delay</name>
+                <value>0.1</value>
+            </property>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>button</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="bool">
+                    <name>value</name>
+                    <value>True</value>
+                </property>
+            </macro-action>
+            <macro-action type="logical-device">
+                <property type="input_type">
+                    <name>input-type</name>
+                    <value>button</value>
+                </property>
+                <property type="int">
+                    <name>input-id</name>
+                    <value>11</value>
+                </property>
+                <property type="bool">
+                    <name>value</name>
+                    <value>False</value>
+                </property>
+            </macro-action>
+            <property type="string">
+                <name>action-label</name>
+                <value>Macro</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>release</value>
+            </property>
+        </action>
+        <action id="0422ac6e-aab5-423e-a4a1-0d4ae16a9bf8" type="hat-buttons">
+            <property type="int">
+                <name>button-count</name>
+                <value>4</value>
+            </property>
+            <North>
+                <action-id>a154e9fb-9638-49a7-95ce-36a046583c81</action-id>
+            </North>
+            <East>
+                <action-id>415e6e88-0be7-4ef5-b972-c927849b3fb0</action-id>
+            </East>
+            <South>
+                <action-id>8be44b05-e2da-4dba-8855-76361f041bc1</action-id>
+            </South>
+            <West>
+                <action-id>dd8b88db-7303-462f-b9cc-7c4c13d003a4</action-id>
+            </West>
+            <property type="string">
+                <name>action-label</name>
+                <value>Hat as Buttons</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="3a208df0-0908-4824-94c9-3e43d9d368f9" type="root">
+            <actions>
+                <action-id>7289a8c6-ea12-42cf-9199-16841e4ee15e</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
+        <action id="6227700f-eda5-4771-896d-6a3c1a44794d" type="root">
+            <actions>
+                <action-id>0422ac6e-aab5-423e-a4a1-0d4ae16a9bf8</action-id>
+            </actions>
+            <property type="string">
+                <name>action-label</name>
+                <value>Root</value>
+            </property>
+            <property type="activation-mode">
+                <name>activation-mode</name>
+                <value>disallowed</value>
+            </property>
+        </action>
     </library>
     <modes>
         <mode>Default</mode>
     </modes>
     <scripts/>
+    <devices/>
 </profile>

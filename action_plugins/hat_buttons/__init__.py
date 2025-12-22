@@ -34,12 +34,14 @@ from PySide6.QtCore import (
     Slot,
 )
 
+import dill
 from gremlin import event_handler, fsm, util
 from gremlin.base_classes import (
     AbstractActionData,
     AbstractFunctor,
     Value,
 )
+from gremlin.code_runner import CallbackObject
 from gremlin.error import GremlinError
 from gremlin.plugin_manager import PluginManager
 from gremlin.profile import Library
@@ -87,6 +89,8 @@ class DirectionalButton:
         self.functors = functors
         self.functor_direction = direction
         self.type_direction = DirectionalButton.resolve_direction[direction]
+        self.identifier = CallbackObject.c_next_virtual_identifier
+        CallbackObject.c_next_virtual_identifier += 1
 
         self.fsm = self._create_fsm()
 
@@ -114,13 +118,18 @@ class DirectionalButton:
         action = "press" if is_pressed else "release"
 
         # Event creation
-        btn_event = event.clone()
-        btn_event.event_type = InputType.JoystickButton
-        btn_event.is_pressed = is_pressed
-        btn_event.value = None
+        virtual_btn_event = event_handler.Event(
+            event_type=InputType.VirtualButton,
+            identifier=self.identifier,
+            device_guid=dill.UUID_Virtual,
+            mode=event.mode,
+            is_pressed=is_pressed,
+            raw_value=is_pressed
+        )
         btn_value = Value(is_pressed)
 
-        self.fsm.perform(action, btn_event, btn_value, properties)
+        self.fsm.perform(action, virtual_btn_event, btn_value, properties)
+        event_handler.EventListener().virtual_event.emit(virtual_btn_event)
 
     def _execute(
             self,
@@ -241,9 +250,9 @@ class HatButtonsData(AbstractActionData):
     )
 
     name_list = {
-        4: ["North", "East", "South", "West"],
+        4: ["North", "East", "South", "West", "Center"],
         8: ["North", "North East", "East", "South East",
-            "South", "South West", "West", "North West"]
+            "South", "South West", "West", "North West", "Center"]
     }
 
     def __init__(
