@@ -60,55 +60,13 @@ Item {
         }
 
         // +-------------------------------------------------------------------
-        // | Upper split actions
-        // +-------------------------------------------------------------------
-        RowLayout {
-            id: _upperHeader
-
-            Label {
-                text: "Actions for the <b>upper</b> part of the split."
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-            }
-
-            ActionSelector {
-                actionNode: _root.action
-                callback: (x) => { _root.action.appendAction(x, "upper"); }
-            }
-        }
-
-        HorizontalDivider {
-            id: _upperDivider
-
-            Layout.fillWidth: true
-
-            dividerColor: Universal.baseLowColor
-            lineWidth: 2
-            spacing: 2
-        }
-
-        Repeater {
-            model: _root.action.getActions("upper")
-
-            delegate: ActionNode {
-                action: modelData
-                parentAction: _root.action
-                containerName: "upper"
-
-                Layout.fillWidth: true
-            }
-        }
-
-        // +-------------------------------------------------------------------
         // | Lower split actions
         // +-------------------------------------------------------------------
         RowLayout {
             id: _lowerHeader
 
             Label {
-                text: "Actions for the <b>lower</b> part of the split."
+                text: "Actions for the <b>lower / left</b> part of the split."
             }
 
             Rectangle {
@@ -138,6 +96,48 @@ Item {
                 action: modelData
                 parentAction: _root.action
                 containerName: "lower"
+
+                Layout.fillWidth: true
+            }
+        }
+
+        // +-------------------------------------------------------------------
+        // | Upper split actions
+        // +-------------------------------------------------------------------
+        RowLayout {
+            id: _upperHeader
+
+            Label {
+                text: "Actions for the <b>upper / right</b> part of the split."
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+            }
+
+            ActionSelector {
+                actionNode: _root.action
+                callback: (x) => { _root.action.appendAction(x, "upper"); }
+            }
+        }
+
+        HorizontalDivider {
+            id: _upperDivider
+
+            Layout.fillWidth: true
+
+            dividerColor: Universal.baseLowColor
+            lineWidth: 2
+            spacing: 2
+        }
+
+        Repeater {
+            model: _root.action.getActions("upper")
+
+            delegate: ActionNode {
+                action: modelData
+                parentAction: _root.action
+                containerName: "upper"
 
                 Layout.fillWidth: true
             }

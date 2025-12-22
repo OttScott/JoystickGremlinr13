@@ -48,9 +48,19 @@ class SplitAxisFunctor(AbstractFunctor):
             properties: list[ActionProperty] = []
     ) -> None:
         if value.current < self.data.split_value:
+            value.current = util.linear_axis_value_interpolation(
+                value.current,
+                -1.0,
+                self.data.split_value
+            )
             for functor in self.functors["lower"]:
                 functor(event, value, properties)
         else:
+            value.current = util.linear_axis_value_interpolation(
+                value.current,
+                self.data.split_value,
+                1.0,
+            )
             for functor in self.functors["upper"]:
                 functor(event, value, properties)
 

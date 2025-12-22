@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0-only
+
+from __future__ import annotations
+
+from pathlib import Path
+import pytest
+import uuid
+
+from action_plugins import merge_axis
+import gremlin.profile
+from gremlin.types import InputType
+
+from .conftest import (
+    EventSpec,
+    JoystickGremlinBot,
+)
+from .input_definitions import *
+
+
+def test_split(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
+    jgbot.load_profile(profile_dir / "split_axis.xml")
+
+    jgbot.set_axis_absolute(IN_AXIS_1, 0.0)
+    assert jgbot.axis(OUT_AXIS_1) == pytest.approx(-0.3333, abs=0.01)
+    assert jgbot.axis(OUT_AXIS_2) == 0.0
+
+    jgbot.set_axis_absolute(IN_AXIS_1, 0.499)
+    assert jgbot.axis(OUT_AXIS_1) == pytest.approx(-1.0, abs=0.01)
+    assert jgbot.axis(OUT_AXIS_2) == 0.0
+
+    jgbot.set_axis_absolute(IN_AXIS_1, 0.5)
+    assert jgbot.axis(OUT_AXIS_1) == pytest.approx(-1.0, abs=0.01)
+    assert jgbot.axis(OUT_AXIS_2) == pytest.approx(1.0, abs=0.01)
+
+    jgbot.set_axis_absolute(IN_AXIS_1, 0.75)
+    assert jgbot.axis(OUT_AXIS_1) == pytest.approx(-1.0, abs=0.01)
+    assert jgbot.axis(OUT_AXIS_2) == pytest.approx(0.0, abs=0.01)
+
+    jgbot.set_axis_absolute(IN_AXIS_1, 1.0)
+    assert jgbot.axis(OUT_AXIS_1) == pytest.approx(-1.0, abs=0.01)
+    assert jgbot.axis(OUT_AXIS_2) == pytest.approx(-1.0, abs=0.01)

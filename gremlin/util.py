@@ -814,6 +814,27 @@ def no_center_calibration(value: int, minimum: int, maximum: int) -> float:
     return (value - minimum) / float(maximum - minimum) * 2.0 - 1.0
 
 
+def linear_axis_value_interpolation(
+    value: float,
+    min_value: float,
+    max_value: float
+) -> float:
+    """Returns the linearly interpolated value between min and max.
+
+    Clamps the values to the range [-1, 1] before performing interpolation.
+
+    Args:
+        value: the value to interpolate
+        min_value: the minimum value of the range
+        max_value: the maximum value of the range
+
+    Returns:
+        The linearly interpolated value between min and max
+    """
+    value = clamp(value, min_value, max_value)
+    return (value - min_value) / float(max_value - min_value) * 2.0 - 1.0
+
+
 def create_calibration_function(
         low: int,
         centerLow: int,
