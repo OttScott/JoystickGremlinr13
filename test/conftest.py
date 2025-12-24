@@ -18,13 +18,21 @@
 import pathlib
 import pytest
 
-from joystick_gremlin import JoystickGremlinApp
-import gremlin.ui.backend
+# Mock before any imports happen
+from unittest.mock import Mock
+import tempfile
+import gremlin.util
+gremlin.util.userprofile_path = Mock(return_value=tempfile.mkdtemp())
 
+import joystick_gremlin
+import gremlin.ui.backend
+import gremlin.mode_manager
+
+# Import and execute modules to ensure configuration is happy
 
 @pytest.fixture(scope="session")
-def qapp_cls() -> type[JoystickGremlinApp]:
-    return JoystickGremlinApp
+def qapp_cls() -> type[joystick_gremlin.JoystickGremlinApp]:
+    return joystick_gremlin.JoystickGremlinApp
 
 
 @pytest.fixture(scope="session")

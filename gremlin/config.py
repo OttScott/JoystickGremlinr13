@@ -63,6 +63,9 @@ class Configuration(metaclass=common.SingletonMetaclass):
         if self._should_skip_reload():
             return
 
+        logging.getLogger("system") \
+            .info(f"Loading configuration from {_config_file_path}.")
+
         # Attempt to load the configuration file if this fails set
         # default empty values.
         load_successful = False
@@ -259,7 +262,7 @@ class Configuration(metaclass=common.SingletonMetaclass):
         """
         key = (section, group, name)
         if key not in self._data:
-            raise error.GremlinError(f"No parameter with key '{key}' exists")
+            raise error.GremlinError(f"No parameter with key '{key}' exists.")
 
         _, is_valid = util.determine_value_type(
             value,
@@ -481,7 +484,7 @@ class Configuration(metaclass=common.SingletonMetaclass):
         """
         key = (section, group, name)
         if key not in self._data:
-            raise error.GremlinError(f"No parameter with key {key} exists")
+            raise error.GremlinError(f"No parameter with key {key} exists.")
 
         return self._data[key][entry]
 
