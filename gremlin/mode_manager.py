@@ -36,7 +36,7 @@ class Mode:
             name: str,
             previous: str | None,
             is_temporary: bool=False
-    ):
+    ) -> None:
         """Creates a new Mode instance.
 
         Args:
@@ -76,14 +76,14 @@ class Mode:
 
 class ModeSequence:
 
-    def __init__(self, modes: List[str]):
+    def __init__(self, modes: List[str]) -> None:
         """Creates a new ModeSequence instance.
 
         Args:
             modes: List of mode names making up the sequence.
         """
         self.modes = modes
-        self._current_index = 0
+        self._current_index = -1
 
     def next(self) -> str:
         """Returns the next mode in the sequence.
@@ -91,6 +91,7 @@ class ModeSequence:
         Returns:
             Next mode in the sequence, wrapping around at the end.
         """
+        # next_index = self._current_index % len(self.modes)
         self._current_index = (self._current_index + 1) % len(self.modes)
         return self.modes[self._current_index]
 
@@ -102,7 +103,7 @@ class ModeManager(QtCore.QObject):
 
     mode_changed = QtCore.Signal(str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         QtCore.QObject.__init__(self)
 
         self._mode_stack = [Mode("Invalid", None)]
@@ -187,7 +188,7 @@ class ModeManager(QtCore.QObject):
         mode.is_temporary = True
         self.switch_to(mode)
 
-    def leave_temporary(self, mode) -> None:
+    def leave_temporary(self, mode: Mode) -> None:
         mode.is_temporary = True
         if self._mode_stack[-1] == mode:
             self.unwind()

@@ -49,6 +49,7 @@ from gremlin import (
     common,
     device_initialization,
     shared_state,
+    tree,
 )
 from gremlin.signal import signal
 from gremlin.types import (
@@ -750,27 +751,32 @@ class ModeListModel(QtCore.QAbstractListModel):
     """List containing model instances for each mode."""
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("parentName".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("depth".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"parentName"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"depth"),
     }
 
-    def __init__(
-        self,
-        modes: gremlin.profile.ModeHierarchy,
-        parent: ta.OQO = None
-    ) -> None:
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
-        self._modes = modes
+        self._lookup: Dict[str, tree.TreeNode] = {}
+        self._names: List[str] = []
+        self._reset()
+
+        signal.profileChanged.connect(self._reset)
+        signal.modesChanged.connect(self._reset)
+
+    def _reset(self) -> None:
+        self.beginResetModel()
         self._lookup = {}
         self._names = []
-        for mode in self._modes.mode_list():
+        for mode in shared_state.current_profile.modes.mode_list():
             self._names.append(mode.value)
             self._lookup[mode.value] = mode
         self._names = sorted(self._names)
+        self.endResetModel()
 
-    def rowCount(self, parent: QtCore.QModelIndex) -> int:
+    def rowCount(self, parent: ta.MI = QtCore.QModelIndex()) -> int:
         return len(self._lookup)
 
     def data(
@@ -782,56 +788,56 @@ class ModeListModel(QtCore.QAbstractListModel):
             raise GremlinError(f"Invalid role {role} in ModeListModel")
 
         node = self._lookup[self._names[index.row()]]
-        if role == QtCore.Qt.UserRole + 1:
+        if role == QtCore.Qt.ItemDataRole.UserRole + 1:
             return node.value
-        elif role == QtCore.Qt.UserRole + 2:
+        elif role == QtCore.Qt.ItemDataRole.UserRole + 2:
             if node.parent is None:
                 return ""
             else:
                 return node.parent.value
-        elif role == QtCore.Qt.UserRole + 3:
+        elif role == QtCore.Qt.ItemDataRole.UserRole + 3:
             return node.depth
 
     def roleNames(self) -> Dict:
-        return ModeListModel.roles
+        return self.roles
 
 
 @QtQml.QmlElement
-class ModeHierarchyModel(QtCore.QAbstractListModel):
+class ModeHierarchyModel(QtCore.QObject):
 
     """Model exposing the mode hierarchy and allows managing it."""
 
     modesChanged = Signal()
 
-    def __init__(
-        self,
-        modes: gremlin.profile.ModeHierarchy,
-        parent: ta.OQO = None
-    ) -> None:
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
-        self._modes = modes
+        self._modes = shared_state.current_profile.modes
+        signal.profileChanged.connect(self._reset)
 
-    @Property(type=ModeListModel, notify=modesChanged)
-    def modeList(self) -> ModeListModel:
-        return ModeListModel(self._modes, self)
+    def _reset(self) -> None:
+        self._modes = shared_state.current_profile.modes
+        self.modesChanged.emit()
 
     @Slot(str)
     def newMode(self, name: str) -> None:
         if not self._modes.mode_exists(name):
             self._modes.add_mode(name)
-        self.modesChanged.emit()
+            self.modesChanged.emit()
+            signal.modesChanged.emit()
 
     @Slot(str, str)
     def renameMode(self, old_name: str, new_name: str) -> None:
         if old_name != new_name:
             self._modes.rename_mode(old_name, new_name)
             self.modesChanged.emit()
+            signal.modesChanged.emit()
 
     @Slot(str)
     def deleteMode(self, name: str) -> None:
         self._modes.delete_mode(name)
         self.modesChanged.emit()
+        signal.modesChanged.emit()
 
     @Slot(str, str)
     def setParent(self, mode_name: str, parent_name: str) -> None:
@@ -839,16 +845,17 @@ class ModeHierarchyModel(QtCore.QAbstractListModel):
         if parent_name != node.parent.value:
             self._modes.set_parent(mode_name, parent_name)
             self.modesChanged.emit()
+            signal.modesChanged.emit()
 
     @Slot(str, result=list)
-    def validParents(self, name: str) -> List[str]:
+    def validParents(self, name: str) -> list[dict[str, str]]:
         options = [{"value": ""}]
         for entry in self._modes.valid_parents(name):
             options.append({"value": entry})
         return options
 
     @Slot(result=list)
-    def modeStringList(self) -> List[str]:
+    def modeStringList(self) -> list[str]:
         return self._modes.mode_names()
 
 

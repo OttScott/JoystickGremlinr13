@@ -32,7 +32,10 @@ Item {
     id: _root
 
     property ChangeModeModel action
-    property ModeHierarchyModel modes : backend.modeHierarchy
+
+    ModeHierarchyModel {
+        id: _modeHierarchyModel
+    }
 
     implicitHeight: _content.height
 
@@ -70,7 +73,9 @@ Item {
             JGComboBox {
                 id: _switch_combo
 
-                model: _root.modes.modeList
+                Layout.preferredWidth: 200
+
+                model: ModeListModel {}
                 textRole: "name"
                 valueRole: "name"
 
@@ -134,7 +139,9 @@ Item {
                         required property int index
 
                         JGComboBox {
-                            model: _root.modes.modeList
+                            Layout.preferredWidth: 200
+
+                            model: ModeListModel {}
                             textRole: "name"
                             valueRole: "name"
 
@@ -179,7 +186,9 @@ Item {
             JGComboBox {
                 id: temporary_combo
 
-                model: _root.modes.modeList
+                Layout.preferredWidth: 200
+
+                model: ModeListModel {}
                 textRole: "name"
                 valueRole: "name"
 

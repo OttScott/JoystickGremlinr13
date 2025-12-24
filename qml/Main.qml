@@ -47,9 +47,7 @@ ApplicationWindow {
 
         text: backend.lastError
 
-        onTextChanged: {
-            visible = true
-        }
+        onTextChanged: () => { visible = true }
     }
 
     FileDialog {
@@ -61,8 +59,7 @@ ApplicationWindow {
         fileMode: FileDialog.SaveFile
         nameFilters: ["Profile files (*.xml)"]
 
-        onAccepted: function()
-        {
+        onAccepted: () => {
             backend.saveProfile(Helpers.pythonizePath(currentFile))
         }
     }
@@ -76,8 +73,7 @@ ApplicationWindow {
         fileMode: FileDialog.OpenFile
         nameFilters: ["Profile files (*.xml)"]
 
-        onAccepted: function()
-        {
+        onAccepted: () => {
             backend.loadProfile(Helpers.pythonizePath(currentFile))
         }
     }
@@ -89,15 +85,13 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("New Profile")
-                onTriggered: {
+                onTriggered: () => {
                     backend.newProfile()
                 }
             }
             MenuItem {
                 text: qsTr("Load Profile")
-                onTriggered: {
-                    idLoadProfileFileDialog.open()
-                }
+                onTriggered: () => { idLoadProfileFileDialog.open() }
             }
 
             AutoSizingMenu {
@@ -107,36 +101,29 @@ ApplicationWindow {
                     model: backend.recentProfiles
                     delegate: MenuItem {
                         text: modelData
-                        onTriggered: {
-                            backend.loadProfile(modelData)
-                        }
+                        onTriggered: () => { backend.loadProfile(modelData) }
                     }
                 }
             }
 
             MenuItem {
                 text: qsTr("Save Profile")
-                onTriggered: {
+                onTriggered: () => {
                     var fpath = backend.profilePath()
-                    if(fpath === "")
-                    {
+                    if(fpath === "") {
                         idSaveProfileFileDialog.open();
-                    }
-                    else
-                    {
+                    } else {
                         backend.saveProfile(fpath)
                     }
                 }
             }
             MenuItem {
                 text: qsTr("Save Profile As")
-                onTriggered: {
-                    idSaveProfileFileDialog.open()
-                }
+                onTriggered: () => { idSaveProfileFileDialog.open() }
             }
             MenuItem {
                 text: qsTr("Exit")
-                onTriggered: Qt.quit();
+                onTriggered: () => { Qt.quit(); }
             }
         }
         Menu {
@@ -144,45 +131,61 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("Manage Modes")
-                onTriggered: Helpers.createComponent("DialogManageModes.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogManageModes.qml")
+                }
             }
-            MenuItem {
-                text: qsTr("Input Repeater")
-                //onTriggered: Helpers.createComponent(".qml")
-            }
+            // MenuItem {
+            //     text: qsTr("Input Repeater")
+            //     //onTriggered: Helpers.createComponent(".qml")
+            // }
             MenuItem {
                 text: qsTr("Auto Mapper")
-                onTriggered: Helpers.createComponent("DialogAutoMapper.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogAutoMapper.qml")
+                }
             }
             MenuItem {
                 text: qsTr("Swap Devices")
-                onTriggered: Helpers.createComponent("DialogSwapDevices.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogSwapDevices.qml")
+                }
             }
             MenuItem {
                 text: qsTr("Device Information")
-                onTriggered: Helpers.createComponent("DialogDeviceInformation.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogDeviceInformation.qml")
+                }
             }
             MenuItem {
                 text: qsTr("Calibration")
-                onTriggered: Helpers.createComponent("DialogCalibration.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogCalibration.qml")
+                }
             }
             MenuItem {
                 text: qsTr("Input Viewer")
-                onTriggered: Helpers.createComponent("DialogInputViewer.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogInputViewer.qml")
+                }
             }
             MenuSeparator {}
-            MenuItem {
-                text: qsTr("PDF Cheatsheet")
-                onTriggered: Helpers.createComponent("DialogPDFCheatsheet.qml")
-            }
+            // MenuItem {
+            //     text: qsTr("PDF Cheatsheet")
+            //     onTriggered: Helpers.createComponent("DialogPDFCheatsheet.qml")
+            // }
             MenuSeparator {}
             MenuItem {
                 text: qsTr("Options")
-                onTriggered: Helpers.createComponent("DialogOptions.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogOptions.qml")
+                }
             }
             MenuItem {
                 text: qsTr("Log Display")
-                onTriggered: Helpers.createComponent("DialogLogDisplay.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogLogDisplay.qml")
+                }
             }
         }
 
@@ -191,15 +194,15 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("About")
-                onTriggered: Helpers.createComponent("DialogAbout.qml")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogAbout.qml")
+                }
             }
         }
     }
 
     header: ToolBar {
         id: _toolbar
-
-        property ModeHierarchyModel modes : backend.modeHierarchy
 
         RowLayout {
             anchors.fill: parent
@@ -323,19 +326,26 @@ ApplicationWindow {
                     delay: 500
                 }
 
-                onToggled: function() {
+                onToggled: () => {
                     _root.Universal.theme = position ? Universal.Dark : Universal.Light;
                 }
             }
 
-            ComboBox {
+            JGComboBox {
                 id: _modeSelector
 
-                model: _toolbar.modes.modeList
+                Layout.preferredWidth: 200
+
+                model: ModeListModel {}
                 textRole: "name"
+                valueRole: "name"
 
                 onActivated: () => {
                     uiState.setCurrentMode(currentText)
+                }
+
+                Component.onCompleted: () => {
+                    currentIndex = find(uiState.currentMode)
                 }
 
                 ToolTip {
@@ -480,7 +490,7 @@ ApplicationWindow {
                 visible: uiState.currentTab === "logical"
                 SplitView.minimumWidth: 200
 
-                device: backend.getLogicalDeviceManagementModel()
+                //device: backend.getLogicalDeviceManagementModel()
 
                 // Trigger a model update on the InputConfiguration
                 onInputIdentifierChanged: () => {

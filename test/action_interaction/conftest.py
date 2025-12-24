@@ -247,6 +247,14 @@ class JoystickGremlinBot:
         """
         return len(self._event_logger.logged_events)
 
+    def current_mode(self) -> str:
+        """Retrieves the name of the current mode.
+
+        Returns:
+            The name of the current mode.
+        """
+        return self._mode_manager.current.name
+
     def axis(self, input_id: int) -> float:
         """Retrieves the current value of the specified axis.
 
@@ -379,6 +387,20 @@ class JoystickGremlinBot:
             direction: The direction to set the hat to.
         """
         self._emit_event(InputType.JoystickHat, hat_id, direction)
+
+    def tap_hat_direction(self, hat_id: int, direction: HatDirection) -> None:
+        """Taps the specified hat in the given direction quickly.
+
+        This is a blocking call that returns only after the hat has been
+        returned to the center position. This is for convenience purposes.
+
+        Args:
+            hat_id: The identifier of the hat input.
+            direction: The direction to tap the hat to.
+        """
+        self.set_hat_direction(hat_id, direction)
+        self._qtbot.wait(50)
+        self.set_hat_direction(hat_id, HatDirection.Center)
 
     def _emit_event(
         self,

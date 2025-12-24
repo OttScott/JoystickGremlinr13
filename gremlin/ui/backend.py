@@ -210,8 +210,6 @@ class Backend(QtCore.QObject):
         shared_state.current_profile = self.profile
         self._last_error = ""
         self._action_state = {}
-        self._mode_hierarchy = ModeHierarchyModel(self.profile.modes, self)
-        # self._profile_settings = ProfileSettingsModel(self.profile, self)
         self.runner = code_runner.CodeRunner()
         self.ui_state = UIState(self)
 
@@ -234,19 +232,11 @@ class Backend(QtCore.QObject):
         self.profileChanged.emit()
 
     def _profile_change_handler(self) -> None:
-        # Create profile dependant models.
-        del self._mode_hierarchy
-        self._mode_hierarchy = ModeHierarchyModel(self.profile.modes, self)
-        # self._profile_settings = ProfileSettingsModel(self.profile, self)
-
-        self._mode_hierarchy.modesChanged.connect(
-            lambda: signal.modesChanged.emit()
-        )
-
-        # Connect event handlers.
+        # Update shared state before any other parts update.
         shared_state.current_profile = self.profile
-        self.windowTitleChanged.emit()
 
+        # Emit signals for various parts of the system.
+        self.windowTitleChanged.emit()
         signal.reloadUi.emit()
         signal.profileChanged.emit()
 
@@ -468,10 +458,6 @@ class Backend(QtCore.QObject):
     @Property(type=ScriptListModel, notify=profileChanged)
     def scriptListModel(self) -> ScriptListModel:
         return ScriptListModel(self.profile.scripts, self)
-
-    @Property(type=ModeHierarchyModel, notify=profileChanged)
-    def modeHierarchy(self) -> ModeHierarchyModel:
-        return self._mode_hierarchy
 
     @Property(type=str, notify=propertyChanged)
     def currentMode(self) -> str:

@@ -34,8 +34,8 @@ Window {
 
     title: "Manage Modes"
 
-    property ModeHierarchyModel mode : backend.modeHierarchy
-    property ModeListModel modeList : mode.modeList
+    property ModeHierarchyModel modeHierarchy : ModeHierarchyModel {}
+    property ModeListModel modeList : ModeListModel {}
 
     TextInputDialog {
         id: _textInput
@@ -64,7 +64,7 @@ Window {
             scrollbarAlwaysVisible: true
             spacing: 10
 
-            model: mode.modeList
+            model: modeList
             delegate: _delegate
         }
 
@@ -75,7 +75,7 @@ Window {
 
             onClicked: function()
             {
-                let validNames = mode.modeStringList()
+                let validNames = modeHierarchy.modeStringList()
 
                 _textInput.title = "Add new mode"
                 _textInput.text = "New mode"
@@ -84,7 +84,7 @@ Window {
                     return !validNames.includes(value)
                 }
                 _textInput.callback = function(name) {
-                    mode.newMode(name)
+                    modeHierarchy.newMode(name)
                 }
                 _textInput.visible = true
             }
@@ -118,12 +118,12 @@ Window {
 
                 onClicked: function()
                 {
-                    let validNames = mode.validParents(name)
+                    let validNames = modeHierarchy.validParents(name)
 
                     _textInput.text = name
                     _textInput.callback = function(value)
                     {
-                        mode.renameMode(name, value)
+                        modeHierarchy.renameMode(name, value)
                     }
                     _textInput.validator = function(value)
                     {
@@ -140,14 +140,14 @@ Window {
                 Layout.leftMargin: 10
                 Layout.rightMargin: 10
 
-                model: mode.validParents(name)
+                model: modeHierarchy.validParents(name)
 
                 textRole: "value"
                 valueRole: "value"
 
                 onActivated: function(index)
                 {
-                    mode.setParent(name, currentValue)
+                    modeHierarchy.setParent(name, currentValue)
                 }
 
                 Component.onCompleted: function()
@@ -163,7 +163,7 @@ Window {
 
                 onClicked: function()
                 {
-                    mode.deleteMode(name)
+                    modeHierarchy.deleteMode(name)
                 }
             }
         }

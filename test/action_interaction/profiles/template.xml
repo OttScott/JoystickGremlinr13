@@ -46,7 +46,6 @@
             <input-id>14</input-id>
             <label>Output Axis 4</label>
         </input>
-
         <input>
             <input-type>button</input-type>
             <input-id>1</input-id>
@@ -87,7 +86,6 @@
             <input-id>14</input-id>
             <label>Output Button 4</label>
         </input>
-
         <input>
             <input-type>hat</input-type>
             <input-id>1</input-id>
@@ -134,4 +132,5 @@
         <mode>Default</mode>
     </modes>
     <scripts/>
+    <devices/>
 </profile>

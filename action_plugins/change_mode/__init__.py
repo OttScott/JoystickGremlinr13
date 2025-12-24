@@ -20,21 +20,41 @@ from __future__ import annotations
 
 import enum
 import logging
-import threading
-import time
-from typing import List, TYPE_CHECKING, override
+from typing import (
+    override,
+    List,
+    TYPE_CHECKING
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
 
-from gremlin import error, event_handler, mode_manager, shared_state, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin import (
+    device_helpers,
+    error,
+    event_handler,
+    mode_manager,
+    shared_state,
+    util,
+)
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, DataCreationMode
+from gremlin.types import (
+    ActionProperty,
+    AxisMode,
+    InputType,
+    PropertyType,
+    DataCreationMode,
+)
 
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.action_model import (
+    SequenceIndex,
+    ActionModel,
+)
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
@@ -69,7 +89,7 @@ class ChangeModeFunctor(AbstractFunctor):
 
     """Executes a mode change action callback."""
 
-    def __init__(self, action: ChangeModeData):
+    def __init__(self, action: ChangeModeData) -> None:
         super().__init__(action)
 
         self._mode_sequence = None
@@ -80,9 +100,9 @@ class ChangeModeFunctor(AbstractFunctor):
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty]=[]
+            properties: List[ActionProperty] = []
     ) -> None:
         if not value.current and self.data.change_type != ChangeType.Temporary:
             return
@@ -107,6 +127,11 @@ class ChangeModeFunctor(AbstractFunctor):
                     mm.current.name,
                     True
                 ))
+
+                device_helpers.ButtonReleaseActions().register_callback(
+                    self._release_temporary_mode,
+                    event
+                )
             # Leave the temporary mode when the input is released while in the
             # correct mode
             else:
@@ -119,10 +144,16 @@ class ChangeModeFunctor(AbstractFunctor):
             f"Action : {self.data.change_type.name}"
         )
 
+    def _release_temporary_mode(self) -> None:
+        mm = mode_manager.ModeManager()
+        if mm.current.name == self.data._target_modes[0] and \
+                mm.current.is_temporary:
+            mm.unwind()
+
 
 class ChangeModeModel(ActionModel):
 
-    modelChanged = Signal()
+    modelChanged = QtCore.Signal()
 
     def __init__(
             self,
@@ -160,14 +191,14 @@ class ChangeModeModel(ActionModel):
             self._data.target_modes = values
             self.modelChanged.emit()
 
-    @Slot()
+    @QtCore.Slot()
     def addTargetMode(self) -> None:
         modes = self._data.target_modes
         modes.append(shared_state.current_profile.modes.first_mode)
         self._data.target_modes = modes
         self.modelChanged.emit()
 
-    @Slot(int)
+    @QtCore.Slot(int)
     def deleteTargetMode(self, index: int) -> None:
         modes = self._data.target_modes
         if index >= len(modes):
@@ -179,7 +210,7 @@ class ChangeModeModel(ActionModel):
         self._data.target_modes = modes
         self.modelChanged.emit()
 
-    @Slot(str, int)
+    @QtCore.Slot(str, int)
     def setTargetMode(self, mode: str, index: int) -> None:
         modes = self._data.target_modes
         if index >= len(modes):
@@ -192,14 +223,14 @@ class ChangeModeModel(ActionModel):
             self._data.target_modes = modes
             self.modelChanged.emit()
 
-    changeType = Property(
+    changeType = QtCore.Property(
         str,
         fget=_get_change_type,
         fset=_set_change_type,
         notify=modelChanged
     )
 
-    targetModes = Property(
+    targetModes = QtCore.Property(
         list,
         fget=_get_target_modes,
         fset=_set_target_modes,
@@ -219,18 +250,18 @@ class ChangeModeData(AbstractActionData):
     functor = ChangeModeFunctor
     model = ChangeModeModel
 
-    properties = [
-        ActionProperty.ActivateOnPress
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateOnPress,
+    )
+    input_types = (
         InputType.JoystickButton,
-        InputType.Keyboard
-    ]
+        InputType.Keyboard,
+    )
 
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         self._change_type = ChangeType.Switch
