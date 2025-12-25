@@ -1,3 +1,6 @@
+// -*- coding: utf-8; -*-
+// SPDX-License-Identifier: GPL-3.0-only
+
 function draw_curve(ctx, points, width, height) {
     width /= 2
     height /= 2

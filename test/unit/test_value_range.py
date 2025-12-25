@@ -1,4 +1,7 @@
-import pytest
+# -*- coding: utf-8; -*-
+
+# SPDX-License-Identifier: GPL-3.0-only
+
 from gremlin.types import ValueRange
 
 def test_initial_state() -> None:

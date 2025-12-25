@@ -1,3 +1,7 @@
+# -*- coding: utf-8; -*-
+
+# SPDX-License-Identifier: GPL-3.0-only
+
 from dill import _DeviceSummary, DeviceSummary
 
 

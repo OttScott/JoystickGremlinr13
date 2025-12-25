@@ -1,20 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2025 Lionel Ott
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+# SPDX-License-Identifier: GPL-3.0-only
 
 from __future__ import annotations
 
@@ -50,7 +36,7 @@ class ProfileDeviceListModel(QtCore.QAbstractListModel):
     # TODO: Make this obsolete by augmenting the existing DeviceListModel.
 
     """Model listing devices with bindings in the profile."""
-    
+
     selectedIndexChanged = QtCore.Signal()
 
     roles = {
@@ -92,7 +78,7 @@ class ProfileDeviceListModel(QtCore.QAbstractListModel):
                 case "numBindings":
                     return device.num_bindings
         raise ValueError(f"Unknown {role=}")
-        
+
     def roleNames(self) -> dict[int, QtCore.QByteArray]:
         return self.roles
 
@@ -104,11 +90,11 @@ class ProfileDeviceListModel(QtCore.QAbstractListModel):
             raise GremlinError(f"Provided {index=} out of range")
 
         return str(self._devices[index].device_uuid)
-    
+
     @QtCore.Property(int, notify=selectedIndexChanged)
     def selectedIndex(self) -> int:
         return self._selected_index
-    
+
     @selectedIndex.setter
     def selectedIndex(self, index: int) -> None:
         if 0 <= index < len(self._devices) and index != self._selected_index:

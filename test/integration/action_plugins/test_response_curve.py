@@ -1,19 +1,6 @@
 # -*- coding: utf-8; -*-
 
-# Copyright (C) 2015 - 2024 Lionel Ott
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: GPL-3.0-only
 
 """
 Integration test for response curve action using logical output devices.
@@ -33,7 +20,7 @@ _LOGICAL_OUTPUT_AXIS_LABEL = "OutputAxis1"
 @pytest.fixture(scope="module")
 def response_curve_action() -> response_curve.ResponseCurveData:
     """Create response curve action instance for testing.
-    
+
     Response curves should be modifiable while Gremlin is running, so making
     this fixture "module" scoped indirectly tests that feature as well.
 

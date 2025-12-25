@@ -1,3 +1,7 @@
+# -*- coding: utf-8; -*-
+
+# SPDX-License-Identifier: GPL-3.0-only
+
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
@@ -496,7 +500,7 @@ class JoystickCondition(AbstractCondition):
             self.input_id = input_id
             self.joystick = None
             self.initialize_for_uuid(device_uuid)
-        
+
         def initialize_for_uuid(self, device_uuid: uuid.UUID):
             try:
                 self.joystick = Joystick()[device_uuid]

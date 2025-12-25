@@ -1,3 +1,6 @@
+// -*- coding: utf-8; -*-
+// SPDX-License-Identifier: GPL-3.0-only
+
 function createComponent(componentSpec)
 {
     let component = Qt.createComponent(componentSpec);
