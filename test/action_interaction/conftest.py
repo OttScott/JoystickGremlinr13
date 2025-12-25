@@ -207,6 +207,7 @@ class JoystickGremlinBot:
 
     def start(self) -> None:
         """Starts the profile execution."""
+        self._event_listener.restart()
         self._runner.start(self._profile, self._profile.modes.first_mode)
 
     def stop(self) -> None:

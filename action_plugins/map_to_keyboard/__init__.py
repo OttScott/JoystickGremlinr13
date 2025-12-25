@@ -45,10 +45,11 @@ class MapToKeyboardFunctor(AbstractFunctor):
         self.press = macro.Macro()
         for key in self.data.keys:
             self.press.press(key)
+            self.press.pause(0.0)
         self.release = macro.Macro()
         for key in reversed(self.data.keys):
             self.release.release(key)
-
+            self.release.pause(0.0)
     @override
     def __call__(
             self,
