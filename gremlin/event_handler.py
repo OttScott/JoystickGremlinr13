@@ -246,6 +246,13 @@ class EventListener(QtCore.QObject):
         self._running = False
         self.keyboard_hook.stop()
 
+    def restart(self) -> None:
+        """Restarts the event listener."""
+        if not self._running:
+            self._running = True
+            self.keyboard_hook.start()
+            Thread(target=self._run).start()
+
     def reload_calibration(self, uuid: uuid.UUID, axis_index: int) -> None:
         """Reloads the calibration data of the specified axis."""
         cfg = config.Configuration()
@@ -355,20 +362,17 @@ class EventListener(QtCore.QObject):
         # if self.gremlin_active and event.is_injected:
         #     return True
 
-        key_id = (event.scan_code, event.is_extended)
+        key_id = keyboard.key_from_code(event.scan_code, event.is_extended)
         is_pressed = event.is_pressed
         is_repeat = self._keyboard.is_pressed(key_id) and is_pressed
         # Only emit an event if they key is pressed for the first
         # time or released but not when it's being held down
         if not is_repeat:
-            self._keyboard.update(
-                keyboard.key_from_code(key_id[0], key_id[1]),
-                is_pressed
-            )
+            self._keyboard.update(key_id, is_pressed)
             self.keyboard_event.emit(Event(
                 event_type=InputType.Keyboard,
                 device_guid=dill.UUID_Keyboard,
-                identifier=key_id,
+                identifier=(key_id.scan_code, key_id.is_extended),
                 mode=self._modes.current.name,
                 is_pressed=is_pressed,
             ))
