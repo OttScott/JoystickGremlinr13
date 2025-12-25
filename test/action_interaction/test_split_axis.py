@@ -4,16 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 import pytest
-import uuid
 
-from action_plugins import merge_axis
-import gremlin.profile
-from gremlin.types import InputType
-
-from .conftest import (
-    EventSpec,
-    JoystickGremlinBot,
-)
+from .conftest import JoystickGremlinBot
 from .input_definitions import *
 
 

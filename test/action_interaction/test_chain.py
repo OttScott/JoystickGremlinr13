@@ -22,7 +22,6 @@ from pathlib import Path
 import pytest
 
 from gremlin.types import InputType
-from gremlin.macro import MacroManager
 
 from .conftest import (
     JoystickGremlinBot,

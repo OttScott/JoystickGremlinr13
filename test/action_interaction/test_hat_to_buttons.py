@@ -7,10 +7,7 @@ import pytest
 
 from gremlin.types import HatDirection
 
-from .conftest import (
-    EventSpec,
-    JoystickGremlinBot,
-)
+from .conftest import JoystickGremlinBot
 from .input_definitions import *
 
 

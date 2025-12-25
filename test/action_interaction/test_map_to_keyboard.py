@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-import pytest
 import statistics
 import time
-import uuid
 
 from gremlin import (
     event_handler,
@@ -14,14 +12,7 @@ from gremlin import (
     macro,
 )
 from gremlin.input_cache import Keyboard
-from gremlin.types import (
-    HatDirection,
-    InputType,
-)
-from .conftest import (
-    EventSpec,
-    JoystickGremlinBot,
-)
+from .conftest import JoystickGremlinBot
 from .input_definitions import *
 
 

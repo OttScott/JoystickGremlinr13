@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import pytest
-import pytestqt
-import pytestqt.exceptions
 
 from gremlin.types import InputType
 

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gremlin.input_cache import Keyboard
-
 from .conftest import JoystickGremlinBot
 from .input_definitions import *
 
