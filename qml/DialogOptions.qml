@@ -37,9 +37,7 @@ Window {
             model: _sectionModel
             delegate: ConfigSectionButton {}
 
-            Component.onCompleted: () => {
-                itemAtIndex(0).toggle()
-            }
+            Component.onCompleted: () => { currentItem.clicked() }
         }
 
         // Shows the contents of the currently selected section
