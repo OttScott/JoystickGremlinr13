@@ -125,7 +125,7 @@ Window {
                     text: checked ? bsi.icons.folded : bsi.icons.unfolded
                 }
 
-                DisplayText {
+                JGText {
                     text: name
                 }
 

@@ -15,34 +15,22 @@ Item {
     id: idRoot
 
     property ProfileModel profileModel
-//    property InputConfiguration inputConfiguration
-
-//    ColumnLayout {
 
     RowLayout {
         anchors.fill: parent
 
-        DisplayText {
+        JGText {
             text: "Action"
             width: 300
         }
         ComboBox {
-//                width: 200
             id: idActionLlist
             model: backend.action_list
-//            font.pointSize: 10
-
-//            menu.style.font.pointSize: 36
         }
         Button {
             text: "Add"
             font.pointSize: 10
-            //onClicked: backend.add_action(
-            //    inputConfiguration
-            //    action_list.currentText
-            //)
         }
     }
 
-//    }
 }

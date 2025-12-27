@@ -105,7 +105,7 @@ Item {
                 anchors.topMargin: 5
             }
 
-            Text {
+            JGText {
                 id: _inputDescription
                 text: description
                 font.italic: true

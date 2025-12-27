@@ -347,7 +347,7 @@ ApplicationWindow {
                 //     required property int depth
                 //
                 //     width: _modeSelector.width
-                //     contentItem: Text {
+                //     contentItem: JGText {
                 //         text: "  ".repeat(depth) + name
                 //
                 //         font: _modeSelector.font

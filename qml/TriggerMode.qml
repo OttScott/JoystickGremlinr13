@@ -21,7 +21,7 @@ Item {
 
         spacing: 4
 
-        Text {
+        JGText {
             id: _description
 
             text: "Activation"

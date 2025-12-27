@@ -114,11 +114,11 @@ Item {
 
             // Deadzone configuration
             RowLayout {
-                Text {
+                JGText {
                     text: "Deadzone limits: "
                 }
 
-                Text {
+                JGText {
                     text: "Inner"
                 }
 
@@ -134,7 +134,7 @@ Item {
                     }
                 }
 
-                Text {
+                JGText {
                     text: "Outer"
                 }
 

@@ -321,17 +321,15 @@ JGListView {
             color: parent.isValid ? "transparent" : "red"
         }
 
-        Text {
+        JGText {
             id: _text
 
+            font.pointSize: 11
             text: `${parent.text} ${modelData.isOptional ? '' : '(req)'}`
             wrapMode: Text.WordWrap
 
             Layout.minimumWidth: 150
             Layout.preferredWidth: labelWidth
-
-            font.pointSize: 11
-            font.family: "Segoe UI"
 
             ToolTip {
                 id: _tooltip

@@ -35,14 +35,14 @@ ColumnLayout {
     }
 
     // Header text component
-    component UIHeader : Text {
+    component UIHeader : JGText {
         font.pointSize: 14
         font.weight: 500
         font.family: "Segoe UI"
     }
 
     // Standard text component
-    component UIText : Text {
+    component UIText : JGText {
         Layout.fillWidth: true
         horizontalAlignment: Text.AlignJustify
         wrapMode: Text.Wrap

@@ -127,7 +127,7 @@ Item {
                 }
 
                 // Internal UUID-based name
-                Text {
+                JGText {
                     text: name
                     anchors.leftMargin: 5
                     anchors.topMargin: 5

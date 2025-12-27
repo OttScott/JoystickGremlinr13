@@ -41,7 +41,7 @@ Button {
         }
     }
 
-    contentItem: Text {
+    contentItem: JGText {
         text: Helpers.capitalize(_text.text)
         font: _text.font
         horizontalAlignment: Text.AlignLeft

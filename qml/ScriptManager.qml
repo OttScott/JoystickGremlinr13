@@ -101,13 +101,13 @@ Item {
         required property string name
         required property var variables
 
-        Text {
+        JGText {
             Layout.leftMargin: 10
             text: bsi.icons.script
             font.pixelSize: 18
         }
 
-        Text {
+        JGText {
             id: _path
 
             Layout.alignment: Qt.AlignVCenter
@@ -134,7 +134,7 @@ Item {
 
         LayoutHorizontalSpacer {}
 
-        Text {
+        JGText {
             id: _name
 
             Layout.preferredWidth: 200

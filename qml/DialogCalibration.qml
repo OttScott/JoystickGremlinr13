@@ -84,14 +84,14 @@ Window {
         RowLayout {
             Layout.rightMargin: 20
 
-            Text {
+            JGText {
                 Layout.fillWidth: true
 
                 text: identifier
                 wrapMode: Text.Wrap
             }
 
-            Text {
+            JGText {
                 Layout.preferredWidth: 75
                 Layout.rightMargin: 5
 
@@ -105,7 +105,7 @@ Window {
                 text: rawValue
             }
 
-            Text {
+            JGText {
                 Layout.preferredWidth: 100
 
                 text: "With center"

@@ -40,7 +40,7 @@ Item {
         RowLayout {
             id: _header
 
-            DisplayText {
+            JGText {
                 text: title + " - Axes"
             }
 

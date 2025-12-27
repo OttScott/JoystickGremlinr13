@@ -135,7 +135,7 @@ Window {
         }
     }
 
-    component TextEntry : Text {
+    component TextEntry : JGText {
         Layout.preferredHeight: 40
 
         color: Universal.foreground
@@ -146,7 +146,7 @@ Window {
         rightPadding: 10
     }
 
-    component HeaderText : Text {
+    component HeaderText : JGText {
         Layout.preferredHeight: 40
 
         color: Universal.foreground
