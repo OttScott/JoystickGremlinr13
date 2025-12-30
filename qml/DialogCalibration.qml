@@ -3,20 +3,23 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 Window {
     minimumWidth: 850
     maximumWidth: 850
     minimumHeight: 600
-    color: Universal.background
+
+    color: Style.background
+    Universal.theme: Style.theme
+
     title: "Calibration"
+
 
     DeviceListModel {
         id: _deviceData
@@ -99,7 +102,7 @@ Window {
                 horizontalAlignment: Text.AlignRight
             }
 
-            TextField {
+            JGTextField {
                 Layout.preferredWidth: 100
 
                 text: rawValue
@@ -225,7 +228,7 @@ Window {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: unsavedChanges ? "#F6BE00" : "transparent"
+                            color: unsavedChanges ? "gold" : "transparent"
                         }
                     }
                 }

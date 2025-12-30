@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import QtQuick
-import QtQuick.Controls.Universal
+
+import Gremlin.Style
 
 
 Rectangle {
@@ -15,7 +16,7 @@ Rectangle {
     height: 15
 
     opacity: showMarker ? 1.0 : 0.0
-    color: Universal.accent
-    border.color: Qt.darker(Universal.accent, 1.2)
+    color: Style.accent
+    border.color: Qt.darker(Style.accent, 1.2)
     border.width: 2
 }

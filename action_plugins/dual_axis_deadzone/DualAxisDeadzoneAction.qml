@@ -3,16 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
-
-import QtQuick.Controls.Universal
 
 import Gremlin.Profile
 import Gremlin.UI
 import Gremlin.ActionPlugins
 import "../../qml"
-
 
 Item {
     id: _root
@@ -25,8 +23,7 @@ Item {
     Connections {
         target: action
 
-        function onModelChanged()
-        {
+        function onModelChanged() {
             deadzoneListModel.currentValue = _root.action.deadzone
         }
     }
@@ -44,11 +41,10 @@ Item {
 
         title: "Rename action"
 
-        Row
-        {
+        Row {
             anchors.fill: parent
 
-            TextField {
+            JGTextField {
                 id: _actionLabel
 
                 width: 400
@@ -57,19 +53,12 @@ Item {
                 text: action.label
                 placeholderText: "Action label"
 
-                onAccepted: function()
-                {
-                    _dialog.accept()
-                }
+                onAccepted: () => { _dialog.accept() }
             }
         }
 
-        onAccepted: function()
-        {
-            action.label = _actionLabel.text
-        }
+        onAccepted: () => { action.label = _actionLabel.text }
     }
-
 
     ColumnLayout {
         id: _content
@@ -84,14 +73,15 @@ Item {
             Label {
                 text: "Deadzone instance"
             }
+
             LabelValueComboBox {
                 model: _root.deadzoneListModel
 
-                Component.onCompleted: function () {
+                Component.onCompleted: () => {
                     _root.deadzoneListModel.currentValue = _root.action.deadzone
                 }
 
-                onSelectionChanged: function () {
+                onSelectionChanged: () => {
                     _root.action.deadzone = _root.deadzoneListModel.currentValue
                 }
             }
@@ -100,14 +90,14 @@ Item {
                 text: bsi.icons.add_new
                 font.pixelSize: 24
 
-                onClicked: () => _root.action.newDeadzone()
+                onClicked: () => { _root.action.newDeadzone() }
             }
 
             IconButton {
                 text: bsi.icons.rename
                 font.pixelSize: 24
 
-                onClicked: () => _dialog.open()
+                onClicked: () => { _dialog.open() }
             }
 
             LayoutHorizontalSpacer {}
@@ -153,7 +143,6 @@ Item {
             }
         }
 
-
         // +-------------------------------------------------------------------
         // | Axis assignments
         // +-------------------------------------------------------------------
@@ -170,9 +159,7 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function () {
-                    _root.action.axis1 = uiState.currentInput
-                }
+                onClicked: () => { _root.action.axis1 = uiState.currentInput }
             }
 
             LayoutHorizontalSpacer {
@@ -192,12 +179,9 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function () {
-                    _root.action.axis2 = uiState.currentInput
-                }
+                onClicked: () => { _root.action.axis2 = uiState.currentInput }
             }
         }
-
 
         // +-------------------------------------------------------------------
         // | First axis actions
@@ -213,7 +197,7 @@ Item {
 
             ActionSelector {
                 actionNode: _root.action
-                callback: (x) => _root.action.appendAction(x, "first")
+                callback: (x) => { _root.action.appendAction(x, "first") }
             }
         }
 
@@ -221,7 +205,7 @@ Item {
             id: _firstDivider
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         Repeater {
@@ -250,7 +234,7 @@ Item {
 
             ActionSelector {
                 actionNode: _root.action
-                callback: (x) => _root.action.appendAction(x, "second")
+                callback: (x) => { _root.action.appendAction(x, "second") }
             }
         }
 
@@ -258,7 +242,7 @@ Item {
             id: _secondDivider
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         Repeater {
@@ -277,7 +261,7 @@ Item {
     // Drop action for insertion into empty/first slot of the short actions
     ActionDragDropArea {
         target: _firstDivider
-        dropCallback: function(drop) {
+        dropCallback: (drop) => {
             modelData.dropAction(drop.text, modelData.sequenceIndex, "first");
         }
     }
@@ -285,7 +269,7 @@ Item {
     // Drop action for insertion into empty/first slot of the long actions
     ActionDragDropArea {
         target: _secondDivider
-        dropCallback: function(drop) {
+        dropCallback: (drop) => {
             modelData.dropAction(drop.text, modelData.sequenceIndex, "second");
         }
     }

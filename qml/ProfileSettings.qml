@@ -8,9 +8,8 @@ import QtQuick.Layouts
 import Qt.labs.qmlmodels
 
 import Gremlin.Profile
-
+import Gremlin.Style
 import "helpers.js" as Helpers
-
 
 Item {
     id: _root
@@ -173,7 +172,7 @@ Item {
                             HorizontalDivider {
                                 Layout.fillWidth: true
 
-                                dividerColor: Universal.baseLowColor
+                                dividerColor: Style.lowColor
                                 lineWidth: 2
                                 spacing: 2
                             }

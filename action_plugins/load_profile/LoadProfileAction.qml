@@ -3,16 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Profile
 import Gremlin.ActionPlugins
 import "../../qml"
-
 
 Item {
     property LoadProfileModel action
@@ -26,30 +24,26 @@ Item {
         anchors.right: parent.right
 
         Label {
-            id: _label
-
             Layout.preferredWidth: 150
 
             text: "Profile filename"
         }
 
-        TextField {
+        JGTextField {
             id: _profileFilename
 
             Layout.fillWidth: true
 
-            placeholderText: null != action ? null : "Enter a profile filename"
+            placeholderText: null !== action ? null : "Enter a profile filename"
             text: action.profile_filename
             selectByMouse: true
 
-            onTextChanged: {
-                action.profile_filename = text
-            }
+            onTextChanged: () => { action.profile_filename = text }
         }
 
         Button {
             text: "Select File"
-            onClicked: _fileDialog.open()
+            onClicked: () => { _fileDialog.open() }
         }
    }
 
@@ -57,7 +51,7 @@ Item {
         id: _fileDialog
         nameFilters: ["Profile files (*.xml)"]
         title: "Select a File"
-        onAccepted: {
+        onAccepted: () =>{
             _profileFilename.text = selectedFile.toString().substring("file:///".length)
         }
     }

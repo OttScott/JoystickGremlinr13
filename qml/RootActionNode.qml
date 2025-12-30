@@ -9,8 +9,6 @@ import QtQuick.Layouts
 import Gremlin.ActionPlugins
 import Gremlin.Profile
 
-
-
 Item {
     id: _root
 
@@ -18,7 +16,6 @@ Item {
     property RootModel action
 
     implicitHeight: _content.height
-
 
     ColumnLayout {
         id: _content

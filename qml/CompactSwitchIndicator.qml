@@ -5,7 +5,6 @@ import QtQuick
 import QtQuick.Templates as T
 import QtQuick.Controls.Universal
 
-
 Item {
     id: indicator
 

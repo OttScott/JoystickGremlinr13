@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtQuick.Window
@@ -10,6 +11,7 @@ import QtQuick.Window
 import Gremlin.Config
 import Gremlin.Device
 import Gremlin.Profile
+import Gremlin.Style
 import Gremlin.UI
 
 import "helpers.js" as Helpers
@@ -23,6 +25,9 @@ ApplicationWindow {
     height: 900
     visible: true
     id: _root
+
+    Universal.theme: Style.theme
+    color: Style.background
 
 
     MessageDialog {
@@ -305,15 +310,15 @@ ApplicationWindow {
             Switch {
                 text: "Dark Mode"
 
+                checked: Style.isDarkMode
+
                 ToolTip {
                     visible: parent.hovered
                     text: qsTr("Toggle dark mode")
                     delay: 500
                 }
 
-                onToggled: () => {
-                    _root.Universal.theme = position ? Universal.Dark : Universal.Light;
-                }
+                onToggled: () => { Style.isDarkMode = checked }
             }
 
             JGComboBox {
@@ -364,7 +369,7 @@ ApplicationWindow {
         id: _footer
 
         height: 30
-        color: "#e6e6e6"
+        color: Universal.chromeMediumColor
 
         RowLayout {
             anchors.fill: parent

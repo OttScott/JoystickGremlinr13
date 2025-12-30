@@ -141,7 +141,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
                 Layout.leftMargin: -10
 
-                onClicked: {
+                onClicked: () => {
                     backend.setIsActionExpanded(
                         _root.action.id,
                         _root.action.sequenceIndex,
@@ -157,24 +157,15 @@ Item {
                 text: _root.action.icon
             }
 
-            TextField {
+            JGTextField {
                 id: _headerLabel
 
                 Layout.minimumWidth: 150
                 Layout.fillWidth: true
 
-                font.family: "bootstrap-icons"
                 text: _root.action.actionLabel
 
-                background: Rectangle {
-                    anchors.fill: parent
-                    border.color: Universal.baseLowColor
-                }
-
-                onTextEdited: function()
-                {
-                    _root.action.actionLabel = text
-                }
+                onTextEdited: () => { _root.action.actionLabel = text }
             }
 
             TriggerMode {

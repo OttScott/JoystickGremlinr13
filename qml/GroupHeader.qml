@@ -3,20 +3,16 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
+import Gremlin.Style
 
 Item {
     id: _root
 
     property string title
-
-    // Label {
-    //     text: title
-    // }
 
     ColumnLayout {
         anchors.left: parent.left
@@ -31,7 +27,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 height: 2
-                color: Universal.baseLowColor
+                color: Style.lowColor
             }
         }
 

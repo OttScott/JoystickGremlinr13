@@ -9,7 +9,6 @@ import Qt.labs.qmlmodels
 import Gremlin.Config
 import "helpers.js" as Helpers
 
-
 ColumnLayout {
     required property int index
     required property string groupName
@@ -128,7 +127,7 @@ ColumnLayout {
                     text: description
                 }
 
-                TextField {
+                JGTextField {
                     text: value
 
                     Layout.fillWidth: true
@@ -181,6 +180,6 @@ ColumnLayout {
 
             }
         }
-
     }
+
 }

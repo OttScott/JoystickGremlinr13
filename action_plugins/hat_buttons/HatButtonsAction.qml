@@ -3,15 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
-import Gremlin.Profile
 import Gremlin.ActionPlugins
+import Gremlin.Profile
+import Gremlin.Style
 import "../../qml"
-
 
 Item {
     property HatButtonsModel action
@@ -76,7 +75,7 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         ListView {

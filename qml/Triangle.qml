@@ -16,6 +16,8 @@ Shape {
         startX: 0
         startY: _shape.height
 
+        strokeColor: "transparent"
+
         PathLine { x: _shape.width/2; y: 0 }
         PathLine { x: _shape.width; y: _shape.height }
         PathLine { x: 0; y: _shape.height }

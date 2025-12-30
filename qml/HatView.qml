@@ -3,14 +3,13 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Shapes
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 Item {
     id: _root
@@ -56,7 +55,7 @@ Item {
 
             width: 15
             height: 15
-            color: _root.currentIndex == index ? Universal.accent : Universal.baseLowColor
+            color: _root.currentIndex === index ? Style.accent : Style.lowColor
 
             transform: [
                 Translate {

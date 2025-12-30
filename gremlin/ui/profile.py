@@ -814,7 +814,7 @@ class ModeHierarchyModel(QtCore.QObject):
 
     @Slot(str, str)
     def renameMode(self, old_name: str, new_name: str) -> None:
-        if old_name != new_name:
+        if old_name != new_name and not new_name in self.modeStringList():
             self._modes.rename_mode(old_name, new_name)
             self.modesChanged.emit()
             signal.modesChanged.emit()

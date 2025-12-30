@@ -3,17 +3,19 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 Window {
     minimumWidth: 900
     minimumHeight: 500
+
+    color: Style.background
+    Universal.theme: Style.theme
 
     title: "Input Viewer"
 
@@ -76,10 +78,6 @@ Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // boundsMovement: Flickable.StopAtBounds
-            // boundsBehavior: Flickable.StopAtBounds
-            // interactive: false
-
             Component.onCompleted: {
                 _dynamic_scroll.contentItem.boundsMovement = Flickable.StopAtBounds
                 _dynamic_scroll.contentItem.boundsBehavior = Flickable.StopAtBounds
@@ -134,7 +132,7 @@ Window {
                     Layout.alignment: Qt.AlignVCenter
 
                     height: 2
-                    color: Universal.baseLowColor
+                    color: Style.lowColor
                 }
             }
 

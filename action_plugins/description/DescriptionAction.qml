@@ -3,15 +3,13 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
-import Gremlin.Profile
 import Gremlin.ActionPlugins
+import Gremlin.Profile
 import "../../qml"
-
 
 Item {
     property DescriptionModel action
@@ -32,18 +30,16 @@ Item {
             text: "Description"
         }
 
-        TextField {
+        JGTextField {
             id: _description
 
             Layout.fillWidth: true
 
-            placeholderText: null != action ? null : "Enter description"
+            placeholderText: null !== action ? null : "Enter description"
             text: action.description
             selectByMouse: true
 
-            onTextChanged: {
-                action.description = text
-            }
+            onTextChanged: () => { action.description = text }
         }
     }
 }

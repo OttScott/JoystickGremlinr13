@@ -3,13 +3,12 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 // Visualizes the inputs and information about their associated actions
 // contained in a Device instance
@@ -74,7 +73,7 @@ Item {
             }
 
             color: model.index === _inputList.currentIndex
-                ? Universal.chromeMediumColor : Universal.background
+                ? Universal.chromeMediumColor : Style.background
 
             MouseArea {
                 anchors.fill: parent

@@ -4,12 +4,13 @@
 import QtQuick
 import QtQuick.Controls
 
+import Gremlin.Style
 
 TabButton {
     font.pixelSize: 14
     font.weight: 600
 
     background: Rectangle {
-        color: parent.checked ? Universal.accent : Universal.background
+        color: parent.checked ? Style.accent : Style.background
     }
 }

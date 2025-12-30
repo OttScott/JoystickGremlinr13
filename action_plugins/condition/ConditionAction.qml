@@ -7,14 +7,11 @@ import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.ActionPlugins
 import Gremlin.Profile
+import Gremlin.Style
 import Gremlin.Util
-
 import "../../qml"
-
 
 Item {
     id: _root
@@ -116,7 +113,7 @@ Item {
 
             Layout.fillWidth: true
 
-            dividerColor: Universal.baseLowColor
+            dividerColor: Style.lowColor
             lineWidth: 2
             spacing: 2
         }
@@ -156,7 +153,7 @@ Item {
 
             Layout.fillWidth: true
 
-            dividerColor: Universal.baseLowColor
+            dividerColor: Style.lowColor
             lineWidth: 2
             spacing: 2
         }

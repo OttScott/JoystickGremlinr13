@@ -3,11 +3,10 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Universal
 import QtQuick.Layouts
 
 import Gremlin.Config
-
+import Gremlin.Style
 
 Item {
     ActionSequenceOrdering {
@@ -52,7 +51,7 @@ Item {
                 y: 0
                 height: 1
 
-                color: Universal.accent
+                color: Style.accent
                 opacity: parent.containsDrag ? 1.0 : 0.0
             }
         }
@@ -134,7 +133,7 @@ Item {
                 height: 1
                 y: parent.height / 2
 
-                color: Universal.accent
+                color: Style.accent
                 opacity: parent.containsDrag ? 1.0 : 0.0
             }
         }

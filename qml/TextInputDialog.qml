@@ -3,11 +3,11 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
+import Gremlin.Style
 
 Window {
     id: _root
@@ -15,63 +15,44 @@ Window {
     minimumWidth: 200
     minimumHeight: 60
 
-    color: Universal.background
+    color: Style.background
+    Universal.theme: Style.theme
 
     signal accepted(string value)
     property string text : "New text"
     property var validator: function(value) { return true }
 
-    onTextChanged: function() {
-        _input.focus = true
-    }
-
+    onTextChanged: () =>  { _input.focus = true }
 
     title: "Text Input Field"
 
     RowLayout {
         anchors.fill: parent
 
-        TextInput {
+        JGTextField {
             id: _input
 
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             Layout.fillWidth: true
-
-            font.pixelSize: 15
-            padding: 4
+            Layout.leftMargin: 5
 
             text: _root.text
 
-            onTextEdited: function()
-            {
+            onTextEdited: () => {
                 let isValid = _root.validator(text)
-                _outline.border.color = isValid ? Universal.accent : "red"
+                _input.outlineOverride = isValid ? null : Style.error
                 _button.enabled = isValid
-            }
-
-            // Outline for the TextEdit field
-            Rectangle {
-                id: _outline
-                anchors.fill: parent
-
-                border {
-                    color: Universal.accent
-                    width: 1
-                }
-                z: -1
+                console.log(isValid)
             }
         }
 
         Button {
             id: _button
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+
+            Layout.rightMargin: 10
 
             text: "Ok"
 
-            onClicked: function()
-            {
-                _root.accepted(_input.text)
-            }
+            onClicked: () => { _root.accepted(_input.text) }
         }
     }
 

@@ -3,19 +3,20 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 Window {
     minimumWidth: 1000
     minimumHeight: 300
 
-    color: Universal.background
+    color: Style.background
+    Universal.theme: Style.theme
+
     title: "Device Information"
 
     ColumnLayout {
@@ -77,7 +78,7 @@ Window {
                         height: 40
                         width: _view.width
 
-                        color: index % 2 === 0 ? "#C0C0C0" : Universal.background
+                        color: index % 2 === 0 ? Style.backgroundShade : Style.background
 
                         RowLayout {
                             width: parent.width
@@ -112,21 +113,14 @@ Window {
                                 text: joy_id
                                 Layout.preferredWidth: 100
                             }
-                            TextField {
-                                text: guid
+                            JGTextField {
                                 Layout.preferredWidth: 320
                                 Layout.rightMargin: 10
 
-                                readOnly: true
-                                horizontalAlignment: Text.AlignHCenter
+                                text: guid
 
-                                background: Rectangle {
-                                    anchors.fill: parent
-                                    color: _outer.color
-                                    border.width: 1
-                                    border.color: Universal.baseLowColor
-                                    opacity: 1.0
-                                }
+                                horizontalAlignment: Text.AlignHCenter
+                                readOnly: true
                             }
                         }
                     }
@@ -138,7 +132,7 @@ Window {
     component TextEntry : JGText {
         Layout.preferredHeight: 40
 
-        color: Universal.foreground
+        color: Style.foreground
         elide: Text.ElideRight
 
         horizontalAlignment: Text.AlignRight
@@ -149,7 +143,7 @@ Window {
     component HeaderText : JGText {
         Layout.preferredHeight: 40
 
-        color: Universal.foreground
+        color: Style.foreground
         font.weight: 600
 
         horizontalAlignment: Text.AlignHCenter

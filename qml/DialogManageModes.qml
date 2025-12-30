@@ -3,19 +3,21 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Profile
-
+import Gremlin.Style
 
 Window {
     id: _root
 
     minimumWidth: 900
     minimumHeight: 500
+
+    color: Style.background
+    Universal.theme: Style.theme
 
     title: "Manage Modes"
 
@@ -30,8 +32,7 @@ Window {
 
         property var callback: null
 
-        onAccepted: function(value)
-        {
+        onAccepted: (value) => {
             callback(value)
             visible = false
         }
@@ -41,6 +42,8 @@ Window {
         id: _content
 
         anchors.fill: parent
+        anchors.topMargin: 10
+        anchors.bottomMargin: 10
 
         JGListView  {
             Layout.fillWidth: true
@@ -58,8 +61,7 @@ Window {
 
             text: "Add Mode"
 
-            onClicked: function()
-            {
+            onClicked: () => {
                 let validNames = modeHierarchy.modeStringList()
 
                 _textInput.title = "Add new mode"
@@ -86,11 +88,10 @@ Window {
             width: ListView.view.width
             height: _parentMode.height
 
-            TextInput {
+            Label {
                 Layout.fillWidth: true
                 Layout.leftMargin: 10
 
-                font.pixelSize: 15
                 padding: 4
 
                 text: name
@@ -101,17 +102,16 @@ Window {
 
                 Layout.leftMargin: 10
 
-                onClicked: function()
-                {
-                    let validNames = modeHierarchy.validParents(name)
+                onClicked: () => {
+                    let validNames = modeHierarchy.modeStringList()
 
+                    _textInput.title = "Rename existing mode"
                     _textInput.text = name
-                    _textInput.callback = function(value)
-                    {
+                    _textInput.callback = function(value) {
                         modeHierarchy.renameMode(name, value)
                     }
-                    _textInput.validator = function(value)
-                    {
+                    _textInput.validator = function(value) {
+                        console.log(validNames)
                         return !validNames.includes(value)
                     }
                     _textInput.visible = true
@@ -130,13 +130,11 @@ Window {
                 textRole: "value"
                 valueRole: "value"
 
-                onActivated: function(index)
-                {
+                onActivated: (index) => {
                     modeHierarchy.setParent(name, currentValue)
                 }
 
-                Component.onCompleted: function()
-                {
+                Component.onCompleted: () => {
                     currentIndex = indexOfValue(parentName)
                 }
             }
@@ -146,10 +144,7 @@ Window {
 
                 Layout.rightMargin: 10
 
-                onClicked: function()
-                {
-                    modeHierarchy.deleteMode(name)
-                }
+                onClicked: () => { modeHierarchy.deleteMode(name) }
             }
         }
     }

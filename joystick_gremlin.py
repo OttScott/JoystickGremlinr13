@@ -307,11 +307,21 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         # Create application and UI engine.
         self.engine = QtQml.QQmlApplicationEngine(parent=self)
         self.engine.addImportPath(".")
+        self.engine.addImportPath(str(Path(__file__).parent / "qml2"))
+
+        QtQml.qmlRegisterSingletonType(
+            QtCore.QUrl.fromLocalFile(
+                str(Path(__file__).parent / "qml" / "Style.qml")
+            ),
+            "Gremlin.Style", 1, 0, "Style"
+        )
+
         QtCore.QDir.addSearchPath(
             "core_plugins",
             gremlin.util.resource_path("action_plugins/")
         )
         QtCore.QDir.addSearchPath("qml", gremlin.util.resource_path("qml/"))
+
         self.cfg = Configuration()
         user_plugins_path = Path(self.cfg.value("global", "general", "plugin_directory"))
         if user_plugins_path.is_dir():

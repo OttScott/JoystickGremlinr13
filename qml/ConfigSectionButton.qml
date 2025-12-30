@@ -6,8 +6,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import Gremlin.Config
+import Gremlin.Style
 import "helpers.js" as Helpers
-
 
 Button {
     id: _text
@@ -28,7 +28,7 @@ Button {
             anchors.bottom: parent.bottom
 
             color: _sectionSelector.currentIndex == index ?
-                Universal.accent : Universal.background
+                Style.accent : Style.background
         }
         Rectangle {
             x: 5
@@ -37,7 +37,7 @@ Button {
             anchors.bottom: parent.bottom
 
             color: _sectionSelector.currentIndex == index ?
-                Universal.chromeMediumColor : Universal.background
+                Universal.chromeMediumColor : Style.background
         }
     }
 

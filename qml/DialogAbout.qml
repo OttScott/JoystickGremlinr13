@@ -3,20 +3,20 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
-import QtWebView
 
-import QtQuick.Controls.Universal
-
-import Gremlin.About
+import Gremlin.Style
 
 Window {
     minimumWidth: 500
     minimumHeight: 300
-    color: Universal.background
-    title: qsTr("About")
 
+    color: Style.background
+    Universal.theme: Style.theme
+
+    title: qsTr("About")
 
     ColumnLayout {
         anchors.fill: parent

@@ -6,11 +6,9 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
 import Gremlin.Profile
-
+import Gremlin.Style
 
 Item {
     id: _root
@@ -85,7 +83,7 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
 
-            color: Universal.background
+            color: Style.background
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter

@@ -3,15 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
-import Gremlin.Profile
 import Gremlin.ActionPlugins
+import Gremlin.Profile
+import Gremlin.Style
 import "../../qml"
-
 
 Item {
     id: _root
@@ -91,7 +90,7 @@ Item {
             id: _shortDivider
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         Repeater {
@@ -128,7 +127,7 @@ Item {
             id: _longDivider
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         Repeater {

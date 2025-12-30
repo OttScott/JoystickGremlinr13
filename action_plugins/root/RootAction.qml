@@ -3,15 +3,13 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
-
-import QtQuick.Controls.Universal
 
 import Gremlin.ActionPlugins
 import Gremlin.Profile
 import "../../qml"
-
 
 Item {
     id: _root
@@ -31,11 +29,11 @@ Item {
             model: _root.action.getActions("children")
 
             delegate: ActionNode {
+                Layout.fillWidth: true
+
                 action: modelData
                 parentAction: _root.action
                 containerName: "children"
-
-                Layout.fillWidth: true
             }
         }
     }

@@ -3,16 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
-
-import QtQuick.Controls.Universal
 
 import Gremlin.Profile
 import Gremlin.UI
 import Gremlin.ActionPlugins
 import "../../qml"
-
 
 Item {
     id: _root
@@ -27,8 +25,7 @@ Item {
     Connections {
         target: action
 
-        function onModelChanged()
-        {
+        function onModelChanged() {
             actionModel.currentValue = _root.action.mergeAction
             operationModel.currentValue = _root.action.operation
         }
@@ -46,11 +43,10 @@ Item {
 
         title: "Rename action"
 
-        Row
-        {
+        Row {
             anchors.fill: parent
 
-            TextField {
+            JGTextField {
                 id: _action_label
 
                 width: 400
@@ -59,17 +55,11 @@ Item {
                 text: action.label
                 placeholderText: "Action label"
 
-                onAccepted: function()
-                {
-                    _dialog.accept()
-                }
+                onAccepted: () => { _dialog.accept() }
             }
         }
 
-        onAccepted: function()
-        {
-            action.label = _action_label.text
-        }
+        onAccepted: () => { action.label = _action_label.text }
     }
 
     ColumnLayout {
@@ -91,11 +81,11 @@ Item {
 
                 model: _root.actionModel
 
-                Component.onCompleted: function() {
+                Component.onCompleted: () => {
                     _root.actionModel.currentValue = _root.action.mergeAction
                 }
 
-                onSelectionChanged: function() {
+                onSelectionChanged: () => {
                     _root.action.mergeAction = _root.actionModel.currentValue
                 }
             }
@@ -105,14 +95,14 @@ Item {
                     text: bsi.icons.add_new
                     font.pixelSize: 24
 
-                    onClicked: () => _root.action.newMergeAxis()
+                    onClicked: () => { _root.action.newMergeAxis() }
                 }
 
                 IconButton {
                     text: bsi.icons.rename
                     font.pixelSize: 24
 
-                    onClicked: () => _dialog.open()
+                    onClicked: () => { _dialog.open() }
                 }
             }
         }
@@ -128,11 +118,11 @@ Item {
 
                 model: _root.operationModel
 
-                Component.onCompleted: function() {
+                Component.onCompleted: () => {
                     _root.operationModel.currentValue = _root.action.operation
                 }
 
-                onSelectionChanged: function() {
+                onSelectionChanged: () => {
                     _root.action.operation = _root.operationModel.currentValue
                 }
             }
@@ -154,9 +144,7 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function() {
-                    _root.action.firstAxis = uiState.currentInput
-                }
+                onClicked: () => { _root.action.firstAxis = uiState.currentInput }
             }
 
             LayoutHorizontalSpacer {
@@ -176,7 +164,7 @@ Item {
             IconButton {
                 text: bsi.icons.replace
 
-                onClicked: function() {
+                onClicked: () => {
                     _root.action.secondAxis = uiState.currentInput
                 }
             }
@@ -196,7 +184,7 @@ Item {
 
             ActionSelector {
                 actionNode: _root.action
-                callback:  (x) => _root.action.appendAction(x, "children")
+                callback:  (x) => { _root.action.appendAction(x, "children") }
             }
         }
 
@@ -204,7 +192,7 @@ Item {
             id: _childActionDivider
             Layout.fillWidth: true
             height: 2
-            color: Universal.baseLowColor
+            color: Style.lowColor
         }
 
         // Display the actions operating on the merged axis output
@@ -224,7 +212,7 @@ Item {
     // Drop action for insertion into empty/first slot of the short actions
     ActionDragDropArea {
         target: _childActionDivider
-        dropCallback: function(drop) {
+        dropCallback: (drop) => {
             modelData.dropAction(drop.text, modelData.sequenceIndex, "children");
         }
     }

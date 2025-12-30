@@ -3,7 +3,8 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Universal
+
+import Gremlin.Style
 
 Rectangle {
     id: root
@@ -11,8 +12,8 @@ Rectangle {
 
     implicitHeight: _notificationLabel.height
     implicitWidth: _notificationLabel.width
-    color: Universal.background
-    border.color: Universal.accent
+    color: Style.background
+    border.color: Style.accent
 
     Label {
         id: _notificationLabel

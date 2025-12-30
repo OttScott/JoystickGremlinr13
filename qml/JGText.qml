@@ -3,10 +3,11 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls.Universal
+
+import Gremlin.Style
 
 Text {
-    color: Universal.foreground
+    color: Style.foreground
     font.pointSize: 12
     font.family: "Segoe UI"
 }

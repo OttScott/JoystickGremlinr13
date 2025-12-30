@@ -3,11 +3,11 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
+import Gremlin.Style
 
 ProgressBar {
     id: control
@@ -31,7 +31,7 @@ ProgressBar {
         implicitWidth: __isHorizontal ? width : barSize
 
         radius: 3
-        color: control.Universal.baseLowColor
+        color: Style.lowColor
     }
 
     contentItem: Item {
@@ -44,7 +44,7 @@ ProgressBar {
             height: __isHorizontal ? parent.height : control.visualPosition * parent.height
             width: __isHorizontal ? control.visualPosition * parent.width : parent.width
             radius: 2
-            color: control.Universal.accent
+            color: Style.accent
         }
     }
 }

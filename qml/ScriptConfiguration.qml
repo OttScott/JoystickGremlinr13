@@ -8,7 +8,7 @@ import QtQuick.Layouts
 import Qt.labs.qmlmodels
 
 import Gremlin.Plugin
-
+import Gremlin.Style
 
 JGListView {
     model: []
@@ -229,7 +229,7 @@ JGListView {
                     isValid: modelData.isValid
                 }
 
-                JGTextInput {
+                JGTextField {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignRight
 
@@ -318,7 +318,7 @@ JGListView {
 
             width: 5
             Layout.fillHeight: true
-            color: parent.isValid ? "transparent" : "red"
+            color: parent.isValid ? "transparent" : Style.error
         }
 
         JGText {

@@ -3,12 +3,10 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Profile
-
 
 Item {
     id: _root
@@ -50,7 +48,7 @@ Item {
                 }
             }
 
-            TextField {
+            JGTextField {
                 id: _description
 
                 Layout.fillWidth: true
@@ -59,7 +57,7 @@ Item {
                 text: _root.inputBinding.rootAction ?
                     _root.inputBinding.rootAction.actionLabel : "Description"
 
-                onTextEdited: {
+                onTextEdited: () => {
                     _root.inputBinding.rootAction.actionLabel = text
                 }
             }
@@ -74,7 +72,7 @@ Item {
                 Layout.alignment: Qt.AlignRight
 
                 actionNode: _root.inputBinding.rootAction
-                callback: function(x) { actionNode.appendAction(x, "children"); }
+                callback: (x) => { actionNode.appendAction(x, "children") }
             }
 
             IconButton {
@@ -83,8 +81,7 @@ Item {
                 text: bsi.icons.remove
                 font.pixelSize: 24
 
-                onClicked: function()
-                {
+                onClicked: () => {
                     _root.inputItemModel.deleteActionSequnce(_root.inputBinding)
                 }
             }
@@ -96,7 +93,7 @@ Item {
 
             active: _root.inputBinding.behavior == "button" &&
                  _root.inputBinding.inputType == "axis"
-            onActiveChanged: {
+            onActiveChanged: () => {
                 visible: active
                 height = active ? item.contentHeight : 0
             }
@@ -126,10 +123,10 @@ Item {
                     stepSize: 0.1
                     decimals: 3
 
-                    onFirstValueChanged: {
+                    onFirstValueChanged: () => {
                         _root.inputBinding.virtualButton.lowerLimit = firstValue
                     }
-                    onSecondValueChanged: {
+                    onSecondValueChanged: () => {
                         _root.inputBinding.virtualButton.upperLimit = secondValue
                     }
                 }
@@ -150,7 +147,7 @@ Item {
                         )
                     }
 
-                    onActivated: {
+                    onActivated: () => {
                         _root.inputBinding.virtualButton.direction = currentText
                     }
                 }
@@ -163,7 +160,7 @@ Item {
 
             active: _root.inputBinding.behavior == "button" &&
                 _root.inputBinding.inputType == "hat"
-            onActiveChanged: {
+            onActiveChanged: () => {
                 visible: active
                 height = active ? item.contentHeight : 0
             }

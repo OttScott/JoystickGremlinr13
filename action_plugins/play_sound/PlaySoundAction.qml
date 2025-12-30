@@ -3,15 +3,13 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 import QtQuick.Dialogs
 
-import QtQuick.Controls.Universal
-
 import Gremlin.ActionPlugins
 import "../../qml"
-
 
 Item {
     property PlaySoundModel action
@@ -30,13 +28,14 @@ Item {
             text: "Audio filename"
         }
 
-        TextField {
+        JGTextField {
             id: _soundFilename
 
             Layout.fillWidth: true
 
             text: action.soundFilename
-            placeholderText: null != action ? null : "Input the name of the audio file to play."
+            placeholderText: null !== action ? null : "Input the name of the audio file to play."
+
             selectByMouse: true
 
             onTextChanged: () => { action.soundFilename = text }

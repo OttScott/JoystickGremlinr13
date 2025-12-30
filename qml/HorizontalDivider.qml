@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import QtQuick
-import QtQuick.Controls.Universal
 
+import Gremlin.Style
 
 Rectangle {
     property int spacing: 10
     property int lineWidth: 1
     property bool dividerVisible: true
-    property color dividerColor: Universal.accent
+    property color dividerColor: Style.accent
 
     height: spacing
     z: -1
 
-    color: Universal.background
+    color: Style.background
 
     Loader {
         active: dividerVisible

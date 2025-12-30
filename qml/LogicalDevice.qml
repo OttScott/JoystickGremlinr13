@@ -3,12 +3,12 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
+import Gremlin.Style
 
 // Visualizes the inputs and information about their associated actions
 // contained in the LogicalDevice system.
@@ -72,8 +72,10 @@ Item {
             }
 
             IconButton {
+                Layout.preferredHeight: _input_type.height
+                
                 text: bsi.icons.add
-                backgroundColor: Universal.baseLowColor
+                backgroundColor: Universal.chromeMediumColor
 
                 onClicked: {
                     device.createInput(_input_type.currentValue)

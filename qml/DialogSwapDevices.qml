@@ -3,21 +3,23 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
 import Gremlin.Profile
+import Gremlin.Style
 import Gremlin.Tools
-
 
 Window {
     minimumWidth: 900
     minimumHeight: 300
 
-    title: "Swap devices: Swaps bindings between two devices"
+    color: Style.background
+    Universal.theme: Style.theme
+
+    title: "Swap devices"
 
     DeviceListModel {
         id: _physicalDevices

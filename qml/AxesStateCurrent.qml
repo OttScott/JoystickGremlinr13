@@ -3,13 +3,12 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 
-import QtQuick.Controls.Universal
-
 import Gremlin.Device
-
+import Gremlin.Style
 
 Item {
     id: _root
@@ -49,7 +48,7 @@ Item {
                 Layout.alignment: Qt.AlignVCenter
 
                 height: 2
-                color: Universal.baseLowColor
+                color: Style.lowColor
             }
         }
 

@@ -3,14 +3,14 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
 import Qt.labs.qmlmodels
 
-import QtQuick.Controls.Universal
-
-import Gremlin.Profile
 import Gremlin.ActionPlugins
+import Gremlin.Profile
+import Gremlin.Style
 import "../../qml"
 import "../../qml/helpers.js" as Helpers
 
@@ -615,7 +615,7 @@ Item {
                 anchors.right: parent.right
 
                 opacity: 0.0
-                color: Universal.accent
+                color: Style.accent
             }
         }
     }

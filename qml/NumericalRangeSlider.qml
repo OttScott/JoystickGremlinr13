@@ -4,6 +4,7 @@
 import QtQuick
 import QtQuick.Controls
 
+import Gremlin.Style
 
 Item {
     id: _root
@@ -17,7 +18,6 @@ Item {
 
     height: Math.max(_slider.height, _firstValue.height, _secondValue.height)
     width: _slider.width + _firstValue.width + _secondValue.width
-
 
     property var validator: DoubleValidator {
         bottom: Math.min(_root.from, _root.to)
@@ -38,15 +38,15 @@ Item {
 
         anchors.verticalCenter: _slider.verticalCenter
 
-        border.color: "#bdbebf"
+        border.color: Style.lowColor
         border.width: 2
         width: _firstValueInput.width
         height: _firstValueInput.height
 
-        TextField {
+        JGTextField {
             id: _firstValueInput
 
-            padding: 5
+            padding: 10
             text: _root.textFromValue(_root.firstValue)
 
             font: _slider.font
@@ -58,17 +58,15 @@ Item {
             validator: _root.validator
             inputMethodHints: Qt.ImhFormattedNumbersOnly
 
-            onTextEdited: {
+            onTextEdited: () => {
                 let value = valueFromText(text)
-                if(value >= _root.secondValue)
-                {
+                if(value >= _root.secondValue) {
                     value = _root.secondValue
                 }
                 _slider.first.value = value
             }
         }
     }
-
 
     RangeSlider {
         id: _slider
@@ -81,7 +79,7 @@ Item {
         second.value: _root.secondValue
         stepSize: _root.stepSize
 
-        Component.onCompleted: {
+        Component.onCompleted: () => {
             _root.firstValue = Qt.binding(() => first.value)
             _root.secondValue = Qt.binding(() => second.value)
         }
@@ -93,15 +91,15 @@ Item {
         anchors.left: _slider.right
         anchors.verticalCenter: _slider.verticalCenter
 
-        border.color: "#bdbebf"
+        border.color: Style.lowColor
         border.width: 2
         width: _secondValueInput.width
         height: _secondValueInput.height
 
-        TextField {
+        JGTextField {
             id: _secondValueInput
 
-            padding: 5
+            padding: 10
             text: _root.textFromValue(_root.secondValue)
 
             font: _slider.font
@@ -113,10 +111,9 @@ Item {
             validator: _root.validator
             inputMethodHints: Qt.ImhFormattedNumbersOnly
 
-            onTextEdited: {
+            onTextEdited: () => {
                 let value = valueFromText(text)
-                if(value <= _root.firstValue)
-                {
+                if(value <= _root.firstValue) {
                     value = _root.firstValue
                 }
                 _root.secondValue = value

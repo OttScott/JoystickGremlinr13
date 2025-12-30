@@ -3,21 +3,23 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Universal
 import QtQuick.Layouts
 import QtQuick.Window
-
-import QtQuick.Controls.Universal
 
 import Gremlin.Device
 import Gremlin.Profile
 import Gremlin.Tools
-
+import Gremlin.Style
 
 Window {
     minimumWidth: 900
     minimumHeight: 400
 
-    title: "Auto Mapper: Maps your physical controls to vJoy inputs"
+    color: Style.background
+    Universal.theme: Style.theme
+
+    title: "Auto Mapper"
 
     DeviceListModel {
         id: physicalDevices
@@ -71,7 +73,7 @@ Window {
             TextOutputBox {
                 Layout.preferredWidth: 100
                 Layout.preferredHeight: 30
-                border.color: Universal.background
+                border.color: Style.background
                 text: "Select Mode"
             }
 
