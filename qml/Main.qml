@@ -26,6 +26,9 @@ ApplicationWindow {
     visible: true
     id: _root
 
+    Component.onCompleted: () => {
+        Style.isDarkMode = backend.useDarkMode
+    }
     Universal.theme: Style.theme
     color: Style.background
 
@@ -305,20 +308,6 @@ ApplicationWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-            }
-
-            Switch {
-                text: "Dark Mode"
-
-                checked: Style.isDarkMode
-
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Toggle dark mode")
-                    delay: 500
-                }
-
-                onToggled: () => { Style.isDarkMode = checked }
             }
 
             JGComboBox {

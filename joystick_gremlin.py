@@ -128,21 +128,23 @@ def register_config_options() -> None:
     cfg.register(
         "global", "general", "plugin_directory",
         PropertyType.String, "",
-        "Directory containing additional action plugins", {},
-        True
+        "Directory containing additional action plugins", {}, True
     )
     cfg.register(
         "global", "general", "action_priorities",
         PropertyType.List, [],
-        "Priority order of the actions", {},
-        True
+        "Priority order of the actions", {}, True
     )
     cfg.register(
         "global", "general", "device_change_behavior",
         PropertyType.Selection, "Reload",
         "Action Gremlin takes when a joystick is connected or disconnected.",
-        {"valid_options": ["Disable", "Ignore", "Reload"]},
-        True
+        {"valid_options": ["Disable", "Ignore", "Reload"]}, True
+    )
+    cfg.register(
+        "global", "general", "dark_mode",
+        PropertyType.Bool, False,
+        "Use the dark mode UI", {}, True
     )
 
 
