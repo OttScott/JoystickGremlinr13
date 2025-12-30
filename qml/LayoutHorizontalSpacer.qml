@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
-
 
 Rectangle {
     Layout.fillWidth: true
 }
-

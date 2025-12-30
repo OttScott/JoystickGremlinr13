@@ -11,6 +11,8 @@ import Gremlin.Device
 import Gremlin.Style
 
 Window {
+    width: 1400
+    height: 800
     minimumWidth: 900
     minimumHeight: 500
 

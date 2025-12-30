@@ -16,10 +16,9 @@ import Gremlin.UI
 
 import "helpers.js" as Helpers
 
-
 ApplicationWindow {
 
-    // Basic application setup
+    // Basic application setup.
     title: backend.windowTitle
     width: 1400
     height: 900
@@ -34,7 +33,7 @@ ApplicationWindow {
 
 
     MessageDialog {
-        id: idErrorDialog
+        id: _errorDialog
         title: "An error occurred"
         buttons: MessageDialog.Ok
 
@@ -44,7 +43,7 @@ ApplicationWindow {
     }
 
     FileDialog {
-        id: idSaveProfileFileDialog
+        id: _saveProfileFileDialog
         title: "Please choose a file"
 
         acceptLabel: "Save"
@@ -58,7 +57,7 @@ ApplicationWindow {
     }
 
     FileDialog {
-        id: idLoadProfileFileDialog
+        id: _loadProfileFileDialog
         title: "Please choose a file"
 
         acceptLabel: "Open"
@@ -71,22 +70,20 @@ ApplicationWindow {
         }
     }
 
-    // Menu bar with all its entries
+    // Menu bar with all its entries.
     menuBar: MenuBar {
         Menu {
             title: qsTr("File")
 
+            // File menu.
             MenuItem {
                 text: qsTr("New Profile")
-                onTriggered: () => {
-                    backend.newProfile()
-                }
+                onTriggered: () => { backend.newProfile() }
             }
             MenuItem {
                 text: qsTr("Load Profile")
-                onTriggered: () => { idLoadProfileFileDialog.open() }
+                onTriggered: () => { _loadProfileFileDialog.open() }
             }
-
             AutoSizingMenu {
                 title: qsTr("Recent")
 
@@ -98,13 +95,12 @@ ApplicationWindow {
                     }
                 }
             }
-
             MenuItem {
                 text: qsTr("Save Profile")
                 onTriggered: () => {
                     var fpath = backend.profilePath()
                     if(fpath === "") {
-                        idSaveProfileFileDialog.open();
+                        _saveProfileFileDialog.open();
                     } else {
                         backend.saveProfile(fpath)
                     }
@@ -112,13 +108,15 @@ ApplicationWindow {
             }
             MenuItem {
                 text: qsTr("Save Profile As")
-                onTriggered: () => { idSaveProfileFileDialog.open() }
+                onTriggered: () => { _saveProfileFileDialog.open() }
             }
             MenuItem {
                 text: qsTr("Exit")
                 onTriggered: () => { Qt.quit(); }
             }
         }
+
+        // Tools menu.
         Menu {
             title: qsTr("Tools")
 
@@ -133,6 +131,25 @@ ApplicationWindow {
             //     //onTriggered: Helpers.createComponent(".qml")
             // }
             MenuItem {
+                text: qsTr("Input Viewer")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogInputViewer.qml")
+                }
+            }
+            MenuItem {
+                text: qsTr("Calibration")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogCalibration.qml")
+                }
+            }
+            MenuItem {
+                text: qsTr("Device Information")
+                onTriggered: () => {
+                    Helpers.createComponent("DialogDeviceInformation.qml")
+                }
+            }
+            MenuSeparator {}
+            MenuItem {
                 text: qsTr("Auto Mapper")
                 onTriggered: () => {
                     Helpers.createComponent("DialogAutoMapper.qml")
@@ -144,29 +161,6 @@ ApplicationWindow {
                     Helpers.createComponent("DialogSwapDevices.qml")
                 }
             }
-            MenuItem {
-                text: qsTr("Device Information")
-                onTriggered: () => {
-                    Helpers.createComponent("DialogDeviceInformation.qml")
-                }
-            }
-            MenuItem {
-                text: qsTr("Calibration")
-                onTriggered: () => {
-                    Helpers.createComponent("DialogCalibration.qml")
-                }
-            }
-            MenuItem {
-                text: qsTr("Input Viewer")
-                onTriggered: () => {
-                    Helpers.createComponent("DialogInputViewer.qml")
-                }
-            }
-            MenuSeparator {}
-            // MenuItem {
-            //     text: qsTr("PDF Cheatsheet")
-            //     onTriggered: Helpers.createComponent("DialogPDFCheatsheet.qml")
-            // }
             MenuSeparator {}
             MenuItem {
                 text: qsTr("Options")
@@ -174,14 +168,15 @@ ApplicationWindow {
                     Helpers.createComponent("DialogOptions.qml")
                 }
             }
-            MenuItem {
-                text: qsTr("Log Display")
-                onTriggered: () => {
-                    Helpers.createComponent("DialogLogDisplay.qml")
-                }
-            }
+            // MenuItem {
+            //     text: qsTr("Log Display")
+            //     onTriggered: () => {
+            //         Helpers.createComponent("DialogLogDisplay.qml")
+            //     }
+            // }
         }
 
+        // Help menu.
         Menu {
             title: qsTr("Help")
 
@@ -200,115 +195,49 @@ ApplicationWindow {
         RowLayout {
             anchors.fill: parent
 
-            ToolButton {
-                icon.source: "qrc:///icons/profile_new"
+            JGToolButton {
+                text: "\uF392"
+                tooltip: qsTr("Create new profile")
 
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Create new profile")
-                    delay: 500
-                }
-
-                onClicked: {
-                    backend.newProfile()
-                }
+                onClicked: () => { backend.newProfile() }
             }
-            ToolButton {
-                icon.source: "qrc:///icons/profile_save"
+            JGToolButton {
+                text: "\uF356"
+                tooltip: qsTr("Save current profile")
 
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Save current profile")
-                    delay: 500
-                }
-
-                onClicked: {
+                onClicked: () => {
                     var fpath = backend.profilePath()
-                    if(fpath === "")
-                    {
-                        idSaveProfileFileDialog.open()
-                    }
-                    else
-                    {
+                    if(fpath === "") {
+                        _saveProfileFileDialog.open()
+                    } else {
                         backend.saveProfile(fpath)
                     }
                 }
             }
-            ToolButton {
-                icon.source: "qrc:///icons/profile_open"
+            JGToolButton {
+                text: "\uF358"
+                tooltip: qsTr("Load profile")
 
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Load profile")
-                    delay: 500
-                }
-
-                onClicked: {
-                    idLoadProfileFileDialog.open()
-                }
+                onClicked: () => { _loadProfileFileDialog.open() }
             }
-            ToolButton {
-                icon.source: "qrc:///icons/activate"
-                icon.color: backend.gremlinActive ? "green" : "black"
+            JGToolButton {
+                text: "\uF448"
+                color: backend.gremlinActive ? Style.accent : Style.foreground
+                tooltip: qsTr("Toggle Gremlin")
 
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Toggle Gremlin")
-                    delay: 500
-                }
-
-                onClicked: {
-                    backend.toggleActiveState()
-                }
-            }
-            ToolButton {
-                icon.source: "qrc:///icons/options"
-
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Open options dialog")
-                    delay: 500
-                }
-
-                onClicked: {
-                    Helpers.createComponent("DialogOptions.qml")
-                }
+                onClicked: () => { backend.toggleActiveState() }
             }
 
-            ToolButton {
-                text: bsi.icons.chart
-                font.family: "bootstrap-icons"
-                font.pixelSize: 20
-                font.weight: 900
+            JGToolButton {
+                text: "\uF3F2"
+                tooltip: qsTr("Open input viewer")
 
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Open input viewer")
-                    delay: 500
-                }
-
-                onClicked: {
+                onClicked: () => {
                     Helpers.createComponent("DialogInputViewer.qml")
                 }
             }
 
-            ToolButton {
-                text: "1:1"
-
-                ToolTip {
-                    visible: parent.hovered
-                    text: qsTr("Open Auto Mapper")
-                    delay: 500
-                }
-
-                onClicked: {
-                    Helpers.createComponent("DialogAutoMapper.qml")
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-            }
+            LayoutHorizontalSpacer {}
 
             JGComboBox {
                 id: _modeSelector
@@ -319,9 +248,7 @@ ApplicationWindow {
                 textRole: "name"
                 valueRole: "name"
 
-                onActivated: () => {
-                    uiState.setCurrentMode(currentText)
-                }
+                onActivated: () => { uiState.setCurrentMode(currentText) }
 
                 Component.onCompleted: () => {
                     currentIndex = find(uiState.currentMode)
@@ -417,7 +344,7 @@ ApplicationWindow {
         }
     }
 
-    // Main window content
+    // Main window content.
     ColumnLayout {
         id: _columnLayout
 
@@ -428,7 +355,7 @@ ApplicationWindow {
         RowLayout {
             Layout.fillWidth: true
 
-            // Horizontal list of "tabs" listing all detected devices
+            // Horizontal list of "tabs" listing all detected devices.
             DeviceList {
                 id: _deviceList
 
@@ -445,14 +372,14 @@ ApplicationWindow {
         SplitView {
             id: _splitView
 
-            // Ensure the widget covers the entire remaining area in the window
+            // Ensure the widget covers the entire remaining area in the window.
             Layout.fillHeight: true
             Layout.fillWidth: true
 
             clip: true
             orientation: Qt.Horizontal
 
-            // List of the currently selected device's inputs
+            // List of the currently selected device's inputs.
             DeviceInputList {
                 id: _deviceInputList
 
@@ -462,14 +389,12 @@ ApplicationWindow {
                 device: _deviceModel
             }
 
-            // List of logical device inputs
+            // List of logical device inputs.
             LogicalDevice {
                 id: _logicalDeviceList
 
                 visible: uiState.currentTab === "logical"
                 SplitView.minimumWidth: 200
-
-                //device: backend.getLogicalDeviceManagementModel()
 
                 // Trigger a model update on the InputConfiguration
                 onInputIdentifierChanged: () => {
@@ -477,7 +402,7 @@ ApplicationWindow {
                 }
             }
 
-            // List of the actions associated with the currently selected input
+            // List of the actions associated with the currently selected input.
             InputConfiguration {
                 id: _inputConfigurationPanel
 
@@ -494,7 +419,7 @@ ApplicationWindow {
 
             Layout.fillHeight: true
             Layout.fillWidth: true
-            // Without this the height bugs out
+            // Without this the height bugs out.
             Layout.verticalStretchFactor: 10
 
             visible: uiState.currentTab === "scripts"
@@ -515,4 +440,4 @@ ApplicationWindow {
         }
     }
 
-} // ApplicationWindow
+}
