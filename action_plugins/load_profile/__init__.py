@@ -102,7 +102,7 @@ class LoadProfileData(AbstractActionData):
     version = 1
     name = "Load Profile"
     tag = "load-profile"
-    icon = "\U0001F504"
+    icon = "\uF37B"
 
     functor = LoadProfileFunctor
     model = LoadProfileModel
