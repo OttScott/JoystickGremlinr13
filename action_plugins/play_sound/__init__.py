@@ -111,7 +111,7 @@ class PlaySoundData(AbstractActionData):
     version = 1
     name = "Play Sound"
     tag = "play-sound"
-    icon = "\U0001F39C"
+    icon = "\uF49E"
 
     functor = PlaySoundFunctor
     model = PlaySoundModel
