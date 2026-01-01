@@ -12,7 +12,7 @@ import Gremlin.Style
 import "helpers.js" as Helpers
 
 Window {
-    minimumWidth: 800
+    minimumWidth: 1000
     minimumHeight: 600
 
     Universal.theme: Style.theme
@@ -29,7 +29,7 @@ Window {
 
         anchors.fill: parent
 
-        // Shows the list of all option sections
+        // Shows the list of all option sections.
         JGListView {
             id: _sectionSelector
 
@@ -42,7 +42,7 @@ Window {
             Component.onCompleted: () => { currentItem.clicked() }
         }
 
-        // Shows the contents of the currently selected section
+        // Shows the contents of the currently selected section.
         ConfigSection {
             id: _configSection
 

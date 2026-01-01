@@ -237,6 +237,15 @@ ApplicationWindow {
                 }
             }
 
+            JGToolButton {
+                text: "\uF3E5"
+                tooltip: qsTr("Open options")
+
+                onClicked: () => {
+                    Helpers.createComponent("DialogOptions.qml")
+                }
+            }
+
             LayoutHorizontalSpacer {}
 
             JGComboBox {

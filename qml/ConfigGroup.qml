@@ -16,78 +16,69 @@ ColumnLayout {
 
     anchors.left: parent.left
     anchors.right: parent.right
+    anchors.rightMargin: 20
 
-    // Group header
-    RowLayout {
+    JGText {
         Layout.fillWidth: true
         Layout.preferredHeight: 50
 
-        UIHeader {
-            text: Helpers.capitalize(groupName)
-        }
+        text: Helpers.capitalize(groupName)
+
+        font.pointSize: 16
+        font.weight: 500
+        font.family: "Segoe UI"
+        verticalAlignment: Text.AlignBottom
     }
 
-    // Display config entries
     Repeater {
         model: entryModel
+
         delegate: _entryDelegateChooser
     }
 
-    // Header text component
-    component UIHeader : JGText {
-        font.pointSize: 14
-        font.weight: 500
-        font.family: "Segoe UI"
+    LayoutVerticalSpacer {
+        Layout.preferredHeight: 5
     }
 
-    // Standard text component
-    component UIText : JGText {
-        Layout.fillWidth: true
-        horizontalAlignment: Text.AlignJustify
-        wrapMode: Text.Wrap
-
-        font.pointSize: 11
-        font.family: "Segoe UI"
-    }
-
-    // Delegate rendering individual configuration option styles
+    // Delegate rendering individual configuration option styles.
     DelegateChooser {
         id: _entryDelegateChooser
         role: "data_type"
 
-        // On/off options
+        // On/off options.
         DelegateChoice {
             roleValue: "bool"
 
-            RowLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
+                title: name
+                explanation: description
+
                 Switch {
-                    Layout.alignment: Qt.AlignTop
+                    Layout.alignment: Qt.AlignRight
+
                     checked: value
 
                     text: checked ? "On" : "Off"
 
                     onToggled: () => { value = checked }
                 }
-
-                UIText {
-                    text: description
-                }
             }
         }
-        // Floating point value inputs
+        // Floating point value inputs.
         DelegateChoice {
             roleValue: "float"
 
-            ColumnLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
-                UIText {
-                    text: description
-                }
+                title: name
+                explanation: description
 
                 FloatSpinBox {
+                    Layout.alignment: Qt.AlignRight
+
                     value: value
                     minValue: properties.min
                     maxValue: properties.max
@@ -96,18 +87,19 @@ ColumnLayout {
                 }
             }
         }
-        // Integer value inputs
+        // Integer value inputs.
         DelegateChoice {
             roleValue: "int"
 
-            ColumnLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
-                UIText {
-                    text: description
-                }
+                title: name
+                explanation: description
 
                 JGSpinBox {
+                    Layout.alignment: Qt.AlignRight
+
                     value: model.value
                     from: properties.min
                     to: properties.max
@@ -116,38 +108,48 @@ ColumnLayout {
                 }
             }
         }
-        // Textual inputs
+        // Textual inputs.
         DelegateChoice {
             roleValue: "string"
 
-            ColumnLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
-                UIText {
-                    text: description
-                }
+                title: name
+                explanation: description
 
                 JGTextField {
-                    text: value
-
+                    Layout.alignment: Qt.AlignRight
                     Layout.fillWidth: true
 
+                    text: value
+
                     onTextEdited: () => { value = text }
+
+                    ToolTip {
+                        text: parent.text
+
+                        width: contentWidth > 500 ? 500 : contentWidth + 20
+
+                        visible: parent.hovered
+                        delay: 500
+                    }
                 }
             }
         }
-        // Drop down menu selection
+        // Drop down menu selection.
         DelegateChoice {
             roleValue: "selection"
 
-            ColumnLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
-                UIText {
-                    text: description
-                }
+                title: name
+                explanation: description
 
                 ComboBox {
+                    Layout.alignment: Qt.AlignRight
+
                     model: properties.valid_options
 
                     implicitContentWidthPolicy: ComboBox.WidestText
@@ -157,27 +159,26 @@ ColumnLayout {
                 }
             }
         }
-        // Meta Option dynamic loading
+        // Meta Option dynamic loading.
         DelegateChoice {
             roleValue: "meta_option"
 
-            ColumnLayout {
+            OptionEntryCard {
                 Layout.fillWidth: true
 
-                UIText {
-                    text: description
-                }
+                title: name
+                explanation: description
 
                 DynamicItemLoader {
-                    qmlPath: value
-
+                    Layout.alignment: Qt.AlignRight
                     Layout.fillWidth: true
 
-                    onLoadError: (src, err) => {
-                        console.warn("Meta option load error:", src, err)
+                    qmlPath: value
+
+                    onLoadError: (err) => {
+                        console.warn("Meta option load error:", err)
                     }
                 }
-
             }
         }
     }

@@ -13,26 +13,23 @@ Item {
         id: _data
     }
 
-    implicitHeight: _content.implicitHeight + _bottomDropArea.height
-
+    implicitHeight: _content.implicitHeight
+    implicitWidth: _content.implicitWidth
 
     ColumnLayout {
+        id: _content
         anchors.fill: parent
 
-        ListView {
-            id: _content
-
-            width: parent.width
-            implicitHeight: contentHeight
-
+        Repeater {
             model: _data
 
             delegate: ActionDisplay {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignRight
+
                 name: model.name
                 active: model.visible
-
-                width: ListView.view.width
-            }
+           }
         }
 
         DropArea {
@@ -58,7 +55,7 @@ Item {
     }
 
     component ActionDisplay : Item {
-        property alias name: _switch.text
+        property alias name: _label.text
         property alias active: _switch.checked
 
         implicitHeight: _item.implicitHeight
@@ -67,6 +64,7 @@ Item {
             id: _item
 
             anchors.fill: parent
+
             property int index: model.index
             property bool isDragging: false
 
@@ -105,10 +103,17 @@ Item {
                     }
                 }
             }
+
+            Label {
+                id: _label
+
+                Layout.fillWidth: true
+            }
+
             CompactSwitch {
                 id: _switch
 
-                Layout.fillWidth: true
+                text: checked ? "On" : "Off"
 
                 onToggled: () => {
                     model.visible = checked

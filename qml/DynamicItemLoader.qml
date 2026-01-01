@@ -34,17 +34,19 @@ Item {
 
     // Height tracks that of the dynamically loaded content. Fallback handling
     // if the 'implicitHeight' is not set.
-    implicitHeight: dynamicItem ? (dynamicItem.implicitHeight > 0
-                                ? dynamicItem.implicitHeight
-                                : dynamicItem.height) : 0
+    implicitHeight: dynamicItem?.implicitHeight ?? 0
+    implicitWidth: dynamicItem?.implicitWidth ?? 0
 
     // Signals communicating load status.
     signal loaded(Item item)
-    signal loadError(string source, string errorString)
+    signal loadError(string error)
 
     function reload() {
         // Toggle the flag to force re-instantiation. Use callLater so the
         // event loop processes deactivation before reactivation.
+        if (_loader.item) {
+            _loader.item.destroy()
+        }
         if (!_activeFlag) {
             _activeFlag = !!_dynamicRoot.qmlPath
             return
@@ -59,8 +61,7 @@ Item {
         if (autoReloadOnPathChange) {
             if (forceReloadOnIdenticalPath) {
                 reload()
-            }
-            else {
+            } else {
                 _activeFlag = !!_dynamicRoot.qmlPath
             }
         }
@@ -82,13 +83,12 @@ Item {
         asynchronous: true
         source: _dynamicRoot.qmlPath
 
-        onStatusChanged: (src, errStr) => {
+        onStatusChanged: () => {
             if (status === Loader.Error) {
-                console.log("DynamicItemLoader: error loading", src, errStr())
-                _dynamicRoot.loadError(src, errStr())
+                _dynamicRoot.loadError("Failed to load dynamic item.")
             }
         }
-        onLoaded: (item) => {
+        onLoaded: () => {
             if (item) {
                 // Inject standard action property if present.
                 if (_dynamicRoot.action && item.hasOwnProperty("action")) {
@@ -96,7 +96,7 @@ Item {
                 }
                 // Apply any additional injected properties.
                 if (_dynamicRoot.injectedProperties &&
-                    typeof root.injectedProperties === 'object')
+                    typeof _dynamicRoot.injectedProperties === 'object')
                 {
                     for (let k in _dynamicRoot.injectedProperties) {
                         try {

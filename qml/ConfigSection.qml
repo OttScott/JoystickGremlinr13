@@ -8,17 +8,11 @@ import QtQuick.Layouts
 import Gremlin.Config
 import "helpers.js" as Helpers
 
-
 JGListView {
     property ConfigGroupModel groupModel
 
-    rightMargin: 30
-    bottomMargin: 10
-    spacing: 10
     scrollbarAlwaysVisible: true
 
     model: groupModel
-    delegate: ConfigGroup {
-        Layout.fillWidth: true
-    }
+    delegate: ConfigGroup {}
 }

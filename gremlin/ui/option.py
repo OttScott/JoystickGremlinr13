@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from typing import cast, Any, Dict, Optional, TYPE_CHECKING
 
 from PySide6 import QtCore, QtQml
@@ -64,8 +65,17 @@ class ConfigSectionModel(QtCore.QAbstractListModel):
         return self.roles
 
     def _combined_sections(self) -> list[str]:
+        def priority(name) -> int:
+            match name:
+                case "global":
+                    return 0
+                case "actions":
+                    return 1
+                case _:
+                    return 99
         return list(sorted(
-            set(self._config.sections() + self._option.sections())
+            set(self._config.sections() + self._option.sections()),
+            key=priority
         ))
 
 
@@ -138,6 +148,7 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
         QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"value"),
         QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"description"),
         QtCore.Qt.ItemDataRole.UserRole + 4: QtCore.QByteArray(b"properties"),
+        QtCore.Qt.ItemDataRole.UserRole + 5: QtCore.QByteArray(b"name"),
     }
 
     def __init__(
@@ -170,6 +181,8 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
             role_name = bytes(self.roles[role].data()).decode()
 
             name = entries[index.row()]
+            if role_name == "name":
+                return re.sub(r"[_-]+", " ", name).capitalize()
             # Separate handling of config and meta option entries.
             if self._config.exists(self._section_name, self._group_name, name):
                 value = self._config.get(
@@ -253,9 +266,9 @@ class BaseMetaConfigOptionWidget:
 class ActionSequenceOrdering(QtCore.QAbstractListModel, BaseMetaConfigOptionWidget):
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray(b"name"),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray(b"visible"),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray(b"index"),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"visible"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"index"),
     }
 
     def __init__(self, parent: Optional[QtCore.QObject]=None) -> None:
