@@ -3,9 +3,9 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import Gremlin.Profile
-
 
 Item {
     id: _root
@@ -15,81 +15,65 @@ Item {
     implicitHeight: _checkboxes.height
     implicitWidth: _checkboxes.width
 
-    Row {
+    RowLayout {
         id: _checkboxes
 
         spacing: 10
 
         IconCheckBox {
-            image: "../gfx/hat_n.png"
+            text: bsi.icons.hat_n
 
             checked: virtualButton.hatNorth
-            onCheckedChanged: {
-                virtualButton.hatNorth = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatNorth = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_ne.png"
+            text: bsi.icons.hat_ne
 
             checked: virtualButton.hatNorthEast
-            onCheckedChanged: {
-                virtualButton.hatNorthEast = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatNorthEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_e.png"
+            text: bsi.icons.hat_e
 
             checked: virtualButton.hatEast
-            onCheckedChanged: {
-                virtualButton.hatEast = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_se.png"
+            text: bsi.icons.hat_se
 
             checked: virtualButton.hatSouthEast
-            onCheckedChanged: {
-                virtualButton.hatSouthEast = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatSouthEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_s.png"
+            text: bsi.icons.hat_s
 
             checked: virtualButton.hatSouth
-            onCheckedChanged: {
-                virtualButton.hatSouth = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatSouth = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_sw.png"
+            text: bsi.icons.hat_sw
 
             checked: virtualButton.hatSouthWest
-            onCheckedChanged: {
-                virtualButton.hatSouthWest = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatSouthWest = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_w.png"
+            text: bsi.icons.hat_w
 
             checked: virtualButton.hatWest
-            onCheckedChanged: {
-                virtualButton.hatWest = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatWest = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_nw.png"
+            text: bsi.icons.hat_nw
 
             checked: virtualButton.hatNorthWest
-            onCheckedChanged: {
-                virtualButton.hatNorthWest = checked
-            }
+            onCheckedChanged: () => { virtualButton.hatNorthWest = checked }
         }
     }
 }

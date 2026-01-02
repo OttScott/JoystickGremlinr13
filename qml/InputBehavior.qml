@@ -3,79 +3,51 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 import Gremlin.Profile
-
 
 Item {
     id: _root
 
     property InputItemBindingModel inputBinding
 
-    width: idContent.width
-    height: idContent.height
+    implicitWidth: _content.width
+    implicitHeight: _content.height
 
-    Row {
-        id: idContent
+    RowLayout {
+        id: _content
 
-        Loader {
-            active: _root.inputBinding.inputType == "button"
-            sourceComponent: RadioButton {
-                visible: false
-            }
+        visible: _root.inputBinding.inputType != "button"
+
+        Label {
+            leftPadding: 20
+            text: "Treat as"
         }
 
-        Loader {
-            active: _root.inputBinding.inputType != "button"
+        RadioButton {
+            text: "Button"
 
-            sourceComponent: Row {
-                Label {
-                    id: idBehavior
+            checked: _root.inputBinding.behavior == "button"
+            onClicked: () => { _root.inputBinding.behavior = "button" }
+        }
 
-                    leftPadding: 20
-                    text: "Treat as"
+        RadioButton {
+            text: "Axis"
 
-                    anchors.verticalCenter: idBehaviorButton.verticalCenter
-                }
+            visible: _root.inputBinding.inputType == "axis"
 
-                RadioButton {
-                    id: idBehaviorButton
+            checked: _root.inputBinding.behavior == "axis"
+            onClicked: () => { _root.inputBinding.behavior = "axis" }
+        }
 
-                    text: "Button"
+        RadioButton {
+            text: "Hat"
 
-                    checked: _root.inputBinding.behavior == "button"
-                    onClicked: {
-                        _root.inputBinding.behavior = "button"
-                    }
-                }
+            visible: _root.inputBinding.inputType == "hat"
 
-                Loader {
-                    active: _root.inputBinding.inputType == "axis"
-                    sourceComponent: RadioButton {
-                        id: idBehaviorAxis
-
-                        text: "Axis"
-
-                        checked: _root.inputBinding.behavior == "axis"
-                        onClicked: {
-                            _root.inputBinding.behavior = "axis"
-                        }
-                    }
-                }
-                Loader {
-                    active: _root.inputBinding.inputType == "hat"
-                    sourceComponent: RadioButton {
-                        id: idBehaviorHat
-
-                        text: "Hat"
-
-                        checked: _root.inputBinding.behavior == "hat"
-                        onClicked: {
-                            _root.inputBinding.behavior = "hat"
-                        }
-                    }
-                }
-            }
+            checked: _root.inputBinding.behavior == "hat"
+            onClicked: () => { _root.inputBinding.behavior = "hat" }
         }
     }
 }

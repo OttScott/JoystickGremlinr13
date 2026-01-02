@@ -15,20 +15,19 @@ Item {
     property InputItemModel inputItemModel
     property MouseArea dragHandleArea: _dragArea
 
-    height: _generalHeader.height + _behaviorAxisButton.height +
-        _behaviorHatButton.height
-    z: -1
+    implicitHeight: _layout.implicitHeight
 
-    // Content
     ColumnLayout {
         id: _layout
 
         anchors.left: parent.left
         anchors.right: parent.right
 
-        // Default header components visible with every input
+        // Default header components visible with every input.
         RowLayout {
             id: _generalHeader
+
+            Layout.fillWidth: true
 
             IconButton {
                 id: _handle
@@ -37,7 +36,7 @@ Item {
                 horizontalPadding: -5
                 text: bsi.icons.verticalDrag
 
-                // Drag handle mouse interaction area
+                // Drag handle mouse interaction area.
                 MouseArea {
                     id: _dragArea
 
@@ -76,8 +75,6 @@ Item {
             }
 
             IconButton {
-                id: _headerRemove
-
                 text: bsi.icons.remove
                 font.pixelSize: 24
 
@@ -87,35 +84,21 @@ Item {
             }
         }
 
-        // UI for a physical axis behaving as a button
+        // UI for an axis behaving like a button.
         Loader {
             id: _behaviorAxisButton
 
             active: _root.inputBinding.behavior == "button" &&
-                 _root.inputBinding.inputType == "axis"
-            onActiveChanged: () => {
-                visible: active
-                height = active ? item.contentHeight : 0
-            }
+                _root.inputBinding.inputType == "axis"
+            visible: active
 
-            sourceComponent: Row {
-                spacing: 10
-
-                property int contentHeight: Math.max(
-                    _axisLabel.height,
-                    _axisRange.height,
-                    _axisDirection.height
-                )
-
+            sourceComponent: RowLayout {
                 Label {
-                    id: _axisLabel
+                    Layout.leftMargin: 20
 
-                    anchors.verticalCenter: _axisRange.verticalCenter
                     text: "Activate between"
                 }
                 NumericalRangeSlider {
-                    id: _axisRange
-
                     from: -1.0
                     to: 1.0
                     firstValue: _root.inputBinding.virtualButton.lowerLimit
@@ -131,16 +114,13 @@ Item {
                     }
                 }
                 Label {
-                    anchors.verticalCenter: _axisRange.verticalCenter
                     text: "when entered from"
                 }
                 ComboBox {
-                    id: _axisDirection
-
                     model: ["Anywhere", "Above", "Below"]
 
-                    // Select the correct entry
-                    Component.onCompleted: {
+                    // Select the correct entry.
+                    Component.onCompleted: () => {
                         currentIndex = find(
                             _root.inputBinding.virtualButton.direction,
                             Qt.MatchFixedString
@@ -154,33 +134,19 @@ Item {
             }
         }
 
-        // UI for a physical hat behaving as a button
+        // UI for a hat behaving like a button.
         Loader {
-            id: _behaviorHatButton
-
             active: _root.inputBinding.behavior == "button" &&
                 _root.inputBinding.inputType == "hat"
-            onActiveChanged: () => {
-                visible: active
-                height = active ? item.contentHeight : 0
-            }
+            visible: active
 
-            sourceComponent: Row {
-                property int contentHeight: Math.max(
-                    _hatDirection.height,
-                    _hatLabel.height
-                )
-
-                spacing: 10
-
+            sourceComponent: RowLayout {
                 Label {
-                    id: _hatLabel
-                    anchors.verticalCenter: _hatDirection.verticalCenter
+                    Layout.leftMargin: 20
+
                     text: "Activate on"
                 }
                 HatDirectionSelector {
-                    id: _hatDirection
-
                     virtualButton: _root.inputBinding.virtualButton
                 }
             }

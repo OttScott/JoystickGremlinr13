@@ -7,7 +7,6 @@ import QtQuick.Layouts
 
 import Gremlin.Profile
 
-
 Item {
     id: _root
 
@@ -20,75 +19,59 @@ Item {
         id: _checkboxes
 
         IconCheckBox {
-            image: "../gfx/hat_n.png"
+            text: bsi.icons.hat_n
 
             checked: directions.hatNorth
-            onCheckedChanged: {
-                directions.hatNorth = checked
-            }
+            onCheckedChanged: () => { directions.hatNorth = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_ne.png"
+            text: bsi.icons.hat_ne
 
             checked: directions.hatNorthEast
-            onCheckedChanged: {
-                directions.hatNorthEast = checked
-            }
+            onCheckedChanged: () => { directions.hatNorthEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_e.png"
+            text: bsi.icons.hat_e
 
             checked: directions.hatEast
-            onCheckedChanged: {
-                directions.hatEast = checked
-            }
+            onCheckedChanged: () => { directions.hatEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_se.png"
+            text: bsi.icons.hat_se
 
             checked: directions.hatSouthEast
-            onCheckedChanged: {
-                directions.hatSouthEast = checked
-            }
+            onCheckedChanged: () => { directions.hatSouthEast = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_s.png"
+            text: bsi.icons.hat_s
 
             checked: directions.hatSouth
-            onCheckedChanged: {
-                directions.hatSouth = checked
-            }
+            onCheckedChanged: () => { directions.hatSouth = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_sw.png"
+            text: bsi.icons.hat_sw
 
             checked: directions.hatSouthWest
-            onCheckedChanged: {
-                directions.hatSouthWest = checked
-            }
+            onCheckedChanged: () => { directions.hatSouthWest = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_w.png"
+            text: bsi.icons.hat_w
 
             checked: directions.hatWest
-            onCheckedChanged: {
-                directions.hatWest = checked
-            }
+            onCheckedChanged: () => { directions.hatWest = checked }
         }
 
         IconCheckBox {
-            image: "../gfx/hat_nw.png"
+            text: bsi.icons.hat_nw
 
             checked: directions.hatNorthWest
-            onCheckedChanged: {
-                directions.hatNorthWest = checked
-            }
+            onCheckedChanged: () => { directions.hatNorthWest = checked }
         }
     }
 }
