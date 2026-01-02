@@ -5,8 +5,8 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Universal
 
+import Gremlin.Style
 import "render_helpers.js" as RH
-
 
 Rectangle {
     id: _control
@@ -18,9 +18,7 @@ Rectangle {
     height: offset * 2
     radius: offset
 
-    color: "#66808080"
-    border.color: "#66000000"
-    border.width: 1
+    color: action.selectedPoint === index ? Style.accent : Style.medColor
 
     x: map2u(modelData.center.x)
     y: map2v(modelData.center.y)
@@ -32,9 +30,13 @@ Rectangle {
         onPositionChanged: (evt) => {
             let coord = updateControlPoint(parent, evt, index)
             if(coord !== null) {
-                action.setControlPoint(coord[0], coord[1], index)
+                action.setControlPoint(coord[0], coord[1], index, true)
             }
         }
-        onReleased: () => action.redrawElements()
+        onPressed: () => {
+            action.selectedPoint = index
+            _root.forceActiveFocus()
+        }
+        onReleased: () => { action.redrawElements() }
     }
 }

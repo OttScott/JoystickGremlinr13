@@ -12,8 +12,9 @@ import Qt.labs.qmlmodels
 
 import QtCharts
 
-import Gremlin.Profile
 import Gremlin.ActionPlugins
+import Gremlin.Profile
+import Gremlin.Style
 import "../../qml"
 
 import "render_helpers.js" as RH
@@ -25,10 +26,14 @@ Item {
     property ResponseCurveModel action
     property Deadzone deadzone: action.deadzone
     property alias widgetSize : _vis.size
-    property int currentIndex : 0
     readonly property int handleOffset: 5
 
     implicitHeight: _content.height
+
+    focus: true
+    Keys.onDeletePressed: () => {
+        action.removeControlPoint(action.selectedPoint)
+    }
 
     function map2u(x) {
         return RH.x2u(x, _curve.x, _vis.size, handleOffset)
@@ -122,19 +127,16 @@ Item {
 
                 model: ["Piecewise Linear", "Cubic Spline", "Cubic Bezier Spline"]
 
-                Component.onCompleted: function () {
+                Component.onCompleted: () => {
                     currentIndex = find(_root.action.curveType)
                 }
-
-                onActivated: function () {
-                    _root.action.curveType = currentText
-                }
+                onActivated: () => { _root.action.curveType = currentText }
             }
 
             Button {
                 text: "Invert Curve"
 
-                onClicked: _root.action.invertCurve()
+                onClicked: () => { _root.action.invertCurve() }
             }
 
             CheckBox {
@@ -142,130 +144,168 @@ Item {
 
                 checked: _root.action.isSymmetric
 
-                onToggled: function () {
-                    _root.action.isSymmetric = checked
-                }
+                onToggled: () => { _root.action.isSymmetric = checked }
             }
         }
 
         // Response curve widget
-        Item {
-            id: _vis
+        RowLayout {
+            Layout.preferredWidth: 475
 
-            property int size: 450
-            property int border: 2
+            Item {
+                id: _vis
 
-            Component.onCompleted: function () {
-                action.setWidgetSize(size)
-            }
+                property int size: 450
+                property int border: 2
 
-            width: size + 2 * border
-            height: size + 2 * border
+                Component.onCompleted: () => { action.setWidgetSize(size) }
 
-            // Display the background image
-            Image {
-                width: _vis.size
-                height: _vis.size
-                x: _vis.border
-                y: _vis.border
-                source: "grid.svg"
-            }
+                width: size + 2 * border
+                height: size + 2 * border
 
-            // Render the response curve itself not the interactive elements
-            Shape {
-                id: _curve
+                // Display the background image.
+                Image {
+                    width: _vis.size
+                    height: _vis.size
+                    x: _vis.border
+                    y: _vis.border
+                    source: Style.isDarkMode ? "grid_dark.svg" : "grid.svg"
 
-                width: _vis.size
-                height: _vis.size
-
-                anchors.centerIn: parent
-
-                preferredRendererType: Shape.CurveRenderer
-
-                ShapePath {
-                    strokeColor: "#808080"
-                    strokeWidth: 2
-                    fillColor: "transparent"
-
-                    PathPolyline {
-                        path: action.linePoints
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                        border.color: Style.foreground
+                        border.width: 1
                     }
                 }
 
-                MouseArea {
-                    anchors.fill: parent
+                // Render the response curve itself without interactive elements.
+                Shape {
+                    id: _curve
 
-                    onDoubleClicked: function (evt) {
-                        action.addControlPoint(
-                            2 * (evt.x / width) - 1,
-                            -2 * (evt.y / height) + 1
-                        )
-                    }
-                }
-            }
+                    width: _vis.size
+                    height: _vis.size
 
-            // Render the individual control elements
-            Repeater {
-                id: _repeater
+                    anchors.centerIn: parent
 
-                model: action.controlPoints
+                    preferredRendererType: Shape.CurveRenderer
 
-                delegate: Component {
-                    // Pick the correct control visualization to load and pass
-                    // the repeater reference in
-                    Loader {
-                        Component.onCompleted: function() {
-                            let url = modelData.hasHandles ? "HandleControl.qml" : "PointControl.qml"
-                            setSource(url, {"repeater": _repeater})
+                    ShapePath {
+                        strokeColor: "#808080"
+
+                        strokeWidth: 2
+                        fillColor: "transparent"
+
+                        PathPolyline {
+                            path: action.linePoints
                         }
+                    }
 
+                    MouseArea {
+                        anchors.fill: parent
+
+                        onDoubleClicked: (evt) => {
+                            action.addControlPoint(
+                                2 * (evt.x / width) - 1,
+                                -2 * (evt.y / height) + 1
+                            )
+                        }
+                    }
+                }
+
+                // Render the individual control elements.
+                Repeater {
+                    id: _repeater
+
+                    model: action.controlPoints
+
+                    delegate: Component {
+                        // Pick the correct control visualization to load and pass
+                        // the repeater reference in.
+                        Loader {
+                            Component.onCompleted: () => {
+                                let url = modelData.hasHandles ? "HandleControl.qml" : "PointControl.qml"
+                                setSource(url, {"repeater": _repeater})
+                            }
+                        }
+                    }
+                }
+            }
+
+            GridLayout {
+                columns: 2
+
+                Label {
+                    Layout.preferredWidth: 30
+
+                    text: "X"
+                }
+
+                FloatSpinBox {
+                    id: _coordX
+
+                    minValue: -1.0
+                    maxValue: 1.0
+                    value: _root.action.selectedPointCoord.x
+                    stepSize: 0.05
+
+                    onValueModified: (newValue) => {
+                        _root.action.updateSelectedPoint(newValue, _coordY.value)
+                    }
+                }
+
+                Label {
+                    text: "Y"
+                }
+
+                FloatSpinBox {
+                    id: _coordY
+
+                    minValue: -1.0
+                    maxValue: 1.0
+                    value: _root.action.selectedPointCoord.y
+                    stepSize: 0.05
+
+                    onValueModified: (newValue) => {
+                        _root.action.updateSelectedPoint(_coordX.value, newValue)
                     }
                 }
             }
         }
 
-        // Deadzone widget
         Label {
             text: "Deadzone"
         }
 
         RowLayout {
-            // Lower axis half
+            // Lower half axis.
             NumericalRangeSlider {
                 id: _lowerDeadzone
 
                 from: -1.0
-                to: _upperDeadzone.firstValue
+                to: 0.0
                 firstValue: deadzone.low
                 secondValue: deadzone.centerLow
                 stepSize: 0.05
                 decimals: 3
 
-                onFirstValueChanged: {
-                    deadzone.low = firstValue
-                }
-                onSecondValueChanged: {
-                    deadzone.centerLow = secondValue
-                }
+                onFirstValueChanged: () => { deadzone.low = firstValue }
+                onSecondValueChanged: () => { deadzone.centerLow = secondValue }
             }
 
-            // Upper axis half
+            // Upper half axis.
             NumericalRangeSlider {
                 id: _upperDeadzone
 
-                from: _lowerDeadzone.secondValue
+                from: 0.0
                 to: 1.0
                 firstValue: deadzone.centerHigh
                 secondValue: deadzone.high
                 stepSize: 0.05
                 decimals: 3
 
-                onFirstValueChanged: {
-                    deadzone.centerHigh = firstValue
-                }
-                onSecondValueChanged: {
-                    deadzone.high = secondValue
-                }
+                onFirstValueChanged: () => { deadzone.centerHigh = firstValue }
+                onSecondValueChanged: () => { deadzone.high = secondValue }
             }
         }
     }

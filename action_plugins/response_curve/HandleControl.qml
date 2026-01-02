@@ -6,8 +6,8 @@ import QtQuick.Controls
 import QtQuick.Controls.Universal
 import QtQuick.Shapes
 
+import Gremlin.Style
 import "render_helpers.js" as RH
-
 
 Rectangle {
     id: _control
@@ -22,22 +22,19 @@ Rectangle {
     height: offset * 2
     radius: offset
 
-    color: "#66808080"
-    border.color: "#66000000"
-    border.width: 1
+    color: action.selectedPoint === index ? Style.accent : Style.medColor
 
     function updateHandle(handle, evt, side) {
-        // Compute new data values
+        // Compute new data values.
         let new_x = RH.clamp(map2x(_control.x + handle.x, evt.x), -1.0, 1.0)
         let new_y = RH.clamp(map2y(_control.y + handle.y, evt.y), -1.0, 1.0)
 
-        // Compute new visual values
+        // Compute new visual values.
         let new_u = ((new_x - modelData.center.x) / 2.0) * _vis.size
         let new_v = -((new_y - modelData.center.y) / 2.0) * _vis.size
 
-        // Handle symmetry mode, no need to update model as
-        // the code does this behind the scenes with the
-        // model update below
+        // Handle symmetry mode, no need to update model as the code does this
+        // behind the scenes with the model update below.
         if (_root.action.isSymmetric) {
             let mirror = repeater.itemAt(repeater.count - index - 1).item
             let dx = new_u - handle.x
@@ -45,28 +42,29 @@ Rectangle {
 
             if(side === "left") {
                 mirror.rightHandle.x -= dx
-                mirror.rightHandle.y += dy
+                mirror.rightHandle.y -= dy
             }
             else if(side === "right") {
                 mirror.leftHandle.x -= dx
-                mirror.leftHandle.y += dy
+                mirror.leftHandle.y -= dy
             }
         }
 
-        // Move the actual marker then update data model
+        // Move the actual marker then update data model.
         handle.x = new_u
         handle.y = new_v
-        action.setControlHandle(new_x, new_y, index, side)
+        action.setControlHandle(new_x, new_y, index, side, true)
     }
 
     x: map2u(modelData.center.x)
     y: map2v(modelData.center.y)
 
-    // Rendering of the control point handles and their connection line
+    // Rendering of the control point handles and their connection line.
     Shape {
         preferredRendererType: Shape.CurveRenderer
+        z: -1
 
-        // Left control handle line
+        // Left control handle line.
         ShapePath {
             strokeColor: modelData.hasLeft ? "#808080" : "transparent"
 
@@ -79,7 +77,7 @@ Rectangle {
             }
         }
 
-        // Right control handle line
+        // Right control handle line.
         ShapePath {
             strokeColor: modelData.hasRight ? "#808080" : "transparent"
 
@@ -92,7 +90,7 @@ Rectangle {
             }
         }
 
-        // Left control handle
+        // Left control handle.
         Rectangle {
             id: _handleLeft
 
@@ -104,18 +102,26 @@ Rectangle {
             width: offset * 2
             height: offset * 2
 
-            color: "#aa0000"
+            color: Style.background
+            border.color: action.selectedPoint === index ? Style.accent : Style.medColor
+            border.width: 2
 
             MouseArea {
                 anchors.fill: parent
                 preventStealing: true
 
-                onPositionChanged: (evt) => updateHandle(parent, evt, "left")
-                onReleased: () => action.redrawElements()
+                onPositionChanged: (evt) => {
+                    updateHandle(parent, evt, "left")
+                }
+                onPressed: () => {
+                    action.selectedPoint = index
+                    _root.forceActiveFocus()
+                }
+                onReleased: () => { action.redrawElements() }
             }
         }
 
-        // Right control handle
+        // Right control handle.
         Rectangle {
             id: _handleRight
 
@@ -127,19 +133,27 @@ Rectangle {
             width: offset * 2
             height: offset * 2
 
-            color: "#00aa00"
+            color: Style.background
+            border.color: action.selectedPoint === index ? Style.accent : Style.medColor
+            border.width: 2
 
             MouseArea {
                 anchors.fill: parent
                 preventStealing: true
 
-                onPositionChanged: (evt) => updateHandle(parent, evt, "right")
-                onReleased: () => action.redrawElements()
+                onPositionChanged: (evt) => {
+                    updateHandle(parent, evt, "right")
+                }
+                onPressed: () => {
+                    action.selectedPoint = index
+                    _root.forceActiveFocus()
+                }
+                onReleased: () => { action.redrawElements() }
             }
         }
     }
 
-    // Rendering of the control point itself
+    // Rendering of the control point itself.
     MouseArea {
         anchors.fill: parent
         preventStealing: true
@@ -147,9 +161,13 @@ Rectangle {
         onPositionChanged: (evt) => {
             let coord = updateControlPoint(parent, evt, index)
             if(coord !== null) {
-                action.setControlHandle(coord[0], coord[1], index, "center")
+                action.setControlHandle(coord[0], coord[1], index, "center", true)
             }
         }
-        onReleased: () => action.redrawElements()
+        onPressed: () => {
+            action.selectedPoint = index
+            _root.forceActiveFocus()
+        }
+        onReleased: () => { action.redrawElements() }
     }
 }

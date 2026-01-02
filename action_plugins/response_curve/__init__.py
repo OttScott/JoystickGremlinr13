@@ -5,30 +5,64 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, List, Optional, TYPE_CHECKING, override
+from typing import (
+    override,
+    Any,
+    List,
+    Optional,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
-from PySide6 import QtCore, QtQml
-from PySide6.QtCore import Property, Signal, Slot, QCborTag
+from PySide6 import (
+    QtCore,
+    QtQml,
+)
+from PySide6.QtCore import (
+    Property,
+    Signal,
+    Slot,
+)
 
-from gremlin import event_handler, spline, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
-from gremlin.error import GremlinError, ProfileError
+from gremlin import (
+    event_handler,
+    spline,
+    util,
+)
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
+from gremlin.error import (
+    GremlinError,
+    ProfileError,
+)
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType
-from gremlin.util import clamp
+from gremlin.types import (
+    ActionProperty,
+    InputType,
+    PropertyType,
+)
 
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.action_model import (
+    SequenceIndex,
+    ActionModel,
+)
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
+    import gremlin.ui.type_aliases as ta
 
 
 QML_IMPORT_NAME = "Gremlin.ActionPlugins"
 QML_IMPORT_MAJOR_VERSION = 1
 
 class DeadzoneIndex(enum.Enum):
-    """Index of a specific deadzone marker in the deadzone list in ResponseCurveData."""
+
+    """Index of a specific deadzone marker in the deadzone list in
+    ResponseCurveData."""
+
     LOW = 0
     CENTER_LOW = 1
     CENTER_HIGH = 2
@@ -68,7 +102,7 @@ class ResponseCurveFunctor(AbstractFunctor):
 
     """Implements the function executed for the response curve at runtime."""
 
-    def __init__(self, action: ResponseCurveData):
+    def __init__(self, action: ResponseCurveData) -> None:
         super().__init__(action)
 
     @override
@@ -97,7 +131,7 @@ class Deadzone(QtCore.QObject):
     centerHighModified = Signal(float)
     highModified = Signal(float)
 
-    def __init__(self, data: AbstractActionData, parent=QtCore.QObject):
+    def __init__(self, data: ResponseCurveData, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
         self._data = data
@@ -154,8 +188,8 @@ class ControlPoint(QtCore.QObject):
             center: Optional[QtCore.QPointF]=None,
             handle_left: Optional[QtCore.QPointF]=None,
             handle_right: Optional[QtCore.QPointF]=None,
-            parent: Optional[QtCore.QtCore.QPointF]=None
-    ):
+            parent: Optional[QtCore.QPointF]=None
+    ) -> None:
         super().__init__(parent)
         self._center = center
         self._handle_left = handle_left
@@ -192,6 +226,7 @@ class ResponseCurveModel(ActionModel):
     deadzoneChanged = Signal()
     curveChanged = Signal()
     controlPointChanged = Signal()
+    selectedPointChanged = Signal()
 
     def __init__(
             self,
@@ -200,10 +235,11 @@ class ResponseCurveModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
         self.widget_size = 400
+        self._selected_point = 0
 
     def _qml_path_impl(self) -> str:
         return "file:///" + QtCore.QFile(
@@ -219,19 +255,55 @@ class ResponseCurveModel(ActionModel):
     def deadzone(self) -> Deadzone:
         return Deadzone(self._data, self)
 
+    @Property(QtCore.QPointF, notify=selectedPointChanged)
+    def selectedPointCoord(self) -> QtCore.QPointF:
+        point = self._data.curve.control_points()[self._selected_point]
+        if type(self._data.curve) in [spline.PiecewiseLinear, spline.CubicSpline]:
+            return QtCore.QPointF(point.x, point.y)
+        elif isinstance(self._data.curve, spline.CubicBezierSpline):
+            return QtCore.QPointF(point.center.x, point.center.y)
+        else:
+            raise GremlinError(
+                f"Invalid curve type encountered {str(type(self._data.curve))}"
+            )
+
     @Slot(float, float)
     def addControlPoint(self, x: float, y: float) -> None:
         self._data.curve.add_control_point(x, y)
         self.controlPointChanged.emit()
         self.curveChanged.emit()
+        self.selectedPointChanged.emit()
 
-    @Slot(float, float, int)
-    def setControlPoint(self, x: float, y: float, idx: int) -> None:
+    @Slot(int)
+    def removeControlPoint(self, idx: int) -> None:
+        self._data.curve.remove_control_point(idx)
+        self.controlPointChanged.emit()
+        self.curveChanged.emit()
+        self.selectedPointChanged.emit()
+
+    @Slot(float, float, int, bool)
+    def setControlPoint(
+        self,
+        x: float,
+        y: float,
+        idx: int,
+        is_drag_event: bool
+    ) -> None:
         self._data.curve.set_control_point(x, y, idx)
         self.curveChanged.emit()
+        self.selectedPointChanged.emit()
+        if not is_drag_event:
+            self.controlPointChanged.emit()
 
-    @Slot(float, float, int, str)
-    def setControlHandle(self, x: float, y: float, idx: int, handle: str) -> None:
+    @Slot(float, float, int, str, bool)
+    def setControlHandle(
+        self,
+        x: float,
+        y: float,
+        idx: int,
+        handle: str,
+        is_drag_event: bool
+    ) -> None:
         points = self._data.curve.control_points()
         control = points[idx]
         if handle == "center":
@@ -240,6 +312,9 @@ class ResponseCurveModel(ActionModel):
             self._move_control_center(control, dx, dy)
             if self._data.curve.is_symmetric:
                 self._move_control_center(points[len(points)-idx-1], -dx, -dy)
+            self.selectedPointChanged.emit()
+            if not is_drag_event:
+                self.controlPointChanged.emit()
         if handle == "left" and control.handle_left:
             dx = x - control.handle_left.x
             dy = y - control.handle_left.y
@@ -259,6 +334,13 @@ class ResponseCurveModel(ActionModel):
         self._data.curve.fit()
         self.curveChanged.emit()
 
+    @Slot(float, float)
+    def updateSelectedPoint(self, x: float, y: float) -> None:
+        if type(self._data.curve) in [spline.PiecewiseLinear, spline.CubicSpline]:
+            self.setControlPoint(x, y, self._selected_point, False)
+        elif isinstance(self._data.curve, spline.CubicBezierSpline):
+            self.setControlHandle(x, y, self._selected_point, "center", False)
+
     @Slot(int)
     def setWidgetSize(self, size: int) -> None:
         self.widget_size = size
@@ -270,6 +352,7 @@ class ResponseCurveModel(ActionModel):
         self._data.curve.invert()
         self.curveChanged.emit()
         self.controlPointChanged.emit()
+        self.selectedPointChanged.emit()
 
     @Slot()
     def redrawElements(self):
@@ -279,7 +362,7 @@ class ResponseCurveModel(ActionModel):
 
     def _move_control_center(
             self,
-            control: ControlPoint,
+            control: spline.CubicBezierSpline.ControlPoint,
             dx: float,
             dy: float
     ) -> None:
@@ -358,6 +441,7 @@ class ResponseCurveModel(ActionModel):
             self._data.curve.is_symmetric = is_symmetric
             self.curveChanged.emit()
             self.controlPointChanged.emit()
+            self.selectedPointChanged.emit()
             self.changed.emit()
 
     def _get_curve_type(self) -> str:
@@ -379,6 +463,15 @@ class ResponseCurveModel(ActionModel):
             self._data.curve = curve_type()
             self.curveChanged.emit()
             self.controlPointChanged.emit()
+            self.selectedPointChanged.emit()
+
+    def _get_selected_point(self) -> int:
+        return self._selected_point
+
+    def _set_selected_point(self, index: int) -> None:
+        if self._selected_point != index:
+            self._selected_point = index
+            self.selectedPointChanged.emit()
 
     linePoints = Property(
         list,
@@ -406,6 +499,15 @@ class ResponseCurveModel(ActionModel):
         notify=curveChanged
     )
 
+    selectedPoint = Property(
+        int,
+        fget=_get_selected_point,
+        fset=_set_selected_point,
+        notify=selectedPointChanged
+    )
+
+
+
 
 class ResponseCurveData(AbstractActionData):
 
@@ -419,17 +521,17 @@ class ResponseCurveData(AbstractActionData):
     functor = ResponseCurveFunctor
     model = ResponseCurveModel
 
-    properties = [
+    properties = (
         ActionProperty.ActivateDisabled,
-    ]
-    input_types = [
+    )
+    input_types = (
         InputType.JoystickAxis,
-    ]
+    )
 
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickAxis
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         # Model variables
@@ -445,7 +547,8 @@ class ResponseCurveData(AbstractActionData):
         }
 
         self._id = util.read_action_id(node)
-        # Read deadzone values
+
+        # Read deadzone values.
         dz_node = node.find("deadzone")
         if dz_node is None:
             raise ProfileError("Missing deadzone node")
@@ -455,7 +558,8 @@ class ResponseCurveData(AbstractActionData):
             util.read_property(dz_node, "center-high", PropertyType.Float),
             util.read_property(dz_node, "high", PropertyType.Float)
         ]
-        # Create curve using XML values
+
+        # Create curve using XML values.
         cp_node = node.find("control-points")
         if cp_node is None:
             raise ProfileError("Missing control-points node")
@@ -476,12 +580,29 @@ class ResponseCurveData(AbstractActionData):
         node.append(util.create_node_from_data(
             "deadzone",
             [
-                ("low", self.deadzone[DeadzoneIndex.LOW.value], PropertyType.Float),
-                ("center-low", self.deadzone[DeadzoneIndex.CENTER_LOW.value], PropertyType.Float),
-                ("center-high", self.deadzone[DeadzoneIndex.CENTER_HIGH.value], PropertyType.Float),
-                ("high", self.deadzone[DeadzoneIndex.HIGH.value], PropertyType.Float),
+                (
+                    "low",
+                    self.deadzone[DeadzoneIndex.LOW.value],
+                    PropertyType.Float
+                ),
+                (
+                    "center-low",
+                    self.deadzone[DeadzoneIndex.CENTER_LOW.value],
+                    PropertyType.Float
+                ),
+                (
+                    "center-high",
+                    self.deadzone[DeadzoneIndex.CENTER_HIGH.value],
+                    PropertyType.Float
+                ),
+                (
+                    "high",
+                    self.deadzone[DeadzoneIndex.HIGH.value],
+                    PropertyType.Float
+                ),
             ]
         ))
+
         points = []
         match type(self.curve):
             case spline.PiecewiseLinear | spline.CubicSpline:

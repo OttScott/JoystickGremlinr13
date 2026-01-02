@@ -14,6 +14,7 @@ Item {
     property real value: 0.0
     property int decimals: 2
     property alias internalWidth: _spinbox.width
+    property bool _internalUpdate: false
 
     readonly property int decimalFactor: Math.pow(10, _root.decimals)
 
@@ -29,6 +30,28 @@ Item {
 
     function toInt(value) {
         return value * decimalFactor
+    }
+
+    onValueChanged: () => {
+        _internalUpdate = true
+        _spinbox.value = toInt(value)
+        _internalUpdate = false
+    }
+
+    // Calculate the width needed for the widest possible value.
+    Component.onCompleted: {
+        var testValues = [
+            Number(minValue).toFixed(decimals),
+            Number(maxValue).toFixed(decimals),
+            Number(0).toFixed(decimals)
+        ]
+
+        for (var i = 0; i < testValues.length; i++) {
+            _textMetrics.text = testValues[i]
+            _spinbox.width = Math.max(_spinbox.width, _textMetrics.width)
+        }
+
+        _spinbox.width += 10
     }
 
     SpinBox {
@@ -48,17 +71,24 @@ Item {
             notation: DoubleValidator.StandardNotation
         }
 
-        textFromValue: function(value, locale) {
+        textFromValue: (value, locale) => {
             return Number(value / decimalFactor)
                 .toLocaleString(locale, "f", _root.decimals)
         }
 
-        valueFromText: function(text, locale) {
+        valueFromText: (text, locale) => {
             return Number.fromLocaleString(locale, text) * decimalFactor
         }
 
-        onValueChanged: {
-            _root.valueModified(toFloat(value))
+        onValueChanged: () => {
+            if (!_root._internalUpdate) {
+                _root.valueModified(toFloat(value))
+            }
         }
+    }
+
+    TextMetrics {
+        id: _textMetrics
+        font: _spinbox.font
     }
 }

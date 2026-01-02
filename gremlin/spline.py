@@ -5,11 +5,15 @@
 from __future__ import annotations
 
 import abc
-from typing import List, Tuple, Optional
+import math
+from typing import (
+    List,
+    Tuple,
+    Optional,
+)
 
 from gremlin import util
 from gremlin.types import Point2D
-
 
 # Typing alias
 type CoordinateList = List[Tuple[float, float]]
@@ -19,7 +23,7 @@ class AbstractCurve(abc.ABC):
 
     """Base class for all curves, providing a common interface."""
 
-    def __init__(self, points: Optional[CoordinateList]=None):
+    def __init__(self, points: Optional[CoordinateList]=None) -> None:
         self._is_symmetric = False
         self._process_points(
             points if points is not None else self._default_points()
@@ -59,6 +63,34 @@ class AbstractCurve(abc.ABC):
             y: y-coordinate of the control point (will be clamped).
         """
         pass
+
+    def remove_control_point(self, index: int) -> None:
+        """Removes an existing control point from the curve.
+
+        Args:
+            index: index of the control point to remove
+        """
+        points = self.control_points()
+        # Removing of edge points or invalid indices is not permitted.
+        if not (0 < index < len(points) - 1):
+            return
+
+        if self.is_symmetric:
+            # Cannot remove the center point in symmetric mode.
+            if math.floor(len(points) / 2) == index:
+                return
+            else:
+                # Obtain indices to remove and order them.
+                idx1 = index
+                idx2 = len(points) - index - 1
+                if idx1 > idx2:
+                    idx1, idx2 = idx2, idx1
+                # Remove points in order and account for the index shift.
+                del points[idx1]
+                del points[idx2 - 1]
+        else:
+            del points[index]
+        self.fit()
 
     def set_control_point(self, x: float, y: float, idx: int) -> None:
         """Sets a new position for an existing control point.
@@ -381,26 +413,21 @@ class CubicBezierSpline(AbstractCurve):
             cp1 = self._control_points[i]
             cp2 = self._control_points[-i - 1]
 
-            # cp1 is the reference point for the state to mirror
+            # cp1 is the reference point for the state to mirror.
             cp2.center = Point2D(-cp1.center.x, -cp1.center.y)
 
             # Update handles
-
-            # if cp1.handle_right and cp1.handle_left:
-            #     cp2.handle_left = cp2.center - (cp1.handle_right - cp1.center)
-            #     cp2.handle_right = cp2.center - (cp1.handle_left - cp1.center)
-            # if len(cp1.handles) == 2:
-            #     cp2.handles[0] = cp2.center - (cp1.handles[1] - cp1.center)
-            #     cp2.handles[1] = cp2.center - (cp1.handles[0] - cp1.center)
-            # elif len(cp1.handles) == 1:
-            #     cp2.handles[0] = cp2.center - (cp1.handles[0] - cp1.center)
             if cp1.handle_left is not None:
                 cp2.handle_right = cp2.center - (cp1.handle_left - cp1.center)
             if cp1.handle_right is not None:
                 cp2.handle_left = cp2.center - (cp1.handle_right - cp1.center)
 
-        if count % 2:  # Odd number of points.
-            self._control_points[int(count / 2)].center = Point2D(0.0, 0.0)
+        # Already have a point to use as the center.
+        if count % 2:
+            point = self._control_points[int(count / 2)]
+            point.center = Point2D(0.0, 0.0)
+            point.handle_left.x = -point.handle_right.x
+            point.handle_left.y = -point.handle_right.y
         else:
             self._control_points.insert(
                 int(count / 2),
