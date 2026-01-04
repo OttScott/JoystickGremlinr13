@@ -490,6 +490,9 @@ class Configuration(metaclass=common.SingletonMetaclass):
             group: grouping into which the parameter belongs
             name: name by which the new parameter will be accessed
         """
+        if section == "calibration":
+            return
+
         if not re.match(r"^[a-z0-9-]+$", section):
             raise error.GremlinError(f"Invalid section name '{section}'.")
         if not re.match(r"^[a-z0-9-]+$", group):

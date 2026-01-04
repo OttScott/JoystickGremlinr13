@@ -37,11 +37,10 @@ Item {
 
         guid: deviceGuid
 
-        onDeviceChanged: function() {
+        onDeviceChanged: () => {
             _chart.removeAllSeries()
 
-            for(var i=0; i<axisCount; i++)
-            {
+            for(var i=0; i<axisCount; i++) {
                 var series = _chart.createSeries(
                     ChartView.SeriesTypeLine,
                     "Axis " + axisIdentifier(i),
@@ -57,10 +56,8 @@ Item {
         interval: 10
         running: true
         repeat: true
-        onTriggered: function()
-        {
-            for(var i=0; i<_chart.count; i++)
-            {
+        onTriggered: () => {
+            for(var i=0; i<_chart.count; i++) {
                 _axis_series.updateSeries(_chart.series(i), i)
             }
         }
