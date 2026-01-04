@@ -19,7 +19,7 @@ Item {
     property int inputIndex
     property InputIdentifier inputIdentifier
 
-    // Modal window to allow renaming of inputs
+    // Modal window to allow renaming of inputs.
     TextInputDialog {
         id: _textInput
 
@@ -28,14 +28,13 @@ Item {
 
         property var callback: null
 
-        onAccepted: function(value)
-        {
+        onAccepted: (value) => {
             callback(value)
             visible = false
         }
     }
 
-    // List of all existing inputs
+    // List of all existing inputs.
     ColumnLayout {
         id: _content
 
@@ -52,13 +51,13 @@ Item {
             model: device
             delegate: _entryDelegate
 
-            onCurrentIndexChanged: {
+            onCurrentIndexChanged: () => {
                 inputIndex = currentIndex
                 inputIdentifier = device.inputIdentifier(currentIndex)
             }
         }
 
-        // Controls to add new logical device input instances
+        // Controls to add new logical device input instances.
         RowLayout {
             Layout.minimumWidth: 100
             Layout.preferredHeight: 50
@@ -77,7 +76,7 @@ Item {
                 text: bsi.icons.add
                 backgroundColor: Universal.chromeMediumColor
 
-                onClicked: {
+                onClicked: () => {
                     device.createInput(_input_type.currentValue)
                 }
             }
@@ -99,7 +98,7 @@ Item {
             required property int actionCount
             property ListView view: ListView.view
 
-            // Renders the entire "button" area of the singular input
+            // Renders the entire "button" area of the singular input.
             Rectangle {
                 id: _inputDisplay
 
@@ -111,12 +110,10 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                        view.currentIndex = index
-                    }
+                    onClicked: () => { view.currentIndex = index }
                 }
 
-                // User specified name assigned to this output
+                // User specified name assigned to this output.
                 Label {
                     text: label
                     font.weight: 600
@@ -128,7 +125,7 @@ Item {
                     anchors.topMargin: 5
                 }
 
-                // Internal UUID-based name
+                // Internally assigned sequential name.
                 JGText {
                     text: name
                     anchors.leftMargin: 5
@@ -159,12 +156,10 @@ Item {
                     anchors.rightMargin: 5
                     anchors.topMargin: 5
 
-                    onClicked: {
-                        device.deleteInput(label)
-                    }
+                    onClicked: () => { device.deleteInput(label) }
                 }
 
-                // Button enabling the editing of the input's label
+                // Button enabling the editing of the input's label.
                 IconButton {
                     id: _btnEdit
                     text: bsi.icons.edit
@@ -175,9 +170,9 @@ Item {
                     anchors.rightMargin: 5
                     anchors.bottomMargin: 2
 
-                    onClicked: function () {
+                    onClicked: () => {
                         _textInput.text = label
-                        _textInput.callback = function(value) {
+                        _textInput.callback = (value) => {
                             device.changeName(label, value)
                         }
                         _textInput.visible = true

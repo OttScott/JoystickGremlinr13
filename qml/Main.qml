@@ -341,6 +341,7 @@ ApplicationWindow {
 
         function onModeChanged() {
             _deviceModel.setMode(uiState.currentMode)
+            _logicalDeviceList.device.setMode(uiState.currentMode)
             _modeSelector.currentIndex = _modeSelector.find(uiState.currentMode)
         }
     }

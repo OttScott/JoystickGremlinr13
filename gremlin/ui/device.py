@@ -234,6 +234,7 @@ class Device(QtCore.QAbstractListModel):
         self._mode: str = "Default"
 
         signal.profileChanged.connect(self._profile_changed_cb)
+        signal.inputItemChanged.connect(self.refreshInput)
 
     @Slot(int)
     def refreshInput(self, index: int) -> None:
@@ -400,10 +401,14 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
         QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"label"),
     }
 
-    def __init__(self, parent: None|QtCore.QObject=None) -> None:
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
         self._logical = LogicalDevice()
+        self._mode: str = "Default"
+
+        signal.profileChanged.connect(self._profile_changed_cb)
+        signal.inputItemChanged.connect(self.refreshInput)
 
     @Slot(str)
     def createInput(self, type_str: str) -> None:
@@ -418,7 +423,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
             self.createIndex(0, 0),
             self.createIndex(self.rowCount(), 0)
         )
-        signal.signal.logicalDeviceModified.emit()
+        signal.logicalDeviceModified.emit()
 
     @Slot(str, str)
     def changeName(self, old_label: str, new_label: str) -> None:
@@ -428,7 +433,7 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
                 self.createIndex(0, 0),
                 self.createIndex(self.rowCount(), 0)
             )
-            signal.signal.logicalDeviceModified.emit()
+            signal.logicalDeviceModified.emit()
         except GremlinError:
             # FIXME: Somehow needs to reset the text field to the previous value
             pass
@@ -443,35 +448,57 @@ class LogicalDeviceManagementModel(QtCore.QAbstractListModel):
             self.createIndex(0, 0),
             self.createIndex(self.rowCount(), 0)
         )
-        signal.signal.logicalDeviceModified.emit()
+        signal.logicalDeviceModified.emit()
+
+    @Slot(str)
+    def setMode(self, mode: str) -> None:
+        self._mode = mode
+        self.dataChanged.emit(
+            self.createIndex(0, 0),
+            self.createIndex(self.rowCount()-1, 0)
+        )
+
+    @Slot(int)
+    def refreshInput(self, index: int) -> None:
+        """Refreshes the input at the given index.
+
+        Args:
+            index: linear index of the input to refresh
+        """
+        self.dataChanged.emit(
+            self.createIndex(index, 0),
+            self.createIndex(index, 0)
+        )
 
     def _get_guid(self) -> str:
         return str(self._logical.device_guid)
 
-    def rowCount(self, parent : ta.ModelIndex=QtCore.QModelIndex()) -> int:
+    def _profile_changed_cb(self) -> None:
+        self.beginResetModel()
+        self.endResetModel()
+
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         return len(self._logical.labels_of_type())
 
     def data(
             self,
-            index : ta.ModelIndex,
-            role : int=QtCore.Qt.ItemDataRole.DisplayRole
+            index: ta.ModelIndex,
+            role: int = QtCore.Qt.ItemDataRole.DisplayRole
      ) -> Any:
         if role not in self.roles:
             return "Unknown"
 
         input = self._index_to_input(index.row())
-        match self.roles[role]:
+        match cast(str, self.roles[role]):
             case "name":
                 return f"{InputType.to_string(input.type).capitalize()} " \
                     f"{input.id}"
             case "actionCount":
-                # FIXME: retrieve currently selected mode just as the other
-                #   input devices do
                 return shared_state.current_profile.get_input_count(
                     self._logical.device_guid,
                     input.type,
                     input.id,
-                    "Default"
+                    self._mode
                 )
             case "label":
                 return input.label
@@ -562,7 +589,7 @@ class LogicalDeviceSelectorModel(QtCore.QAbstractListModel):
         self._current_index = -1
         self._current_identifier = InputIdentifier(parent=self)
 
-        signal.signal.logicalDeviceModified.connect(self._refresh_model)
+        signal.logicalDeviceModified.connect(self._refresh_model)
 
     def rowCount(self, parent: ta.ModelIndex=QtCore.QModelIndex()) -> int:
         return len(self._logical.labels_of_type(self._valid_types))
