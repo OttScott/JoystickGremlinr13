@@ -103,13 +103,13 @@ class ModeManager(QtCore.QObject):
         self._mode_stack = [
             Mode(shared_state.current_profile.modes.first_mode, None)
         ]
-        self._config.set("global", "internal", "last_mode", self.current.name)
+        self._config.set("global", "internal", "last-mode", self.current.name)
 
     def _exists(self, mode: Mode) -> bool:
         return mode in self._mode_stack
 
     def _update_mode(self) -> None:
-        self._config.set("global", "internal", "last_mode", self.current.name)
+        self._config.set("global", "internal", "last-mode", self.current.name)
         self.mode_changed.emit(self.current.name)
 
     def cycle(self, sequence: ModeSequence) -> None:

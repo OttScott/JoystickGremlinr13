@@ -228,7 +228,7 @@ class Backend(QtCore.QObject):
 
     def _device_change(self) -> None:
         behavior = config.Configuration().value(
-            "global", "general", "device_change_behavior"
+            "global", "general", "device-change-behavior"
         )
         match behavior:
             case "Disable":
@@ -401,7 +401,7 @@ class Backend(QtCore.QObject):
             True if dark mode is enabled, False otherwise
         """
         return config.Configuration().value(
-            "global", "general", "dark_mode"
+            "global", "general", "dark-mode"
         )
 
     @Property(type=list, notify=recentProfilesChanged)
@@ -411,7 +411,7 @@ class Backend(QtCore.QObject):
         Returns:
             List of recently used profiles
         """
-        return config.Configuration().value("global", "internal", "recent_profiles")
+        return config.Configuration().value("global", "internal", "recent-profiles")
 
     @Slot()
     def newProfile(self) -> None:
@@ -449,7 +449,7 @@ class Backend(QtCore.QObject):
             fpath: Path to the file containing the profile to load
         """
         self._load_profile(fpath)
-        config.Configuration().set("global", "internal", "last_profile", fpath)
+        config.Configuration().set("global", "internal", "last-profile", fpath)
         self.profileChanged.emit()
 
     @Property(type=ScriptListModel, notify=profileChanged)
@@ -534,15 +534,14 @@ class Backend(QtCore.QObject):
                 self.profile.to_xml(fpath)
         except (KeyError, TypeError) as e:
             # An error occurred while parsing an existing profile,
-            # creating an empty profile instead
+            # creating an empty profile instead.
             logging.getLogger("system").exception(
                 "Invalid profile content:\n{}".format(e)
             )
             self.newProfile()
         except error.ProfileError as e:
             # Parsing the profile went wrong, stop loading and start with an
-            # empty profile
-            #cfg = config.Configuration()
+            # empty profile.
             self.newProfile()
             self.display_error(
                 f"Failed to load the profile {fpath} due to:\n\n{e}"

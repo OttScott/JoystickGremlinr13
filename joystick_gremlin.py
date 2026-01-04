@@ -111,38 +111,38 @@ def register_config_options() -> None:
     cfg = gremlin.config.Configuration()
 
     cfg.register(
-        "global", "internal", "last_mode",
+        "global", "internal", "last-mode",
         PropertyType.String, "Default",
         "Name of the last active mode", {}
     )
     cfg.register(
-        "global", "internal", "last_profile",
+        "global", "internal", "last-profile",
         PropertyType.String, "",
         "Most recently used profile", {}
     )
     cfg.register(
-        "global", "internal", "recent_profiles",
+        "global", "internal", "recent-profiles",
         PropertyType.List, [],
         "List of recently opened profiles", {}
     )
     cfg.register(
-        "global", "general", "plugin_directory",
+        "global", "general", "plugin-directory",
         PropertyType.String, "",
         "Directory containing additional action plugins", {}, True
     )
     cfg.register(
-        "global", "general", "action_priorities",
+        "global", "general", "action-priorities",
         PropertyType.List, [],
         "Priority order of the actions", {}, True
     )
     cfg.register(
-        "global", "general", "device_change_behavior",
+        "global", "general", "device-change-behavior",
         PropertyType.Selection, "Reload",
         "Action Gremlin takes when a joystick is connected or disconnected.",
         {"valid_options": ["Disable", "Ignore", "Reload"]}, True
     )
     cfg.register(
-        "global", "general", "dark_mode",
+        "global", "general", "dark-mode",
         PropertyType.Bool, False,
         "Use the dark mode UI", {}, True
     )
@@ -166,7 +166,7 @@ def configure_loggers() -> None:
 
 def update_action_priorities() -> None:
     cfg = gremlin.config.Configuration()
-    key = ["global", "general", "action_priorities"]
+    key = ["global", "general", "action-priorities"]
     priorities = []
     if cfg.exists(*key):
         priorities = cfg.value(*key)
@@ -261,7 +261,7 @@ class JoystickGremlinApp(QtWidgets.QApplication):
             self.backend.loadProfile(args.profile)
         else:
             last_profile = Path(Configuration().value(
-                "global", "internal", "last_profile")
+                "global", "internal", "last-profile")
             )
             if last_profile.is_file():
                 self.backend.loadProfile(str(last_profile))
@@ -325,7 +325,7 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         QtCore.QDir.addSearchPath("qml", gremlin.util.resource_path("qml/"))
 
         self.cfg = Configuration()
-        user_plugins_path = Path(self.cfg.value("global", "general", "plugin_directory"))
+        user_plugins_path = Path(self.cfg.value("global", "general", "plugin-directory"))
         if user_plugins_path.is_dir():
             QtCore.QDir.addSearchPath(
                 "user_plugins",

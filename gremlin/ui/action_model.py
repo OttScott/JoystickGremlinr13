@@ -314,7 +314,7 @@ class ActionModel(QtCore.QObject):
         Returns:
             List of currently valid actions.
         """
-        key = ["global", "general", "action_priorities"]
+        key = ["global", "general", "action-priorities"]
         priority_list = Configuration().value(*key)
 
         action_list = PluginManager().type_action_map[
@@ -369,7 +369,7 @@ class ActionPriorityListModel(QtCore.QAbstractListModel):
     def __init__(self, parent: QtCore.QObject=...) -> None:
         super().__init__(parent)
         self._config = gremlin.config.Configuration()
-        self._cfg_key = ["global", "general", "action_priorities"]
+        self._cfg_key = ["global", "general", "action-priorities"]
 
     def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
         return len(self._config.value(*self._cfg_key))

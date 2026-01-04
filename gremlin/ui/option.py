@@ -276,7 +276,7 @@ class ActionSequenceOrdering(QtCore.QAbstractListModel, BaseMetaConfigOptionWidg
         BaseMetaConfigOptionWidget.__init__(self)
 
         self._config = gremlin.config.Configuration()
-        self._cfg_key = ["global", "general", "action_priorities"]
+        self._cfg_key = ["global", "general", "action-priorities"]
 
     def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
         return len(self._config.value(*self._cfg_key))
