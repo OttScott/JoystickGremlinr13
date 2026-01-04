@@ -4,9 +4,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Universal
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import QtQuick.Window
-import QtQuick.Dialogs
 
 import Gremlin.ActionPlugins
 import "../../qml"

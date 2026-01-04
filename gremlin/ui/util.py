@@ -44,13 +44,13 @@ class InputListenerModel(QtCore.QObject):
 
     # Signal emitted when the listening for inputs is done to let the UI
     # know the overlay can be removed and emits the recorded inputs
-    listeningTerminated = Signal(list)
+    listeningTerminated = QtCore.Signal(list)
     # Signal emitted when the listener is activated or deactivated
-    enabledChanged = Signal(bool)
+    enabledChanged = QtCore.Signal(bool)
     # Signal emitted when the accepted InputTypes change
-    eventTypesChanged = Signal()
+    eventTypesChanged = QtCore.Signal()
     # Signal emitted when multiple inputs are accepted or ignored
-    multipleInputsChanged = Signal(bool)
+    multipleInputsChanged = QtCore.Signal(bool)
 
     def __init__(self, parent: ta.OQO=None) -> None:
         super().__init__(parent)
@@ -240,27 +240,27 @@ class InputListenerModel(QtCore.QObject):
             self._inputs.append(event)
         self._maybe_terminate_listening(event)
 
-    currentInput = Property(
+    currentInput = QtCore.Property(
         str,
         fget=_get_current_inputs,
         notify=listeningTerminated
     )
 
-    enabled = Property(
+    enabled = QtCore.Property(
         bool,
         fget=_get_is_enabled,
         fset=_set_is_enabled,
         notify=enabledChanged
     )
 
-    multipleInputs = Property(
+    multipleInputs = QtCore.Property(
         bool,
         fget=_get_multiple_inputs,
         fset=_set_multiple_inputs,
         notify=multipleInputsChanged
     )
 
-    eventTypes = Property(
+    eventTypes = QtCore.Property(
         list,
         fget=_get_event_types,
         fset=_set_event_types,
