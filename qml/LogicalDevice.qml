@@ -44,7 +44,7 @@ Item {
         JGListView {
             id: _inputList
 
-            Layout.minimumWidth: 200
+            Layout.minimumWidth: 250
             Layout.fillHeight: true
             Layout.fillWidth: true
             scrollbarAlwaysVisible: true
@@ -73,7 +73,7 @@ Item {
 
             IconButton {
                 Layout.preferredHeight: _input_type.height
-                
+
                 text: bsi.icons.add
                 backgroundColor: Universal.chromeMediumColor
 

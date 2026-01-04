@@ -11,20 +11,19 @@ import Gremlin.Device
 import Gremlin.Style
 
 // Visualizes the inputs and information about their associated actions
-// contained in a Device instance
+// contained in a Device instance.
 Item {
     id: _root
 
     property Device device
     property int minimumWidth: _inputList.minimumWidth
 
-    // Sychronize input selection when the underlying device changes
+    // Sychronize input selection when the underlying device changes.
     Connections {
         target: uiState
 
-        function onDeviceChanged()
-        {
-            // Forcibly refresh the selected input
+        function onDeviceChanged() {
+            // Forcibly refresh the selected input.
             let tmp = uiState.currentInputIndex
             _inputList.currentIndex = -1
             _inputList.currentIndex = tmp
@@ -37,12 +36,12 @@ Item {
         anchors.fill: parent
         scrollbarAlwaysVisible: true
 
-        property int minimumWidth: 200
+        property int minimumWidth: 250
 
         model: device
         delegate: _deviceDelegate
 
-        onCurrentIndexChanged: {
+        onCurrentIndexChanged: () => {
             uiState.setCurrentInput(
                 device.inputIdentifier(currentIndex),
                 currentIndex
@@ -51,7 +50,7 @@ Item {
     }
 
     // Renders the information about a single input, including name and
-    // overview of the assopciated actions
+    // overview of the associated actions.
     Component {
         id: _deviceDelegate
 
@@ -77,9 +76,7 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: {
-                    _inputList.currentIndex = model.index;
-                }
+                onClicked: () => { _inputList.currentIndex = model.index }
             }
 
             Label {

@@ -393,7 +393,7 @@ ApplicationWindow {
                 id: _deviceInputList
 
                 visible: uiState.currentTab === "physical"
-                SplitView.minimumWidth: 200
+                SplitView.minimumWidth: 250
 
                 device: _deviceModel
             }
@@ -403,7 +403,7 @@ ApplicationWindow {
                 id: _logicalDeviceList
 
                 visible: uiState.currentTab === "logical"
-                SplitView.minimumWidth: 200
+                SplitView.minimumWidth: 250
 
                 // Trigger a model update on the InputConfiguration
                 onInputIdentifierChanged: () => {
