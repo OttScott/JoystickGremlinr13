@@ -9,9 +9,11 @@ import logging
 import time
 import uuid
 from typing import (
+    cast,
     Any,
     Dict,
     List,
+    Optional,
     Tuple,
     TYPE_CHECKING,
 )
@@ -41,6 +43,7 @@ from gremlin.config import Configuration
 from gremlin.error import GremlinError
 from gremlin.input_cache import DeviceDatabase
 from gremlin.logical_device import LogicalDevice
+from gremlin.signal import signal
 from gremlin.types import (
     InputType,
     PropertyType,
@@ -55,7 +58,6 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 
 @QtQml.QmlElement
-#@ta,QmlElementTyped
 class InputIdentifier(QtCore.QObject):
 
     """Stores the identifier of a single input item."""
@@ -217,19 +219,21 @@ class Device(QtCore.QAbstractListModel):
     """Model providing access to information about a single device."""
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("actionCount".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("description".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"actionCount"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"description"),
     }
 
     deviceChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
-        self._device: dill.DeviceSummary | None = None
-        self._device_mapping: Dict[str, str] | None = None
-        self._mode = "Default"
+        self._device: Optional[dill.DeviceSummary] = None
+        self._device_mapping: Optional[Dict[str, str]] = None
+        self._mode: str = "Default"
+
+        signal.profileChanged.connect(self._profile_changed_cb)
 
     @Slot(int)
     def refreshInput(self, index: int) -> None:
@@ -245,9 +249,11 @@ class Device(QtCore.QAbstractListModel):
 
     @Slot(str)
     def setMode(self, mode: str) -> None:
-        self.layoutAboutToBeChanged.emit()
         self._mode = mode
-        self.layoutChanged.emit()
+        self.dataChanged.emit(
+            self.createIndex(0, 0),
+            self.createIndex(self.rowCount()-1, 0)
+        )
 
     def _get_guid(self) -> str:
         if self._device is None:
@@ -259,15 +265,20 @@ class Device(QtCore.QAbstractListModel):
         if self._device is not None and guid == str(self._device.device_guid):
             return
 
+        self.beginResetModel()
         self._device = dill.DILL.get_device_information_by_guid(
             dill.GUID.from_str(guid)
         )
-
         self._device_mapping = DeviceDatabase().get_mapping(self._device)
+        self.endResetModel()
         self.deviceChanged.emit()
-        self.layoutChanged.emit()
 
-    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+    def _profile_changed_cb(self) -> None:
+        self.beginResetModel()
+        self.endResetModel()
+        self.deviceChanged.emit()
+
+    def rowCount(self, parent: ta.MI = QtCore.QModelIndex()) -> int:
         if self._device is None:
             return 0
 
@@ -275,22 +286,26 @@ class Device(QtCore.QAbstractListModel):
                self._device.button_count + \
                self._device.hat_count
 
-    def data(self, index: QtCore.QModelIndex, role:int=...) -> Any:
-        if role not in Device.roles:
+    def data(
+        self,
+        index: ta.ModelIndex,
+        role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        if role not in self.roles:
             return "Unknown"
 
-        role_name = Device.roles[role].data().decode()
-        match role_name:
+        match cast(str, self.roles[role]):
             case "name":
                 return self._name(self._convert_index(index.row()))
             case "actionCount":
                 input_info = self._convert_index(index.row())
-                return shared_state.current_profile.get_input_count(
+                value = shared_state.current_profile.get_input_count(
                     self._device.device_guid.uuid,
                     input_info[0],
                     input_info[1],
                     self._mode
                 )
+                return value
             case "description":
                 input_info = self._convert_index(index.row())
                 item = shared_state.current_profile.get_input_item(
@@ -342,9 +357,10 @@ class Device(QtCore.QAbstractListModel):
             return input_name
 
     def _convert_index(self, index: int) -> Tuple[InputType, int]:
+        assert self._device is not None
+
         axis_count = self._device.axis_count
         button_count = self._device.button_count
-        hat_count = self._device.hat_count
 
         if index < axis_count:
             return (
@@ -363,7 +379,7 @@ class Device(QtCore.QAbstractListModel):
             )
 
     def roleNames(self) -> Dict:
-        return Device.roles
+        return self.roles
 
     guid = Property(
         str,
