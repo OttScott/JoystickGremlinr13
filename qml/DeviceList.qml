@@ -11,9 +11,8 @@ import QtQuick.Controls.Universal
 import Gremlin.Device
 import Gremlin.Profile
 
-
-// Render all detected devices using a TabBar while also displaying the
-// Logical Device tab
+// Render buttons for all input devices and the logical device as well as the
+// scripts and profile settings tabs.
 Item {
     id: _root
 
@@ -24,9 +23,7 @@ Item {
 
         anchors.fill: parent
 
-        Component.onCompleted: {
-            currentIndex: 0
-        }
+        Component.onCompleted: { itemAt(0).clicked() }
 
         Repeater {
             id: _physicalInputs
@@ -113,6 +110,5 @@ Item {
                 text: _profileSettingsButton.text
             }
         }
-
     }
 }
