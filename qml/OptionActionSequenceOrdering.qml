@@ -115,9 +115,7 @@ Item {
 
                 text: checked ? "On" : "Off"
 
-                onToggled: () => {
-                    model.visible = checked
-                }
+                onToggled: () => { model.visible = checked }
             }
         }
 

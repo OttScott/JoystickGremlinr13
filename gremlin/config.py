@@ -2,10 +2,13 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
+from __future__ import annotations
+
 import json
 import logging
 import time
 import os
+import re
 import uuid
 
 from typing import Any, Tuple
@@ -151,6 +154,7 @@ class Configuration(metaclass=common.SingletonMetaclass):
             properties: dictionary of relevant properties
             expose: if True expose the parameter via the UI to the user
         """
+        self._validate(section, group, name)
         key = (section, group, name)
 
         # Check the data type is a known one
@@ -475,6 +479,24 @@ class Configuration(metaclass=common.SingletonMetaclass):
 
         return self._data[key][entry]
 
+    def _validate(self, section: str, group: str, name: str) -> None:
+        """Validates the provided section, group and name.
+
+        All key components must consist of only lower case characters and can
+        only contain '-' as separation character.
+
+        Args:
+            section: overall section this parameter is associated with
+            group: grouping into which the parameter belongs
+            name: name by which the new parameter will be accessed
+        """
+        if not re.match(r"^[a-z0-9-]+$", section):
+            raise error.GremlinError(f"Invalid section name '{section}'.")
+        if not re.match(r"^[a-z0-9-]+$", group):
+            raise error.GremlinError(f"Invalid group name '{group}'.")
+        if not re.match(r"^[a-z0-9-]+$", name):
+            raise error.GremlinError(f"Invalid name '{name}'.")
+
     def _should_skip_reload(self) -> bool:
         """Returns True if the last load() was less than 1 second ago.
 
@@ -486,86 +508,6 @@ class Configuration(metaclass=common.SingletonMetaclass):
         return self._last_reload is not None and \
             time.time() - self._last_reload < 1.0
 
-    # def get_executable_list(self):
-    #     """Returns a list of all executables with associated profiles.
-
-    #     :return list of executable paths
-    #     """
-    #     return list(sorted(
-    #         self._data["profiles"].keys(),
-    #         key=lambda x: x.lower())
-    #     )
-
-    # def remove_profile(self, exec_path):
-    #     """Removes the executable from the configuration.
-
-    #     :param exec_path the path to the executable to remove
-    #     """
-    #     if self._has_profile(exec_path):
-    #         del self._data["profiles"][exec_path]
-    #         self.save()
-
-    # def get_profile(self, exec_path):
-    #     """Returns the path to the profile associated with the given executable.
-
-    #     :param exec_path the path to the executable for which to
-    #         return the profile
-    #     :return profile associated with the given executable
-    #     """
-    #     return self._data["profiles"].get(exec_path, None)
-
-    # def get_profile_with_regex(self, exec_path):
-    #     """Returns the path to the profile associated with the given executable.
-
-    #     This considers all path entries that do not resolve to an actual file
-    #     in the system as a regular expression. Regular expressions will be
-    #     searched in order after true files have been checked.
-
-    #     :param exec_path the path to the executable for which to
-    #         return the profile
-    #     :return profile associated with the given executable
-    #     """
-    #     # Handle the normal case where the path matches directly
-    #     profile_path = self.get_profile(exec_path)
-    #     if profile_path is not None:
-    #         logging.getLogger("system").info(
-    #             "Found exact match for {}, returning {}".format(
-    #                 exec_path,
-    #                 profile_path
-    #             )
-    #         )
-    #         return profile_path
-
-    #     # Handle non files by treating them as regular expressions, returning
-    #     # the first successful match.
-    #     for key, value in sorted(
-    #             self._data["profiles"].items(),
-    #             key=lambda x: x[0].lower()
-    #     ):
-    #         # Ignore valid files
-    #         if os.path.exists(key):
-    #             continue
-
-    #         # Treat key as regular expression and attempt to match it to the
-    #         # provided executable path
-    #         if re.search(key, exec_path) is not None:
-    #             logging.getLogger("system").info(
-    #                 "Found regex match in {} for {}, returning {}".format(
-    #                     key,
-    #                     exec_path,
-    #                     value
-    #                 )
-    #             )
-    #             return value
-
-    # def set_profile(self, exec_path, profile_path):
-    #     """Stores the executable and profile combination.
-
-    #     :param exec_path the path to the executable
-    #     :param profile_path the path to the associated profile
-    #     """
-    #     self._data["profiles"][exec_path] = profile_path
-    #     self.save()
 
     # def set_last_mode(self, profile_path, mode_name):
     #     """Stores the last active mode of the given profile.
@@ -627,29 +569,6 @@ class Configuration(metaclass=common.SingletonMetaclass):
     #     :return list of recently used profiles
     #     """
     #     return self._data.get("recent_profiles", [])
-
-    # @property
-    # def autoload_profiles(self):
-    #     """Returns whether or not to automatically load profiles.
-
-    #     This enables / disables the process based profile autoloading.
-
-    #     :return True if auto profile loading is active, False otherwise
-    #     """
-    #     return self._data.get("autoload_profiles", False)
-
-    # @autoload_profiles.setter
-    # def autoload_profiles(self, value):
-    #     """Sets whether or not to automatically load profiles.
-
-    #     This enables / disables the process based profile autoloading.
-
-    #     :param value Flag indicating whether or not to enable / disable the
-    #         feature
-    #     """
-    #     if type(value) == bool:
-    #         self._data["autoload_profiles"] = value
-    #         self.save()
 
     # @property
     # def keep_last_autoload(self):
@@ -795,23 +714,6 @@ class Configuration(metaclass=common.SingletonMetaclass):
     #     self.save()
 
     # @property
-    # def default_action(self):
-    #     """Returns the default action to show in action drop downs.
-
-    #     :return default action to show in action selection drop downs
-    #     """
-    #     return self._data.get("default_action", "Remap")
-
-    # @default_action.setter
-    # def default_action(self, value):
-    #     """Sets the default action to show in action drop downs.
-
-    #     :param value the name of the default action to show
-    #     """
-    #     self._data["default_action"] = str(value)
-    #     self.save()
-
-    # @property
     # def macro_axis_polling_rate(self):
     #     """Returns the polling rate to use when recording axis macro actions.
 
@@ -915,3 +817,68 @@ class Configuration(metaclass=common.SingletonMetaclass):
     #     """
     #     self._data["window_location"] = value
     #     self.save()
+
+
+def get_profile(exec_path: str) -> str | None:
+    """Returns the profile path for a given executable if one exists.
+
+    Args:
+        exec_path: The path to the executable for which to return the profile.
+
+    Returns:
+        Path to the profile if one exists, None otherwise.
+    """
+    for entry in Configuration().value(
+        "profile", "automation", "entries-auto-loading"
+    ):
+        if entry[1] == exec_path and entry[2]:
+            return entry[0]
+    return None
+
+
+def get_profile_with_regex(exec_path: str) -> str | None:
+    """Returns the path to the profile associated with the given executable.
+
+    This considers all path entries that do not resolve to an actual file in
+    the system as a regular expression. Regular expressions will be searched
+    in order after true files have been checked.
+
+    Args:
+        exec_path: The path to the executable for which to return the profile.
+
+    Returns:
+        Path to the profile associated with the given executable, None otherwise.
+    """
+    # Handle the case where the path matches exactly.
+    profile_path = get_profile(exec_path)
+    if profile_path:
+        logging.getLogger("system").info(
+            f"Found exact match for {exec_path}, returning {profile_path}"
+        )
+        return profile_path
+
+    # Attempt to find a match by treating every executable path as a regular
+    # expression to match against the given exec_path.
+    for entry in sorted(
+        Configuration().value("profile", "automation", "entries-auto-loading"),
+        key=lambda x: x[1].lower()
+    ):
+        profile_path = entry[0]
+        entry_path = entry[1]
+
+        # Ignore disabled entries and ones that have a path corresponding to
+        # a valid file in the system.
+        if not entry[2] or os.path.exists(entry_path):
+            continue
+
+        # Treat the entry's executable path as a regular expression and attempt
+        # to match it to the provided executable path
+        if re.search(entry_path, exec_path) is not None:
+            logging.getLogger("system").info(
+                f"Found regex match in {entry_path} for {exec_path}, "
+                f"returning {profile_path}"
+            )
+            return profile_path
+
+        # No match was found, returning None.
+        return None

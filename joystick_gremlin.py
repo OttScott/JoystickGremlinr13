@@ -146,6 +146,26 @@ def register_config_options() -> None:
         PropertyType.Bool, False,
         "Use the dark mode UI", {}, True
     )
+    cfg.register(
+        "profile", "automation", "enable-auto-loading",
+        PropertyType.Bool, False,
+        "Enable the automatic loading and activation of profiles based on the "
+        "specified executable and profile combinations.",
+        {}, True
+    )
+    cfg.register(
+        "profile", "automation", "remain-active-on-focus-loss",
+        PropertyType.Bool, False,
+        "Keep the profile active when the monitored executable loses focus and "
+        "the newly focused executable does not have a profile assigned to it.",
+        {}, True
+    )
+    cfg.register(
+        "profile", "automation", "entries-auto-loading",
+        PropertyType.List, [],
+        "List of executable and profile combinations for automatic loading.",
+        {}, False
+    )
 
 
 def configure_loggers() -> None:

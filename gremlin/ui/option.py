@@ -65,11 +65,11 @@ class ConfigSectionModel(QtCore.QAbstractListModel):
         return self.roles
 
     def _combined_sections(self) -> list[str]:
-        def priority(name) -> int:
+        def priority(name: str) -> int:
             match name:
                 case "global":
                     return 0
-                case "actions":
+                case "action":
                     return 1
                 case _:
                     return 99
@@ -182,6 +182,7 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
 
             name = entries[index.row()]
             if role_name == "name":
+                name = re.sub(r"^[0-9]+-", "", name)
                 return re.sub(r"[_-]+", " ", name).capitalize()
             # Separate handling of config and meta option entries.
             if self._config.exists(self._section_name, self._group_name, name):
@@ -307,7 +308,7 @@ class ActionSequenceOrdering(QtCore.QAbstractListModel, BaseMetaConfigOptionWidg
             role: int=QtCore.Qt.ItemDataRole.EditRole
     ) -> bool:
         data = self._config.value(*self._cfg_key)
-        match self.roles[role]:
+        match cast(str, self.roles[role]):
             case "visible":
                 data[index.row()][1] = value
                 self._config.set(*self._cfg_key, data)
@@ -332,6 +333,93 @@ class ActionSequenceOrdering(QtCore.QAbstractListModel, BaseMetaConfigOptionWidg
     def _qml_path(self) -> str:
         return "file:///" + \
             QtCore.QFile("qml:OptionActionSequenceOrdering.qml").fileName()
+
+
+@QtQml.QmlElement
+class ProfileAutoLoadingModel(QtCore.QAbstractListModel, BaseMetaConfigOptionWidget):
+
+    roles = {
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"profile"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"executable"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"isEnabled"),
+    }
+
+    def __init__(self, parent: Optional[QtCore.QObject]=None) -> None:
+        QtCore.QAbstractListModel.__init__(self, parent)
+        BaseMetaConfigOptionWidget.__init__(self)
+
+        self._config = gremlin.config.Configuration()
+        self._cfg_key = ["profile", "automation", "entries-auto-loading"]
+
+    @Slot()
+    def newEntry(self) -> None:
+        """Creates a new empty auto-load entry."""
+        self.beginInsertRows(
+            QtCore.QModelIndex(),
+            self.rowCount(),
+            self.rowCount()
+        )
+        data = self._config.value(*self._cfg_key)
+        data.append(["", "", False])
+        self._config.set(*self._cfg_key, data)
+        self.endInsertRows()
+
+    @Slot(int)
+    def removeEntry(self, index: int) -> None:
+        self.beginRemoveRows(QtCore.QModelIndex(), index, index)
+        data = self._config.value(*self._cfg_key)
+        del data[index]
+        self._config.set(*self._cfg_key, data)
+        self.endRemoveRows()
+
+    def rowCount(self, parent: ta.ModelIndex = QtCore.QModelIndex()) -> int:
+        return len(self._config.value(*self._cfg_key))
+
+    def data(
+            self,
+            index: ta.ModelIndex,
+            role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        data = self._config.value(*self._cfg_key)[index.row()]
+        match cast(str, self.roles[role]):
+            case "profile":
+                return data[0]
+            case "executable":
+                return data[1]
+            case "isEnabled":
+                return data[2]
+            case _:
+                raise GremlinError(f"Unknown role name {role}")
+
+    def setData(
+            self,
+            index: ta.ModelIndex,
+            value: Any,
+            role: int=QtCore.Qt.ItemDataRole.EditRole
+    ) -> bool:
+        data = self._config.value(*self._cfg_key)
+        match cast(str, self.roles[role]):
+            case "profile":
+                data[index.row()][0] = value
+                self._config.set(*self._cfg_key, data)
+                return True
+            case "executable":
+                data[index.row()][1] = value
+                self._config.set(*self._cfg_key, data)
+                return True
+            case "isEnabled":
+                data[index.row()][2] = value
+                self._config.set(*self._cfg_key, data)
+                return True
+            case _:
+                return False
+
+    def roleNames(self) -> Dict[int, QtCore.QByteArray]:
+        return self.roles
+
+    def _qml_path(self) -> str:
+        return "file:///" + \
+            QtCore.QFile("qml:OptionProfileAutoLoading.qml").fileName()
 
 
 class MetaConfigOption(metaclass=SingletonMetaclass):
@@ -486,7 +574,18 @@ class MetaConfigOption(metaclass=SingletonMetaclass):
 
 
 MetaConfigOption().register(
-    "global", "general", "action list",
-    "Reorder actions as desired",
+    "global", "general", "action-list",
+    "Reorder the order in which actions appear in the drop down menu as desired "
+    "by dragging and dropping them in the list. Actions that are not desired "
+    "can be turned off via the switch next to each action.",
     ActionSequenceOrdering
+)
+
+MetaConfigOption().register(
+    "profile", "automation", "auto-loading",
+    "Automatically load profiles based on the currently active executable. "
+    "Each entry an executable and the profile to load with it. The executable "
+    "can be changed manually if needed. This also allows specifying the path "
+    "to an executable as a regular expression.",
+    ProfileAutoLoadingModel
 )

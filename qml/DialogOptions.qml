@@ -12,7 +12,7 @@ import Gremlin.Style
 import "helpers.js" as Helpers
 
 Window {
-    minimumWidth: 1000
+    minimumWidth: 1200
     minimumHeight: 600
 
     Universal.theme: Style.theme

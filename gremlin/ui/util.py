@@ -5,14 +5,29 @@
 from __future__ import annotations
 
 import threading
-from typing import Callable, List, Optional, TYPE_CHECKING
+from typing import (
+    Any,
+    List,
+    TYPE_CHECKING,
+)
 
-from PySide6 import QtCore, QtQml
-from PySide6.QtCore import Property, Signal, Slot
+from PySide6 import (
+    QtCore,
+    QtQml,
+)
 
-from gremlin import device_helpers, event_handler, keyboard, shared_state, \
-    windows_event_hook
-from gremlin.types import InputType, MouseButton
+from gremlin import (
+    device_helpers,
+    event_handler,
+    keyboard,
+    process_monitor,
+    shared_state,
+    windows_event_hook,
+)
+from gremlin.types import (
+    InputType,
+    MouseButton,
+)
 
 if TYPE_CHECKING:
     import gremlin.ui.type_aliases as ta
@@ -251,3 +266,36 @@ class InputListenerModel(QtCore.QObject):
         fset=_set_event_types,
         notify=eventTypesChanged
     )
+
+
+@QtQml.QmlElement
+class ProcessListModel(QtCore.QAbstractListModel):
+
+    """Provides a list model of all currently running processes."""
+
+    def __init__(self, parent: ta.OQO=None) -> None:
+        super().__init__(parent)
+
+        self._processes = sorted(process_monitor.list_current_processes())
+
+    @QtCore.Slot()
+    def refresh(self) -> None:
+        """Refreshes the list of running processes."""
+        self.beginResetModel()
+        self._processes = sorted(process_monitor.list_current_processes())
+        self.endResetModel()
+
+    def rowCount(self, parent: QtCore.QModelIndex=QtCore.QModelIndex()) -> int:
+        return len(self._processes)
+
+    def data(
+        self,
+        index: QtCore.QModelIndex,
+        role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        if not index.isValid():
+            return ""
+
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            return self._processes[index.row()]
+        return ""

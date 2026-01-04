@@ -9,7 +9,6 @@ import time
 import threading
 
 from PySide6 import QtCore
-
 import win32gui
 import win32process
 
@@ -32,7 +31,7 @@ class ProcessMonitor(QtCore.QObject):
     # kernel32.dll library handle
     kernel32 = ctypes.windll.kernel32
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Creates a new instance."""
         QtCore.QObject.__init__(self)
         self._buffer = ctypes.create_string_buffer(1024)
@@ -42,7 +41,7 @@ class ProcessMonitor(QtCore.QObject):
         self.running = False
         self._update_thread = None
 
-    def start(self):
+    def start(self) -> None:
         """Starts monitoring the current process."""
         if not self.running:
             self.running = True
@@ -51,13 +50,13 @@ class ProcessMonitor(QtCore.QObject):
             )
             self._update_thread.start()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops monitoring the current process."""
         self.running = False
         if self._update_thread is not None:
             self._update_thread.join()
 
-    def _update(self):
+    def _update(self) -> None:
         """Monitors the active process for changes."""
         while self.running:
             _, pid = win32process.GetWindowThreadProcessId(
@@ -89,18 +88,20 @@ class ProcessMonitor(QtCore.QObject):
             time.sleep(1.0)
 
     @property
-    def current_path(self):
+    def current_path(self) -> str:
         """Returns the path to the currently active executable.
 
-        :return path to the currently active executable
+        Returns:
+            The path to the currently active executable
         """
         return self._current_path
 
 
-def list_current_processes():
+def list_current_processes() -> list[str]:
     """Returns a list of executable paths to currently active processes.
 
-    :return list of active process executable paths
+    Returns:
+       The list of active process executable paths
     """
     from win32com.client import GetObject
     wmi = GetObject('winmgmts:')

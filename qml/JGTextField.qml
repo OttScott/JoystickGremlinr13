@@ -17,6 +17,6 @@ TextField {
         anchors.fill: parent
         border.color: _control.outlineOverride !== null ? _control.outlineOverride : (_control.activeFocus ? Style.accent : Style.lowColor)
         border.width: 1
-        color: Style.background
+        color: readOnly ? Style.lowColor : Style.background
     }
 }

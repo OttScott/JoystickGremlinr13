@@ -33,6 +33,7 @@ Pane {
             Layout.preferredWidth: 400
             Layout.minimumWidth: 400
             Layout.maximumWidth: 400
+            Layout.rightMargin: 10
 
             Label {
                 Layout.fillWidth: true
@@ -48,7 +49,7 @@ Pane {
 
                 text: root.explanation
 
-                horizontalAlignment: Text.AlignJustify
+                // horizontalAlignment: Text.AlignJustify
                 wrapMode: Text.WordWrap
             }
         }

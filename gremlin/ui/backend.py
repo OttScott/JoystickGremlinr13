@@ -34,6 +34,7 @@ from gremlin import (
     error,
     event_handler,
     mode_manager,
+    process_monitor,
     profile,
     shared_state,
 )
@@ -198,6 +199,8 @@ class Backend(QtCore.QObject):
         self._action_state = {}
         self.runner = code_runner.CodeRunner()
         self.ui_state = UIState(self)
+        self.process_monitor = process_monitor.ProcessMonitor()
+        self.process_monitor.start()
 
         # Hookup various mode change related callbacks
         mm = mode_manager.ModeManager()
@@ -207,6 +210,9 @@ class Backend(QtCore.QObject):
             lambda: self.ui_state.setCurrentMode(mm.current.name)
         )
         self.profileChanged.connect(self._profile_change_handler)
+        self.process_monitor.process_changed.connect(
+            self._active_process_changed_cb
+        )
 
         event_handler.EventHandler().is_active.connect(
             lambda: self.activityChanged.emit()
@@ -244,6 +250,31 @@ class Backend(QtCore.QObject):
         """Emits the signal required for property changes to propagate."""
         self.propertyChanged.emit()
 
+    def _active_process_changed_cb(self, path: str) -> None:
+        """Handles changes to the active process.
+
+        If the profile auto-loading option is disabled nothing is done.
+        Otherwise the profile associated with the newly active process is
+        loaded and then activated. Should
+        """
+        cfg = config.Configuration()
+        if not cfg.value( "profile", "automation", "enable-auto-loading"):
+            return
+
+        profile_path = config.get_profile_with_regex(path)
+        # Foudn a valid profile to load.
+        if profile_path:
+            if self.profile.fpath != profile_path:
+                self.activate_gremlin(False)
+                self.loadProfile(profile_path)
+            self.activate_gremlin(True)
+        # No valid profile specified for the new execuable.
+        else:
+            if not cfg.value(
+                "profile", "automation", "remain-active-on-focus-loss"
+            ):
+                self.activate_gremlin(False)
+
     @Property(UIState, notify=uiChanged)
     def uiState(self) -> UIState:
         return self.ui_state
@@ -271,7 +302,7 @@ class Backend(QtCore.QObject):
         """Toggles Gremlin between active and inactive."""
         self.activate_gremlin(not self.runner.is_running())
 
-    def activate_gremlin(self, activate: bool):
+    def activate_gremlin(self, activate: bool) -> None:
         """Sets the activity state of Gremlin.
 
         Args:
