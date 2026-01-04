@@ -34,6 +34,7 @@ import gremlin.profile
 from gremlin import (
     common,
     device_initialization,
+    event_handler,
     shared_state,
     tree,
 )
@@ -1007,8 +1008,8 @@ class VJoyInputOrOutputModel(QtCore.QAbstractListModel):
     device."""
 
     roles = {
-        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray("vid".encode()),
-        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray("isOutput".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"vid"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"isInput"),
     }
 
     def __init__(self, parent: ta.OQO=None) -> None:
@@ -1037,12 +1038,12 @@ class VJoyInputOrOutputModel(QtCore.QAbstractListModel):
         if not index.isValid() or index.row() >= len(self._vjoy_devices):
             return None
 
-        match self.roles[role]:
+        match cast(str, self.roles[role]):
             case "vid":
                 return self._vjoy_devices[index.row()].vjoy_id
-            case "isOutput":
+            case "isInput":
                 vid = self._vjoy_devices[index.row()].vjoy_id
-                return not self._profile.settings.vjoy_as_input.get(vid, False)
+                return self._profile.settings.vjoy_as_input.get(vid, False)
             case _:
                 return None
 
@@ -1053,11 +1054,12 @@ class VJoyInputOrOutputModel(QtCore.QAbstractListModel):
             value: Any,
             role: int=QtCore.Qt.ItemDataRole.EditRole
     ) -> bool:
-        match self.roles[role]:
-            case "isOutput":
+        match cast(str, self.roles[role]):
+            case "isInput":
                 vid = self._vjoy_devices[index.row()].vjoy_id
-                self._profile.settings.vjoy_as_input[vid] = not bool(value)
+                self._profile.settings.vjoy_as_input[vid] = bool(value)
                 signal.profileChanged.emit()
+                event_handler.EventListener().device_change_event.emit()
                 return True
             case _:
                 return False
@@ -1073,8 +1075,8 @@ class OutputVJoyListModel(QtCore.QAbstractListModel):
     """Model representing the initial vJoy values of the current profile."""
 
     roles = {
-        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray("vjoyId".encode()),
-        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray("initialValuesModel".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"vjoyId"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"initialValuesModel"),
     }
 
     def __init__(self, parent: ta.OQO=None) -> None:
@@ -1103,7 +1105,7 @@ class OutputVJoyListModel(QtCore.QAbstractListModel):
         if not index.isValid() or index.row() >= len(self._vjoy_devices):
             return None
 
-        match self.roles[role]:
+        match cast(str, self.roles[role]):
             case "vjoyId":
                 return self._vjoy_devices[index.row()].vjoy_id
             case "initialValuesModel":

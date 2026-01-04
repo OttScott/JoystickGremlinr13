@@ -110,15 +110,15 @@ class DeviceListModel(QtCore.QAbstractListModel):
     selectedIndexChanged = QtCore.Signal()
 
     roles = {
-        QtCore.Qt.UserRole + 1: QtCore.QByteArray("name".encode()),
-        QtCore.Qt.UserRole + 2: QtCore.QByteArray("axes".encode()),
-        QtCore.Qt.UserRole + 3: QtCore.QByteArray("buttons".encode()),
-        QtCore.Qt.UserRole + 4: QtCore.QByteArray("hats".encode()),
-        QtCore.Qt.UserRole + 5: QtCore.QByteArray("pid".encode()),
-        QtCore.Qt.UserRole + 6: QtCore.QByteArray("vid".encode()),
-        QtCore.Qt.UserRole + 7: QtCore.QByteArray("guid".encode()),
-        QtCore.Qt.UserRole + 8: QtCore.QByteArray("joy_id".encode()),
-        QtCore.Qt.UserRole + 9: QtCore.QByteArray("vjoy_id".encode()),
+        QtCore.Qt.ItemDataRole.UserRole + 1: QtCore.QByteArray(b"name"),
+        QtCore.Qt.ItemDataRole.UserRole + 2: QtCore.QByteArray(b"axes"),
+        QtCore.Qt.ItemDataRole.UserRole + 3: QtCore.QByteArray(b"buttons"),
+        QtCore.Qt.ItemDataRole.UserRole + 4: QtCore.QByteArray(b"hats"),
+        QtCore.Qt.ItemDataRole.UserRole + 5: QtCore.QByteArray(b"pid"),
+        QtCore.Qt.ItemDataRole.UserRole + 6: QtCore.QByteArray(b"vid"),
+        QtCore.Qt.ItemDataRole.UserRole + 7: QtCore.QByteArray(b"guid"),
+        QtCore.Qt.ItemDataRole.UserRole + 8: QtCore.QByteArray(b"joy_id"),
+        QtCore.Qt.ItemDataRole.UserRole + 9: QtCore.QByteArray(b"vjoy_id"),
     }
 
     role_query = {
@@ -133,38 +133,41 @@ class DeviceListModel(QtCore.QAbstractListModel):
         "vjoy_id": lambda dev: dev.vjoy_id,
     }
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
+
         self._selected_index = -1
-        self._devices = device_initialization.physical_devices()
+        self._devices = device_initialization.input_devices()
 
         event_handler.EventListener().device_change_event.connect(
             self.update_model
         )
+        signal.profileChanged.connect(self.update_model)
 
     def update_model(self) -> None:
         """Updates the model if the connected devices change."""
-        old_count = len(self._devices)
-        self._devices = device_initialization.physical_devices()
-        new_count = len(self._devices)
+        self.beginResetModel()
+        self._devices = device_initialization.input_devices()
+        self.endResetModel()
 
-        # Ensure the entire model is refreshed
-        self.modelReset.emit()
-
-    def rowCount(self, parent:QtCore.QModelIndex=...) -> int:
+    def rowCount(self, parent: ta.MI = QtCore.QModelIndex()) -> int:
         return len(self._devices)
 
-    def data(self, index: QtCore.QModelIndex, role: int=...) -> Any:
-        if role in DeviceListModel.roles:
-            role_name = DeviceListModel.roles[role].data().decode()
-            return DeviceListModel.role_query[role_name](
+    def data(
+        self,
+        index: ta.ModelIndex,
+        role: int=QtCore.Qt.ItemDataRole.DisplayRole
+    ) -> Any:
+        if role in self.roles:
+            role_name = self.roles[role].data().decode()
+            return self.role_query[role_name](
                 self._devices[index.row()]
             )
         else:
             return "Unknown"
 
     def roleNames(self) -> Dict:
-        return DeviceListModel.roles
+        return self.roles
 
     @Slot(int, result=str)
     def uuidAtIndex(self, index: int) -> str:
@@ -181,29 +184,29 @@ class DeviceListModel(QtCore.QAbstractListModel):
         Valid options are:
         - physical
         - virtual
+        - input (physical + input vJoy devices)
         - all
 
         Args:
             types: the type of devices to list
         """
+        self.beginResetModel()
         if types == "physical":
             self._devices = device_initialization.physical_devices()
         elif types == "virtual":
             self._devices = device_initialization.vjoy_devices()
+        elif types == "input":
+            self._devices = device_initialization.input_devices()
         elif types == "all":
             self._devices = device_initialization.joystick_devices()
-
-        # Remove everything and then add it back to force a model update
-        new_count = len(self._devices)
-        self.rowsRemoved.emit(self.parent(), 0, new_count)
-        self.rowsInserted.emit(self.parent(), 0, new_count)
+        self.endResetModel()
 
     @QtCore.Property(int, notify=selectedIndexChanged)
-    def selectedIndex(self):
+    def selectedIndex(self) -> int:
         return self._selected_index
 
     @selectedIndex.setter
-    def selectedIndex(self, index):
+    def selectedIndex(self, index: int) -> None:
         if 0 <= index < len(self._devices) and index != self._selected_index:
             self._selected_index = index
 
@@ -702,15 +705,15 @@ class VJoyDevices(QtCore.QObject):
     inputIndexChanged = Signal()
     inputTypeChanged = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: ta.OQO = None) -> None:
         super().__init__(parent)
 
         self._devices = sorted(
-            device_initialization.vjoy_devices(),
+            device_initialization.output_vjoy_devices(),
             key=lambda x: x.vjoy_id
         )
 
-        # Information used to determine what to show in the UI
+        # Information used to determine what to show in the UI.
         self._valid_types = [
             InputType.JoystickAxis,
             InputType.JoystickButton,
@@ -720,16 +723,25 @@ class VJoyDevices(QtCore.QObject):
         self._input_data = []
 
         # Model state information to allow translation between UI index
-        # values and model ids
+        # values and model ids.
         self._current_vjoy_index = 0
-        # Force a refresh of internal state
+        # Force a refresh of internal state.
         self.inputModel
         self._current_input_index = 0
         self._current_input_type = self._input_data[0][0]
 
         self._is_initialized = False
 
-    def _device_name(self, device) -> str:
+        event_handler.EventListener().device_change_event.connect(
+            self.update_model
+        )
+        signal.profileChanged.connect(self.update_model)
+
+    def update_model(self) -> None:
+        """Updates the model if the connected devices change."""
+        self._devices = device_initialization.output_vjoy_devices()
+
+    def _device_name(self, device: dill.DeviceSummary) -> str:
         return "vJoy Device {:d}".format(device.vjoy_id)
 
     def _is_state_valid(self) -> bool:
@@ -751,7 +763,7 @@ class VJoyDevices(QtCore.QObject):
             input_id: id of the input item
             input_type: type of input being selected by the input_id
         """
-        # Find vjoy_index corresponding to the provided id
+        # Find vjoy_index corresponding to the provided id.
         vjoy_index = -1
         for i, dev in enumerate(self._devices):
             if dev.vjoy_id == vjoy_id:
@@ -761,7 +773,7 @@ class VJoyDevices(QtCore.QObject):
         if vjoy_index == -1:
             raise GremlinError(f"Could not find vJoy device with id {vjoy_id}")
 
-        # Find the index corresponding to the provided input_type and input_id
+        # Find the index corresponding to the provided input_type and input_id.
         input_label = common.input_to_ui_string(
             InputType.to_enum(input_type),
             input_id
@@ -775,11 +787,11 @@ class VJoyDevices(QtCore.QObject):
             self._set_input_index(0)
 
     @Property(type="QVariantList", notify=deviceModelChanged)
-    def deviceModel(self):
+    def deviceModel(self) -> list[str]:
         return [self._device_name(dev) for dev in self._devices]
 
     @Property(type="QVariantList", notify=inputModelChanged)
-    def inputModel(self):
+    def inputModel(self) -> list[str]:
         input_count = {
             InputType.JoystickAxis: lambda x: x.axis_count,
             InputType.JoystickButton: lambda x: x.button_count,
@@ -789,7 +801,7 @@ class VJoyDevices(QtCore.QObject):
         self._input_items = []
         self._input_data = []
         device = self._devices[self._current_vjoy_index]
-        # Add items based on the input type
+        # Add items based on the input type.
         for input_type in self._valid_types:
             for i in range(input_count[input_type](device)):
                 input_id = i+1
@@ -819,7 +831,7 @@ class VJoyDevices(QtCore.QObject):
             old_vjoy_id = self._get_vjoy_id()
             old_input_type = self._get_input_type()
 
-            # Refresh the UI elements
+            # Refresh the UI elements.
             self.inputModel
 
             input_label = common.input_to_ui_string(

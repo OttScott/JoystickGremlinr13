@@ -123,11 +123,17 @@ Item {
 
                         model: VJoyInputOrOutputModel {}
 
-                        delegate: Switch {
-                            text: `vJoy ${vid} as output`
+                        delegate: RowLayout {
+                            Label {
+                                text: `vJoy ${vid} is`
+                                Layout.preferredWidth: 75
+                            }
+                            Switch {
+                                text: checked ? "Input" : "Output"
 
-                            checked: isOutput
-                            onToggled: () => { isOutput = checked }
+                                checked: isInput
+                                onToggled: () => { isInput = checked }
+                            }
                         }
                     }
 

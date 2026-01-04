@@ -20,14 +20,12 @@ Item {
     implicitWidth: _content.implicitWidth
 
     // React to the validTypes value being changed from an external source
-    onValidTypesChanged: () => {
-        _vjoy.validTypes = validTypes
-    }
+    onValidTypesChanged: () => { _vjoy.validTypes = validTypes }
 
     VJoyDevices {
         id: _vjoy
 
-        Component.onCompleted: {
+        Component.onCompleted: () => {
             validTypes = _root.validTypes
             setSelection(
                 _root.vjoyDeviceId,
@@ -36,10 +34,8 @@ Item {
             )
         }
 
-        onVjoyIndexChanged: {
-            _root.vjoyDeviceId = _vjoy.vjoyId
-        }
-        onInputIndexChanged: {
+        onVjoyIndexChanged: () => { _root.vjoyDeviceId = _vjoy.vjoyId }
+        onInputIndexChanged: () => {
             _root.vjoyInputId = _vjoy.inputId
             _root.vjoyInputType = _vjoy.inputType
         }
@@ -61,10 +57,7 @@ Item {
             model: _vjoy.deviceModel
             currentIndex: _vjoy.vjoyIndex
 
-            onActivated: function(index)
-            {
-                _vjoy.vjoyIndex = index;
-            }
+            onActivated: (index) => { _vjoy.vjoyIndex = index }
         }
 
         BetterComboBox {
@@ -76,10 +69,7 @@ Item {
             model: _vjoy.inputModel
             currentIndex: _vjoy.inputIndex
 
-            onActivated: function(index)
-            {
-                _vjoy.inputIndex = index
-            }
+            onActivated: (index) =>  { _vjoy.inputIndex = index }
         }
     }
 }

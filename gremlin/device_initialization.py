@@ -8,7 +8,11 @@ import threading
 import uuid
 
 import dill
-from gremlin import error, util
+from gremlin import (
+    error,
+    shared_state,
+    util,
+)
 from vjoy.vjoy import VJoyProxy
 from vjoy import vjoy
 
@@ -184,6 +188,38 @@ def physical_devices() -> list[dill.DeviceSummary]:
     """
     return [dev for dev in _joystick_devices.values() if not dev.is_virtual]
 
+
+def input_devices() -> list[dill.DeviceSummary]:
+    """Returns the list of input devices, that is physical and vJoy devices
+    that are marked as inputs.
+
+    Returns:
+        List of input devices
+    """
+    vjoy_as_input = {}
+    if shared_state.current_profile:
+        vjoy_as_input = shared_state.current_profile.settings.vjoy_as_input
+
+    return [
+        dev for dev in _joystick_devices.values()
+        if not dev.is_virtual or vjoy_as_input.get(dev.vjoy_id, False)
+    ]
+
+
+def output_vjoy_devices() -> list[dill.DeviceSummary]:
+    """Returns the list of vJoy devices that can be used as outputs.
+
+    Returns:
+        List of output vJoy devices
+    """
+    vjoy_as_input = {}
+    if shared_state.current_profile:
+        vjoy_as_input = shared_state.current_profile.settings.vjoy_as_input
+
+    return [
+        dev for dev in vjoy_devices()
+        if not vjoy_as_input.get(dev.vjoy_id, False)
+    ]
 
 def device_for_uuid(device_uuid: uuid.UUID) -> dill.DeviceSummary:
     return _joystick_devices[device_uuid]
