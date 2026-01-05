@@ -27,6 +27,7 @@ from PySide6.QtCore import (
 import dill
 
 from gremlin import (
+    audio_player,
     code_runner,
     common,
     config,
@@ -249,6 +250,11 @@ class Backend(QtCore.QObject):
     def _emit_change(self) -> None:
         """Emits the signal required for property changes to propagate."""
         self.propertyChanged.emit()
+
+    @Slot()
+    def emitConfigChanged(self) -> None:
+        signal.configChanged.emit()
+        audio_player.AudioPlayer().refresh()
 
     def _active_process_changed_cb(self, path: str) -> None:
         """Handles changes to the active process.

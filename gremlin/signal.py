@@ -23,5 +23,7 @@ class Signal(QtCore.QObject):
 
     logicalDeviceModified = Signal()
 
+    configChanged = Signal()
+
 
 signal = Signal()

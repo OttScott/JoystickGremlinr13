@@ -20,6 +20,10 @@ Window {
 
     title: "Options"
 
+    onClosing: () => {
+        backend.emitConfigChanged()
+    }
+
     ConfigSectionModel {
         id: _sectionModel
     }

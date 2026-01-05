@@ -44,6 +44,7 @@ import gremlin.util
 sys.path.insert(0, gremlin.util.userprofile_path())
 gremlin.util.setup_userprofile()
 
+import gremlin.audio_player
 import gremlin.config
 import gremlin.error
 import gremlin.device_initialization
@@ -102,10 +103,12 @@ def shutdown_cleanup() -> None:
     # Terminate profile runner.
     backend = gremlin.ui.backend.Backend()
     backend.runner.stop()
+    backend.process_monitor.stop()
 
     # Relinquish control over all VJoy devices used.
     vjoy.vjoy.VJoyProxy.reset()
 
+    gremlin.audio_player.AudioPlayer().stop()
 
 def register_config_options() -> None:
     cfg = gremlin.config.Configuration()

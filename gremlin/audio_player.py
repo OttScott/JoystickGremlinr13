@@ -2,74 +2,158 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from PySide6 import QtCore
-from PySide6.QtCore import QUrl
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+import array
+import miniaudio
+import threading
+import time
+from typing import (
+    Generator,
+    Optional,
+    Union,
+)
 
-from gremlin.common import SingletonDecorator
+from gremlin.common import SingletonMetaclass
 from gremlin.config import Configuration
 from gremlin.util import clamp
 
 
-class PlayListItem:
+class AudioSample:
+
+    """Represents a single audiot sample to be played.
+
+    Generates the audio samples from the given audio file while also exposing
+    controls over the playback.
+
+    TODO: An instance cannot be reused after playback has completed. This is
+        fine for the play audio action, but may be limiting for other uses.
+    """
+
+    Generator_T = Generator[Union[bytes, array.array[int]], int, None]
 
     def __init__(self, sound_file: str, play_volume: int) -> None:
-        self.sound_file = sound_file
-        self.play_volume = play_volume
+        """Creates an AudioSample instance.
+
+        Args:
+            sound_file: The path to the audio file to be played.
+            play_volume: The volume of the playback, the value is in the range
+                [0, 100] with 0 being mute and 100 maximum.
+        """
+        decoded = miniaudio.decode_file(sound_file)
+        volume_factor = clamp(play_volume / 100.0, 0.0, 1.0)
+        samples = array.array(
+            "h",
+            [int(sample * volume_factor) for sample in decoded.samples]
+        )
+
+        self.stream = miniaudio.stream_raw_pcm_memory(
+            samples,
+            decoded.nchannels,
+            decoded.sample_width
+        )
+        self.device = miniaudio.PlaybackDevice(
+            sample_rate=decoded.sample_rate,
+            nchannels=decoded.nchannels,
+            output_format=decoded.sample_format
+        )
+        self._playback_done_event = threading.Event()
+        self._generator: Optional[AudioSample.Generator_T] = None
+
+    def block(self) -> None:
+        """Blocks the calling thread until playback is complete."""
+        self._playback_done_event.wait()
+
+    def cancel(self) -> None:
+        """Stops the playback immediately."""
+        if self._generator:
+            self._generator.close()
+
+    def play(self) -> None:
+        """Starts playing the audio file.
+
+        Sets up the generator and notification events to control and manage
+        playback.
+        """
+        self._playback_done_event.clear()
+        def sample_generator() -> AudioSample.Generator_T:
+            try:
+                yield from self.stream
+            finally:
+                self._playback_done_event.set()
+                self.device.close()
+
+        # Create generator and initialize it such that the .send() method works.
+        self._generator = sample_generator()
+        next(self._generator)
+        self.device.start(self._generator)
 
 
-@SingletonDecorator
-class AudioPlayer(QtCore.QObject):
+class AudioPlayer(metaclass=SingletonMetaclass):
 
     """Manages the playing of audio files."""
 
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
+    def __init__(self) -> None:
+        self._play_list: list[AudioSample] = []
+        self._currently_playing: list[AudioSample] = []
+        self._playback_mode = Configuration().value(
+            "action", "play-sound", "playback-mode"
+        )
 
-        self.play_list: list[PlayListItem] = []
-        self.player_output = QAudioOutput()
+        self._is_ready = True
+        self._playback_thread = threading.Thread(target=self._playback)
+        self._playback_thread.start()
 
-        self.player = QMediaPlayer()
-        self.player.mediaStatusChanged.connect(self._media_status_changed)
-        self.player.setAudioOutput(self.player_output)
+    def refresh(self) -> None:
+        """Refreshes the configuration by reading the playback-mode value."""
+        self._playback_mode = Configuration().value(
+            "action", "play-sound", "playback-mode"
+        )
 
-    def play(self, sound_filename: str, volume: int) -> None:
-        """Plays the given sound with the specified volume.
+    def start(self) -> None:
+        """Starts the audio playback thread if it is not already running."""
+        if not self._is_ready:
+            self._playback_thread = threading.Thread(target=self._playback)
+            self._playback_thread.start()
+
+    def stop(self) -> None:
+        """Stops the audio playback thread."""
+        self._is_ready = False
+        self._play_list = []
+        [s.cancel() for s in self._currently_playing]
+        self._playback_thread.join()
+
+    def enqueue(self, file_name: str, volume: int) -> None:
+        """Queues the given sound with the specified volume to be played.
+
+        The sound will be played according to the current playback mode.
 
         Args:
             sound_filename: The filename of the sound file to play.
             volume: The volume of the playback, the value is in the range
                 [0, 100] with 0 being mute and 100 maximum
         """
-        sequential_play = Configuration().value(
-            "action", "play-sound", "sequential-play"
-        )
-        is_playing = self.player.playbackState() != QMediaPlayer.StoppedState
-        if sequential_play and is_playing:
-            self.play_list.append(PlayListItem(sound_filename, volume))
-            return
-        else:
-            self.play_list.clear()
+        self._play_list.append(AudioSample(file_name, volume))
 
-        self._play(sound_filename, int(clamp(volume, 0.0, 100.0)))
-
-    def stop(self) -> None:
-        if self.player.playbackState() != QMediaPlayer.PlaybackState.StoppedState:
-            self.player.stop()
-
-    def _play(self, sound_filename: str, volume: int) -> None:
-        self.player.setSource(QUrl.fromLocalFile(sound_filename))
-        self.player_output.setVolume(volume / 100.0)
-        self.player.play()
-
-    def _media_status_changed(self, status: QMediaPlayer.MediaStatus) -> None:
-        if status != QMediaPlayer.MediaStatus.EndOfMedia:
-            return
-
-        sequential_play = Configuration().value(
-            "action", "play-sound", "sequential-play"
-        )
-
-        if len(self.play_list) > 0 and sequential_play:
-            playlist_item = self.play_list.pop()
-            self._play(playlist_item.sound_file, playlist_item.play_volume)
+    def _playback(self) -> None:
+        """Background thread which ensures audio is played."""
+        self._is_ready = True
+        while self._is_ready:
+            match self._playback_mode:
+                case "Sequential":
+                    if self._play_list:
+                        sample = self._play_list.pop(0)
+                        sample.play()
+                        self._currently_playing.append(sample)
+                        sample.block()
+                case "Overlap":
+                    if self._play_list:
+                        sample = self._play_list.pop(0)
+                        self._currently_playing.append(sample)
+                        sample.play()
+                case "Interrupt":
+                    if self._play_list:
+                        while self._currently_playing:
+                            self._currently_playing.pop(0).cancel()
+                        sample = self._play_list.pop(0)
+                        sample.play()
+                        self._currently_playing.append(sample)
+            time.sleep(0.01)

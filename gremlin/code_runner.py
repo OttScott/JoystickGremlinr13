@@ -388,6 +388,7 @@ class CodeRunner:
 
             user_script.periodic_registry.start()
             macro.MacroManager().start()
+            audio_player.AudioPlayer().start()
 
             mode_manager.ModeManager().switch_to(
                 mode_manager.Mode(start_mode, "global")

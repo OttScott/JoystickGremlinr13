@@ -4,24 +4,38 @@
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING, override
+from typing import (
+    override,
+    List,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal
 
-from gremlin import event_handler, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
-
-from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, PropertyType
-
-from gremlin.ui.action_model import SequenceIndex, ActionModel
-from gremlin.error import GremlinError
+from gremlin import (
+    event_handler,
+    util,
+)
 from gremlin.audio_player import AudioPlayer
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.config import Configuration
-from gremlin.util import file_exists_and_is_accessible
+from gremlin.error import GremlinError
+from gremlin.profile import Library
+from gremlin.types import (
+    ActionProperty,
+    InputType,
+    PropertyType,
+)
+
+from gremlin.ui.action_model import (
+    SequenceIndex,
+    ActionModel,
+)
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
@@ -31,27 +45,26 @@ class PlaySoundFunctor(AbstractFunctor):
 
     """Executes a Play Sound action callback."""
 
-    def __init__(self, action: PlaySoundData):
+    def __init__(self, action: PlaySoundData) -> None:
         super().__init__(action)
 
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty]=[]
+            properties: List[ActionProperty]=[]
     ) -> None:
         if not self._should_execute(value):
             return
 
-        audio_player = AudioPlayer()
-        audio_player.play(self.data.sound_filename, self.data.sound_volume)
+        AudioPlayer().enqueue(self.data.sound_filename, self.data.sound_volume)
 
 
 class PlaySoundModel(ActionModel):
 
-    soundFilenameChanged = Signal()
-    soundVolumeChanged = Signal()
+    soundFilenameChanged = QtCore.Signal()
+    soundVolumeChanged = QtCore.Signal()
 
     def __init__(
             self,
@@ -60,7 +73,7 @@ class PlaySoundModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -89,14 +102,14 @@ class PlaySoundModel(ActionModel):
             self._data.sound_volume = value
             self.soundVolumeChanged.emit()
 
-    soundFilename = Property(
+    soundFilename = QtCore.Property(
         str,
         fget=_get_sound_filename,
         fset=_set_sound_filename,
         notify=soundFilenameChanged
     )
 
-    soundVolume = Property(
+    soundVolume = QtCore.Property(
         int,
         fget=_get_sound_volume,
         fset=_set_sound_volume,
@@ -116,18 +129,18 @@ class PlaySoundData(AbstractActionData):
     functor = PlaySoundFunctor
     model = PlaySoundModel
 
-    properties = [
+    properties = (
         ActionProperty.ActivateOnPress,
-    ]
-    input_types = [
+    )
+    input_types = (
         InputType.JoystickButton,
-        InputType.Keyboard
-    ]
+        InputType.Keyboard,
+    )
 
     def __init__(
             self,
             behavior_type: InputType = InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         # Model variables
@@ -164,14 +177,14 @@ class PlaySoundData(AbstractActionData):
 
     @override
     def is_valid(self) -> bool:
-        return file_exists_and_is_accessible(self.sound_filename)
+        return util.file_exists_and_is_accessible(self.sound_filename)
 
     @override
-    def _valid_selectors(self) -> List[str]:
+    def _valid_selectors(self) -> list[str]:
         return []
 
     @override
-    def _get_container(self, selector: str) -> List[AbstractActionData]:
+    def _get_container(self, selector: str) -> list[AbstractActionData]:
         raise GremlinError(f"{self.name}: has no containers")
 
     @override
@@ -188,14 +201,12 @@ create = PlaySoundData
 Configuration().register(
     "action",
     "play-sound",
-    "sequential-play",
-    PropertyType.Bool,
-    False,
-    "When playing sound files wait for the previous sound to finish (On) or " \
-        "cancel the current playback when a new sound wants to play (Off).",
-    {
-        "off": False,
-        "on": True
-    },
+    "playback-mode",
+    PropertyType.Selection,
+    "Sequential",
+    "When playing sound files wait for the previous sound to finish "
+    "(Sequential) or interrupt current playback (Interrupt), or play sounds "
+    "in parallel (Overlap).",
+    {"valid_options": ["Sequential", "Interrupt", "Overlap"]},
     True
 )
