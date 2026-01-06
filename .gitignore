@@ -12,7 +12,7 @@ __pycache__
 .vscode
 
 # Logfiles
-debug.txt
+dill_debug.log
 
 # Development folders
 /build
