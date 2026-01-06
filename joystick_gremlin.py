@@ -299,22 +299,21 @@ class JoystickGremlinApp(QtWidgets.QApplication):
             "qt.qml.binding.removal.info=true"
         )
 
-        # Initialize QT components
-        #QtWebEngine.QtWebEngine.initialize()
-
         # Prevent blurry fonts that Qt seems to like
-        QtQuick.QQuickWindow.setTextRenderType(
-            QtQuick.QQuickWindow.NativeTextRendering
-        )
+        # QtQuick.QQuickWindow.setTextRenderType(
+        #     QtQuick.QQuickWindow.NativeTextRendering
+        # )
         # Use software rendering to prevent flickering on variable refresh rate
         # displays.
         # QtQuick.QQuickWindow.setSceneGraphBackend("software")
-        QtQuick.QQuickWindow.setGraphicsApi(QtQuick.QSGRendererInterface.OpenGL)
+        # QtQuick.QQuickWindow.setGraphicsApi(QtQuick.QSGRendererInterface.OpenGL)
 
         # Set application information.
         app_id = u"joystick.gremlin"
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
-        self.setWindowIcon(QtGui.QIcon("gfx/icon.png"))
+        self.setWindowIcon(
+            QtGui.QIcon(gremlin.util.resource_path("gfx/icon.png"))
+        )
         self.setApplicationDisplayName("Joystick Gremlin")
         self.setOrganizationName("H2IK")
         self.setOrganizationDomain(
