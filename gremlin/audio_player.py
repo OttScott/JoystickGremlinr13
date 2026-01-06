@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 import array
-import miniaudio
+import logging
 import threading
 import time
 from typing import (
@@ -11,6 +11,8 @@ from typing import (
     Optional,
     Union,
 )
+
+import miniaudio
 
 from gremlin.common import SingletonMetaclass
 from gremlin.config import Configuration
@@ -64,8 +66,13 @@ class AudioSample:
 
     def cancel(self) -> None:
         """Stops the playback immediately."""
-        if self._generator:
-            self._generator.close()
+        if not self._playback_done_event.is_set() and self._generator:
+            try:
+                self._generator.close()
+            except ValueError:
+                logging.getLogger("system").debug(
+                    "Audio playback generator already running error raised."
+                )
 
     def play(self) -> None:
         """Starts playing the audio file.
@@ -141,8 +148,8 @@ class AudioPlayer(metaclass=SingletonMetaclass):
                 case "Sequential":
                     if self._play_list:
                         sample = self._play_list.pop(0)
-                        sample.play()
                         self._currently_playing.append(sample)
+                        sample.play()
                         sample.block()
                 case "Overlap":
                     if self._play_list:
@@ -154,6 +161,6 @@ class AudioPlayer(metaclass=SingletonMetaclass):
                         while self._currently_playing:
                             self._currently_playing.pop(0).cancel()
                         sample = self._play_list.pop(0)
-                        sample.play()
                         self._currently_playing.append(sample)
+                        sample.play()
             time.sleep(0.01)

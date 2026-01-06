@@ -424,12 +424,10 @@ class CodeRunner:
 
         macro.MacroManager().stop()
         sendinput.MouseController().stop()
+        audio_player.AudioPlayer().stop()
 
         # Remove all claims on VJoy devices
         VJoyProxy.reset()
-
-        # Remove other possibly long-running aspects
-        audio_player.AudioPlayer().stop()
 
     def _reset_state(self) -> None:
         """Resets all states to their default values."""
