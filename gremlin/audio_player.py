@@ -164,3 +164,17 @@ class AudioPlayer(metaclass=SingletonMetaclass):
                         self._currently_playing.append(sample)
                         sample.play()
             time.sleep(0.01)
+
+
+Configuration().register(
+    "action",
+    "play-sound",
+    "playback-mode",
+    PropertyType.Selection,
+    "Sequential",
+    "When playing sound files wait for the previous sound to finish "
+    "(Sequential) or interrupt current playback (Interrupt), or play sounds "
+    "in parallel (Overlap).",
+    {"valid_options": ["Sequential", "Interrupt", "Overlap"]},
+    True
+)
