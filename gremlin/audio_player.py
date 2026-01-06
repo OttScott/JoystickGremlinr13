@@ -16,6 +16,7 @@ import miniaudio
 
 from gremlin.common import SingletonMetaclass
 from gremlin.config import Configuration
+from gremlin.types import PropertyType
 from gremlin.util import clamp
 
 
@@ -105,9 +106,8 @@ class AudioPlayer(metaclass=SingletonMetaclass):
             "action", "play-sound", "playback-mode"
         )
 
-        self._is_ready = True
+        self._is_ready = False
         self._playback_thread = threading.Thread(target=self._playback)
-        self._playback_thread.start()
 
     def refresh(self) -> None:
         """Refreshes the configuration by reading the playback-mode value."""
@@ -126,7 +126,8 @@ class AudioPlayer(metaclass=SingletonMetaclass):
         self._is_ready = False
         self._play_list = []
         [s.cancel() for s in self._currently_playing]
-        self._playback_thread.join()
+        if self._playback_thread.is_alive():
+            self._playback_thread.join()
 
     def enqueue(self, file_name: str, volume: int) -> None:
         """Queues the given sound with the specified volume to be played.

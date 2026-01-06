@@ -191,3 +191,5 @@ def tester(qapp: joystick_gremlin.JoystickGremlinApp) -> Generator[app_tester.Gr
     gremlin_app = app_tester.GremlinAppTester(qapp)
     yield gremlin_app
     gremlin.event_handler.EventListener().terminate()
+    backend = gremlin.ui.backend.Backend()
+    backend.process_monitor.stop()

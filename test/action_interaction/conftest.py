@@ -15,10 +15,12 @@ from typing import (
 import pytest
 import pytestqt.qtbot
 
-from gremlin import code_runner
-from gremlin import event_handler
+from gremlin import (
+    code_runner,
+    event_handler,
+    mode_manager,
+)
 from gremlin.logical_device import LogicalDevice
-from gremlin import mode_manager
 import gremlin.profile
 from gremlin.types import (
     InputType,
@@ -26,6 +28,7 @@ from gremlin.types import (
 )
 from gremlin.util import clamp
 import gremlin.ui.backend
+import joystick_gremlin
 
 
 LDIdentifier = LogicalDevice.Input.Identifier
@@ -201,6 +204,7 @@ class JoystickGremlinBot:
         """Stops the profile execution."""
         self._runner.stop()
         self._event_listener.terminate()
+        joystick_gremlin.shutdown_cleanup()
 
     def wait(self, duration: float) -> None:
         """Blocking wait for the specified duration while processing events in

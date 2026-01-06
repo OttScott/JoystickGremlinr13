@@ -97,8 +97,7 @@ def exception_hook(exception_type, value, trace) -> None:
 def shutdown_cleanup() -> None:
     """Handles cleanup before terminating Gremlin."""
     # Terminate potentially running EventListener loop.
-    event_listener = gremlin.event_handler.EventListener()
-    event_listener.terminate()
+    gremlin.event_handler.EventListener().terminate()
 
     # Terminate profile runner.
     backend = gremlin.ui.backend.Backend()

@@ -5,20 +5,39 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from abc import abstractmethod, ABCMeta
+from abc import (
+    abstractmethod,
+    ABCMeta,
+)
 import codecs
 import dataclasses
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Self, Set, TYPE_CHECKING, Callable
+from typing import (
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Self,
+    Set,
+    TYPE_CHECKING,
+)
 import uuid
 from xml.dom import minidom
 from xml.etree import ElementTree
 
 import dill
 
-from gremlin.types import AxisButtonDirection, InputType, HatDirection
-from gremlin import device_initialization, error, plugin_manager
+from gremlin.types import (
+    AxisButtonDirection,
+    InputType,
+    HatDirection,
+)
+from gremlin import (
+    device_initialization,
+    error,
+    plugin_manager,
+)
 from gremlin.logical_device import LogicalDevice
 from gremlin.tree import TreeNode
 from gremlin.user_script import Script
@@ -586,10 +605,10 @@ class Profile:
         self.settings = Settings(self)
         self.modes = ModeHierarchy(self)
         self.scripts = ScriptManager(self)
-        self.fpath: str | None = None
+        self.fpath: str | Path | None = None
         LogicalDevice().reset()
 
-    def from_xml(self, fpath: str) -> None:
+    def from_xml(self, fpath: str | Path) -> None:
         """Reads the content of an XML file and initializes the profile.
 
         Args:
