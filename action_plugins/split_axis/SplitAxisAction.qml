@@ -131,7 +131,6 @@ Item {
     ActionDragDropArea {
         target: _upperDivider
         dropCallback: (drop) => {
-            console.log("Dropped", drop.text, "on upper divider" + modelData.id);
             modelData.dropAction(drop.text, modelData.sequenceIndex, "upper");
         }
     }

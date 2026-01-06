@@ -41,7 +41,6 @@ Window {
                 let isValid = _root.validator(text)
                 _input.outlineOverride = isValid ? null : Style.error
                 _button.enabled = isValid
-                console.log(isValid)
             }
         }
 

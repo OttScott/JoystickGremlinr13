@@ -111,7 +111,6 @@ Window {
                         modeHierarchy.renameMode(name, value)
                     }
                     _textInput.validator = function(value) {
-                        console.log(validNames)
                         return !validNames.includes(value)
                     }
                     _textInput.visible = true
