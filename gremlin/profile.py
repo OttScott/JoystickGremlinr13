@@ -88,7 +88,7 @@ class VirtualAxisButton(AbstractVirtualButton):
 
     """Virtual button which turns an axis range into a button."""
 
-    def __init__(self, lower_limit: float=0.0, upper_limit: float=0.0) -> None:
+    def __init__(self, lower_limit: float=-0.1, upper_limit: float=0.1) -> None:
         """Creates a new instance.
 
         Args:
