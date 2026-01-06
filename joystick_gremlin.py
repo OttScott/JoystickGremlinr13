@@ -32,9 +32,6 @@ os.chdir(install_path)
 
 # Setting some global QT configurations.
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Universal"
-# os.environ["QT_QUICK_CONTROLS_MATERIAL_VARIANT"] = "Normal"
-os.environ["QT_QUICK_CONTROLS_UNIVERSAL_THEME"] = "Light"
-# os.environ["QT_QUICK_CONTROLS_HOVER_ENABLED"] = "true"
 # os.environ["QML_IMPORT_TRACE"] = "1"
 # os.environ["QSG_RHI"] = "1"
 
@@ -249,7 +246,11 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         # Initialize joystick device handling.
         self.syslog.info("Initializing joystick devices")
         dill.DILL.init()
-        gremlin.device_initialization.joystick_devices_initialization()
+        try:
+            gremlin.device_initialization.joystick_devices_initialization()
+        except gremlin.error.GremlinError as e:
+            gremlin.util.display_error(f"Device initialization failed: {e}")
+            sys.exit(0)
 
         self.initialize_qt()
 
@@ -269,7 +270,6 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         if not self.engine.rootObjects():
             sys.exit(-1)
 
-        self.verify_vjoy()
         self.process_cmd_args(cmd_args)
 
         # Run UI.
@@ -363,40 +363,6 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         self.engine.rootContext().setContextProperty(
             "signal", gremlin.signal.signal
         )
-
-    def verify_vjoy(self) -> None:
-        # Check if vJoy is properly setup and if not display an error
-        # and terminate Gremlin
-        # try:
-        #     syslog.info("Checking vJoy installation")
-        #     vjoy_working = len([
-        #         dev for dev in gremlin.device_initialization.joystick_devices()
-        #         if dev.is_virtual
-        #     ]) != 0
-        #
-        #     if not vjoy_working:
-        #         logging.getLogger("system").error(
-        #             "vJoy is not present or incorrectly setup."
-        #         )
-        #         raise gremlin.error.GremlinError(
-        #             "vJoy is not present or incorrectly setup."
-        #         )
-        #
-        # except (gremlin.error.GremlinError, dill.DILLError) as e:
-        #     error_display = QtWidgets.QMessageBox(
-        #         QtWidgets.QMessageBox.Critical,
-        #         "Error",
-        #         e.value,
-        #         QtWidgets.QMessageBox.Ok
-        #     )
-        #     error_display.show()
-        #     app.exec_()
-        #
-        #     vjoy.vjoy.VJoyProxy.reset()
-        #     event_listener = gremlin.event_handler.EventListener()
-        #     event_listener.terminate()
-        #     sys.exit(0)
-        pass
 
 
 def main() -> int:
