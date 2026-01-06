@@ -93,6 +93,7 @@ def test_hat_single(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
 
     jgbot.set_axis_absolute(OUT_AXIS_1, 0.12)
     jgbot.set_hat_direction(IN_HAT_1, HatDirection.North)
+    jgbot.wait(0.05)
     assert EventSpec(
         InputType.JoystickAxis, OUT_AXIS_1, 0.05) == jgbot.next_event()
     assert jgbot.axis(OUT_AXIS_1) == pytest.approx(0.17, abs=0.01)
