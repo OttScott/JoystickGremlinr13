@@ -86,7 +86,6 @@ class Configuration(metaclass=common.SingletonMetaclass):
                     self._data[(section, group, name)] = {
                         "value": value,
                         "data_type": data_type,
-                        "description": entry["description"],
                         "properties": entry["properties"],
                         "expose": entry["expose"]
                     }
@@ -118,7 +117,6 @@ class Configuration(metaclass=common.SingletonMetaclass):
             json_data[section][group][name] = {
                 "value": value,
                 "data_type": PropertyType.to_string(entry["data_type"]),
-                "description": entry["description"],
                 "properties": entry["properties"],
                 "expose": entry["expose"]
             }
@@ -193,8 +191,7 @@ class Configuration(metaclass=common.SingletonMetaclass):
                     f"'{self._data[key]["data_type"]}' to '{data_type}'")
                 self._data[key]["data_type"] = data_type
 
-            if description != self._data[key]["description"]:
-                self._data[key]["description"] = description
+            self._data[key]["description"] = description
         # Store new entry
         else:
             self._data[key] = {
