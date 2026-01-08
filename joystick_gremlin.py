@@ -143,7 +143,7 @@ def register_config_options() -> None:
     cfg.register(
         "global", "general", "dark-mode",
         PropertyType.Bool, False,
-        "Use the dark mode UI", {}, True
+        "Use the dark mode UI (requires restart).", {}, True
     )
     cfg.register(
         "profile", "automation", "enable-auto-loading",
