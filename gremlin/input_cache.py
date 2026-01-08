@@ -81,7 +81,7 @@ class DeviceMapping:
             Formatted input name based on user settings.
         """
         input_name_display_mode = Configuration().value(
-            "global", "input-names", "input-name-display-mode"
+            "global", "input-names", "display-mode"
         )
 
         if input_name_display_mode == "Numerical" or \

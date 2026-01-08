@@ -1461,12 +1461,12 @@ class AxisCalibration(QtCore.QAbstractListModel):
 Configuration().register(
     "global",
     "input-names",
-    "input-name-display-mode",
+    "display-mode",
     PropertyType.Selection,
     "Numerical & Label",
     "Defines how input name is displayed.",
     {
-        "valid_options": ["Numerical", "Numerical + Label", "Label"]
+        "valid_options": ["Numerical", "Numerical & Label", "Label"]
     },
     True
 )

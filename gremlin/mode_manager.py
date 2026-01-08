@@ -141,15 +141,15 @@ class ModeManager(QtCore.QObject):
             idx = self._mode_stack.index(mode)
 
             if not mode.is_temporary:
-                if resolution_mode == "oldest":
+                if resolution_mode == "Oldest":
                     self._mode_stack = self._mode_stack[:idx]
-                elif resolution_mode == "newest":
+                elif resolution_mode == "Newest":
                     self._mode_stack = self._mode_stack[idx+1:]
             # Special handling if the loop is caused by a temporary mode
             else:
-                if resolution_mode == "oldest":
+                if resolution_mode == "Oldest":
                     self._mode_stack = self._mode_stack[:idx]
-                if resolution_mode == "newest":
+                if resolution_mode == "Newest":
                     # 1. Find the index corresponding to the first non-temporary
                     #    mode entry in the stack before the idx mode
                     idx2 = idx
@@ -186,13 +186,13 @@ Configuration().register(
     "change-mode",
     "resolution-mode",
     PropertyType.Selection,
-    "oldest",
+    "Oldest",
     "Defines how a what mode is switched to in the case that a cyclical mode " \
         "traversal is detected. \"Oldest\" switches to the oldest mode in " \
         "the cycle while \"newest\" finds the most recent common mode and " \
         "switches to that one.",
     {
-        "valid_options": ["oldest", "newest"]
+        "valid_options": ["Oldest", "Newest"]
     },
     True
 )
