@@ -126,8 +126,8 @@ def register_config_options() -> None:
     )
     cfg.register(
         "global", "general", "plugin-directory",
-        PropertyType.String, "",
-        "Directory containing additional action plugins", {}, True
+        PropertyType.Path, "",
+        "Directory containing additional action plugins", {"is_folder": True}, True
     )
     cfg.register(
         "global", "general", "action-priorities",

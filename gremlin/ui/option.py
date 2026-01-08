@@ -6,14 +6,31 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import cast, Any, Dict, Optional, TYPE_CHECKING
+from pathlib import Path
+from typing import (
+    cast,
+    Any,
+    Dict,
+    Optional,
+    TYPE_CHECKING,
+)
 
-from PySide6 import QtCore, QtQml
-from PySide6.QtCore import Property, Signal, Slot
+from PySide6 import (
+    QtCore,
+    QtQml,
+)
+from PySide6.QtCore import (
+    Property,
+    Signal,
+    Slot
+)
 
 import gremlin.config
 from gremlin.common import SingletonMetaclass
-from gremlin.error import GremlinError, MissingImplementationError
+from gremlin.error import (
+    GremlinError,
+    MissingImplementationError,
+)
 from gremlin.types import PropertyType
 
 if TYPE_CHECKING:
@@ -186,12 +203,12 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
                 return re.sub(r"[_-]+", " ", name).capitalize()
             # Separate handling of config and meta option entries.
             if self._config.exists(self._section_name, self._group_name, name):
-                value = self._config.get(
-                    self._section_name,
-                    self._group_name,
-                    entries[index.row()],
-                    role_name
-                )
+                key = [self._section_name, self._group_name, entries[index.row()]]
+                value = self._config.get(*key, role_name)
+                # Convert path values to strings.
+                if role_name == "value":
+                    if self._config.data_type(*key) == PropertyType.Path:
+                        value = str(value)
                 if isinstance(value, PropertyType):
                     value = PropertyType.to_string(value)
             else:
@@ -226,13 +243,11 @@ class ConfigEntryModel(QtCore.QAbstractListModel):
             )
 
         if self.roles[role] == "value":
-            self._config.set(
-                self._section_name,
-                self._group_name,
-                entries[index.row()],
-                value
-            )
+            key = [self._section_name, self._group_name, entries[index.row()]]
+            if self._config.data_type(*key) == PropertyType.Path:
+                value = Path(value)
 
+            self._config.set(*key, value)
             self.dataChanged.emit(index, index, {role})
             return True
         return False

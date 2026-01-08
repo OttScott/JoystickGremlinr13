@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import Qt.labs.qmlmodels
 
@@ -105,6 +106,67 @@ ColumnLayout {
                     to: properties.max
 
                     onValueModified: () => { model.value = value }
+                }
+            }
+        }
+        // Path selection
+        DelegateChoice {
+            roleValue: "path"
+
+            OptionEntryCard {
+                Layout.fillWidth: true
+
+                title: name
+                explanation: description
+
+                RowLayout {
+                    JGTextField {
+                        id: _pathVariable
+
+                        Layout.fillWidth: true
+                        text: value
+
+                        readOnly: true
+                        onTextChanged: () => { value = text }
+                    }
+                    Button {
+                        text: "Select"
+                        onClicked: () => {
+                            if (properties["is_folder"]) {
+                                _pathFolderDialog.associatedField = _pathVariable
+                                _pathFolderDialog.open()
+                            } else {
+                                _pathVariableFileDialog.associatedField = _pathVariable
+                                _pathVariableFileDialog.open()
+                            }
+                        }
+                    }
+                }
+
+                FileDialog {
+                    id: _pathVariableFileDialog
+
+                    property var associatedField
+
+                    title: "Select a File"
+
+                    onAccepted: () => {
+                        associatedField.text =
+                            selectedFile.toString().substring("file:///".length)
+                    }
+                }
+
+                FolderDialog {
+                    id: _pathFolderDialog
+
+                    property var associatedField
+
+                    title: "Select a Folder"
+
+                    onAccepted: () => {
+                        associatedField.text =
+                            selectedFolder.toString().substring("file:///".length)
+                    }
                 }
             }
         }
