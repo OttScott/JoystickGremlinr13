@@ -27,17 +27,14 @@ Window {
         deviceType: "all"
     }
 
-    function recompute_height()
-    {
-        for(let i=0; i<_stateDisplay.children.length; ++i)
-        {
+    function recompute_height() {
+        for(let i=0; i<_stateDisplay.children.length; ++i) {
             let elem = _stateDisplay.children[i]
             elem.implicitHeight = elem.compute_height(_stateDisplay.width)
         }
     }
 
-    function create_widget(qml_path, guid, name)
-    {
+    function create_widget(qml_path, guid, name) {
         let component = Qt.createComponent(Qt.resolvedUrl(qml_path))
         let widget = component.createObject(
             _stateDisplay,
@@ -59,6 +56,7 @@ Window {
 
         ScrollView {
             Layout.alignment: Qt.AlignTop
+            Layout.rightMargin: 10
             Layout.minimumWidth: 250
             Layout.fillWidth: false
             Layout.fillHeight: true
@@ -73,14 +71,14 @@ Window {
             }
         }
 
-        // Dynamic scrollview that contains dynamically generated widgets
+        // Dynamic scrollview that contains dynamically generated widgets.
         ScrollView  {
             id: _dynamic_scroll
 
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Component.onCompleted: {
+            Component.onCompleted: () => {
                 _dynamic_scroll.contentItem.boundsMovement = Flickable.StopAtBounds
                 _dynamic_scroll.contentItem.boundsBehavior = Flickable.StopAtBounds
             }
@@ -91,14 +89,12 @@ Window {
                 anchors.left: parent.left
                 anchors.right: parent.right
 
-                onWidthChanged: function() {
-                    recompute_height()
-                }
+                onWidthChanged: () => { recompute_height() }
             }
         }
     }
 
-    // Display the collapsible visualization toggles for a single device
+    // Display the collapsible visualization toggles for a single device.
     Component {
         id: _deviceDelegate
 
@@ -110,12 +106,12 @@ Window {
             required property string guid
 
             // Variable holding references to the widgets visualizing device
-            // input states
+            // input states.
             property var widget_btn_hat
             property var widget_axis_temp
             property var widget_axis_cur
 
-            // Device header
+            // Device header.
             RowLayout {
                 IconButton {
                     id: _foldButton
@@ -126,19 +122,13 @@ Window {
                 }
 
                 JGText {
-                    text: name
-                }
-
-                Rectangle {
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
 
-                    height: 2
-                    color: Style.lowColor
+                    text: name
                 }
             }
 
-            // Per device visualization toggles
+            // Per device visualization toggles.
             ColumnLayout {
                 visible: _foldButton.checked
 
@@ -147,18 +137,14 @@ Window {
                 Switch {
                     text: "Axes - Temporal"
 
-                    onClicked: function()
-                    {
-                        if(checked)
-                        {
+                    onClicked: () => {
+                        if(checked) {
                             widget_axis_temp = create_widget(
                                 "AxesStateSeries.qml",
                                 guid,
                                 name
                             )
-                        }
-                        else
-                        {
+                        } else {
                             widget_axis_temp.destroy()
                         }
                     }
@@ -166,18 +152,14 @@ Window {
                 Switch {
                     text: "Axes - Current"
 
-                    onClicked: function()
-                    {
-                        if(checked)
-                        {
+                    onClicked: () => {
+                        if(checked) {
                             widget_axis_cur = create_widget(
                                 "AxesStateCurrent.qml",
                                 guid,
                                 name
                             )
-                        }
-                        else
-                        {
+                        } else {
                             widget_axis_cur.destroy()
                         }
                     }
@@ -185,18 +167,14 @@ Window {
                 Switch {
                     text: "Buttons & Hats"
 
-                    onClicked: function()
-                    {
-                        if(checked)
-                        {
+                    onClicked: () => {
+                        if(checked) {
                             widget_btn_hat = create_widget(
                                 "ButtonState.qml",
                                 guid,
                                 name
                             )
-                        }
-                        else
-                        {
+                        } else {
                             widget_btn_hat.destroy()
                         }
                     }

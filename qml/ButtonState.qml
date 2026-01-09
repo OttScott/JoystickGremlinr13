@@ -16,8 +16,7 @@ Item {
     property string deviceGuid
     property string title
 
-    function computeButtonHeight()
-    {
+    function computeButtonHeight() {
         let columns =  Math.floor(
             Math.max(_button_grid.width, _button_grid.Layout.minimumWidth) /
             _button_grid.cellWidth
@@ -26,8 +25,7 @@ Item {
         return rows * _button_grid.cellHeight
     }
 
-    function compute_height(available_width)
-    {
+    function compute_height(available_width) {
         let hat_rows = Math.ceil(_hat_grid.count / 2)
         return Math.max(
             computeButtonHeight(),
@@ -68,7 +66,7 @@ Item {
         }
 
         RowLayout {
-            // Button state display
+            // Button state display.
             GridView {
                 id: _button_grid
 
@@ -100,11 +98,12 @@ Item {
 
                         text: identifier
                         checked: value
+                        font.pointSize: 10
                     }
                 }
             }
 
-            // Hat state display
+            // Hat state display.
             GridView {
                 id: _hat_grid
 

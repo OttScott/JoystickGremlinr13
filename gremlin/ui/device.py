@@ -160,9 +160,12 @@ class DeviceListModel(QtCore.QAbstractListModel):
     ) -> Any:
         if role in self.roles:
             role_name = self.roles[role].data().decode()
-            return self.role_query[role_name](
-                self._devices[index.row()]
-            )
+
+            device = self._devices[index.row()]
+            if role_name == "name" and device.is_virtual:
+                return f"{device.name} {device.vjoy_id}"
+
+            return self.role_query[role_name](device)
         else:
             return "Unknown"
 
