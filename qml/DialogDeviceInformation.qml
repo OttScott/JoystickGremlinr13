@@ -21,8 +21,6 @@ Window {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 10
-        anchors.rightMargin: 0
 
         RowLayout {
             Layout.preferredHeight: 50
@@ -63,6 +61,7 @@ Window {
 
         ScrollView {
             id: _view
+
             Layout.fillWidth: true
             Layout.fillHeight: true
 
@@ -86,7 +85,21 @@ Window {
                             TextEntry {
                                 text: name
                                 Layout.fillWidth: true
+                                Layout.leftMargin: 10
                                 horizontalAlignment: Text.AlignLeft
+
+                                ToolTip {
+                                    text: parent.text
+                                    width: contentWidth > 500 ? 500 : contentWidth + 20
+                                    visible: _hoverHandler.hovered
+                                    delay: 500
+                                }
+
+                                HoverHandler {
+                                    id: _hoverHandler
+                                    acceptedDevices: PointerDevice.Mouse |
+                                        PointerDevice.TouchPad
+                                }
 
                             }
                             TextEntry {
