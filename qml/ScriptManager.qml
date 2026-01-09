@@ -57,6 +57,7 @@ Item {
         ColumnLayout {
             SplitView.fillHeight: true
             SplitView.fillWidth: true
+            SplitView.minimumWidth: 400
 
             JGListView {
                 id: _view
