@@ -59,11 +59,11 @@ ColumnLayout {
                 Switch {
                     Layout.alignment: Qt.AlignRight
 
-                    checked: value
+                    checked: model.value
 
                     text: checked ? "On" : "Off"
 
-                    onToggled: () => { value = checked }
+                    onToggled: () => { model.value = checked }
                 }
             }
         }
@@ -80,11 +80,11 @@ ColumnLayout {
                 FloatSpinBox {
                     Layout.alignment: Qt.AlignRight
 
-                    value: value
+                    value: model.value
                     minValue: properties.min
                     maxValue: properties.max
 
-                    onValueModified: (newValue) => { value = newValue }
+                    onValueModified: (newValue) => { model.value = newValue }
                 }
             }
         }
@@ -124,10 +124,10 @@ ColumnLayout {
                         id: _pathVariable
 
                         Layout.fillWidth: true
-                        text: value
+                        text: model.value
 
                         readOnly: true
-                        onTextChanged: () => { value = text }
+                        onTextChanged: () => { model.value = text }
                     }
                     Button {
                         text: "Select"
@@ -184,9 +184,9 @@ ColumnLayout {
                     Layout.alignment: Qt.AlignRight
                     Layout.fillWidth: true
 
-                    text: value
+                    text: model.value
 
-                    onTextEdited: () => { value = text }
+                    onTextEdited: () => { model.value = text }
 
                     ToolTip {
                         text: parent.text
@@ -235,7 +235,7 @@ ColumnLayout {
                     Layout.alignment: Qt.AlignRight
                     Layout.fillWidth: true
 
-                    qmlPath: value
+                    qmlPath: model.value
 
                     onLoadError: (err) => {
                         console.warn("Meta option load error:", err)
