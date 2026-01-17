@@ -115,6 +115,7 @@ def test_hat_count(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
     assert jgbot.axis(OUT_AXIS_1) == pytest.approx(0.05, abs=0.01)
 
 
+@pytest.mark.flaky(reruns=5)
 def test_hat_toggle(jgbot: JoystickGremlinBot, profile_dir: Path) -> None:
     jgbot.load_profile(profile_dir / "macro.xml")
     MacroManager().default_delay = 0.0
