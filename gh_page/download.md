@@ -5,7 +5,7 @@ nav_order: 8
 
 # Release 14 -- 2026-01-17
 
-[Download Release 14](https://github.com/WhiteMagic/JoystickGremlin/releases/download/Release_14/Joystick.Gremlin.R14.zip){: .btn .btn-blue }
+[Download Release 14](https://github.com/WhiteMagic/JoystickGremlin/releases/download/Release_14/JoystickGremlin.R14.zip){: .btn .btn-blue }
 
 This release is a complete rewrite of the user interface and how the profile architecture. Along the way a lot of other things have changed, some of which are summarised below.
 
