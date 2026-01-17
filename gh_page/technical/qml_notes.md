@@ -1,6 +1,22 @@
+---
+title: QML Notes
+parent: Technical
+nav_order: 10
+---
+
 # QML Notes
+{: .no_toc }
 
 This contains a collection of good to know things when working with QML and Python. Before anything else you should read this book in its entirety [Qt6 QML Book](https://www.qt.io/product/qt6/qml-book).
+
+<details close markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+- TOC
+{:toc}
+</details>
 
 ## Property Binding
 
@@ -61,7 +77,7 @@ Complex widgets are often composed of multiple QML types which have properties t
 ```
 Item {
 	property alias text: _label.text
-	
+
 	RowLayout {
 		Label {
 			id: _label
@@ -304,8 +320,6 @@ ActionDragDropArea {
 }
 ```
 
-
-
 ## Icon Colors
 
 Icons on buttons and the like by default will be rendered black and white. This is caused by the tinting ability associated with colors. To display the icon's actual colors the `color` property of the `icon` has to be set to `transparent`.
@@ -367,8 +381,6 @@ The `pyside6-rcc` programs converts the contents of a QRC file into a python mod
 ```bash
 .\venv\Scripts\pyside6-rcc.exe .\resources.qrc -o .\resources.py
 ```
-
-
 
 ## Signal Inheritance
 
@@ -448,17 +460,16 @@ R14 allows specifying a folder that contains additional action plugins to show i
 ## Development Setup
 
 - Create the following folder structure
-  ```
-  user_actions/
-  +- custom_action_1
-  |  +- ...
-  +- custom_action_2
-  |  +- ...
-  + __init__.py
-  ```
+
+```
+user_actions/
++- custom_action_1
+|  +- ...
++- custom_action_2
+|  +- ...
++ __init__.py
+```
 
 - Create a development environment with the required dependencies, an easy way is to use this `pyproject.toml` and use poetry
-
   - Optionally make the Gremlin repository visible to the project (for example via `Project -> Project Structure -> Add Content Root` in PyCharm)
-
 - Develop your plugin and then point Gremlin at that folder to use it with the normal Gremlin version

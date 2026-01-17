@@ -1,75 +1,60 @@
-Joystick Gremlin
-================
+# Joystick Gremlin
 
-Introduction
-------------
+## Introduction
 
 **Getting Help:** If you have issues running Gremlin or questions on how to
 make certain things work, the best place to ask for help is in the
-#joystick-gremlin channel on the HOTAS discord which can be found here
-https://discord.gg/szqaJE7.
+`#joystick-gremlin` channel on the [HOTAS Discord](https://discord.gg/hotas).
 
-Joystick Gremlin is a program that allows the configuration of joystick like
-devices, similar to what CH Control Manager and Thrustmaster's T.A.R.G.E.T. do
-for their respectively supported joysticks. However, Joystick Gremlin works
-with any device be it from different manufacturers or custom devices that
-appear as a joystick to Windows. Joystick Gremlin uses the virtual joysticks
-provided by vJoy to map physical to virtual inputs and apply various other
-transformations such as response curves to analogue axes. In addition to
-managing joysticks, Joystick Gremlin also provides keyboard macros, a flexible
-mode system, scripting using Python, and many other features.
+Joystick Gremlin is a program that allows the configuration of joystick like devices, similar to what CH Control Manager and Thrustmaster's T.A.R.G.E.T. do for their respectively supported joysticks. However, Joystick Gremlin works with any device be it from different manufacturers or custom devices that appear as a joystick to Windows. Joystick Gremlin uses the virtual joysticks provided by vJoy to map physical to virtual inputs and apply various other transformations such as response curves to analogue axes. In addition to customizing joysticks, Joystick Gremlin also provides powerful macro functionalities, a flexible mode system, scripting using Python, and many other features.
 
 The main features are:
+
 - Works with arbitrary joystick like devices
-- User interface for common configuration tasks
+- User interface for common and some not so common configuration tasks
 - Merging of multiple physical devices into a single virtual device
 - Axis response curve and dead zone configuration
+- Mapping of joystick inputs to keyboard and mouse inputs
+- Powerful and flexible macro system
 - Arbitrary number of modes with inheritance and customizable mode switching
-- Keyboard macros for joystick buttons and keyboard keys
-- Python scripting
+- Conditional execution of configured actions
+- Python scripting support for unlimited customization
 
-Joystick Gremlin provides a graphical user interface which allows commonly
-performed tasks, such as input remapping, axis response curve setups, and macro
-recording to be performed easily. Functionality that is not accessible via the
-UI can be implemented through custom modules.
+Joystick Gremlin provides a graphical user interface which allows commonly performed tasks, such as input remapping, axis response curve setups, and macro recording to be performed easily. Functionality that is not accessible via the UI can be implemented through custom modules.
 
-Getting Starget
----------------
+## Getting Started
 
-For a list of dependencies and an overview of how to install and use Gremlin take a look at the [Manual](https://whitemagic.github.io/JoystickGremlin/overview).
+For a list of dependencies and an overview of how to install and use Gremlin take a look at the [Manual](https://whitemagic.github.io/JoystickGremlin/).
 
 
-Used Software & Other Sources
------------------------------
-Joystick Gremlin uses the following software and resources:
+## Contributing
 
-- [Python 3.7](https://www.python.org)
-- [PySide6](https://www.qt.io/qt-for-python)
-- [PyWin32](http://sourceforge.net/projects/pywin32)
-- [Reportlab](https://www.reportlab.com/)
-- [PyTest](https://docs.pytest.org/en/latest/)
-- [PyInstaller](http://www.pyinstaller.org/)
-- [vJoy](https://github.com/jshafer817/vJoy/releases/tag/v2.1.9.1)
-- [Modern UI Icons](http://modernuiicons.com/)
+If you want to contribute to Gremlin by implementing new features or fixing bugs, you will need a local development setup. The easiest way is described below.
 
-Currently the 32bit version of Python is needed and the following packages
-should be installed via PiP to get the source running:
+### Development Setup
 
+The easiest way to get all the required libraries installed for Gremlin development is via a virtual environment managed by [Poetry](https://python-poetry.org). Throughout this the assumption is that [VS Code](https://code.visualstudio.com/) is used and the appropriate Python plugins are installed.
 
-Generating the MSI Installer
-----------------------------
+### Installing Poetry
 
-The job of turning the Python code in a windows executable and
-packaging everything up into an installable MSI file is performed
-by [pyinstaller](http://www.pyinstaller.org/) and
-[wix](http://wixtoolset.org/). The steps needed to build the code
-and assemble it into the installer is automated using a batch
-script and can be run as:
+Abbreviated instructions from the [official documentation](https://python-poetry.org/docs/#installing-with-the-official-installer).
+
+- Install a Gremlin compatible version of Python, such as 3.13.x
+- Open a new Terminal / Powershell instance
+- Run the command
+  ```powershell
+  (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
   ```
-  deploy.bat
+- Add the poetry executable to your PATH setting
+  ```powershell
+  [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Users\Lionel\AppData\Roaming\Python\Scripts", "User")
   ```
-To simply generate the executable code without the MSI installer the
-following command can be used:
-  ```
-  pyinstaller -y --clean joystick_gremlin.spec
-  ```
+- Launch a new Terminal / Powershell instance and check if poetry can be found by running
+  ````powershell
+  poetry --version
+  ````
+- Add the Poetry plugin (`zeshuaro.vscode-python-poetry`) to VS Code
+- Create a virtual environment and install required packages by running the `Poetry install packages` command (`Ctrl + Shift + P`) in VS Code
+
+- Restart VS Code for the new environment to be picked up
+- Select the newly created Poetry virtual environment as the project's interpreter
