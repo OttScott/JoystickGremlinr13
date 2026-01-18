@@ -406,6 +406,22 @@ g_name_to_key = {
     "esc": Key("Esc", 0x01, False, win32con.VK_ESCAPE),
     # Various odd keys
     "noname": Key("Noname", 0xfc, False, win32con.VK_NONAME),
+    "eraseeof": Key("EraseEof", 0xf9, False, win32con.VK_EREOF),
+    "help": Key("Help", 0x2f, False, win32con.VK_HELP),
+    "zoom": Key("Zoom", 0xfb, False, win32con.VK_ZOOM),
+    # Expanded function keys
+    "f13": Key("F13", 0x7c, False, win32con.VK_F13),
+    "f14": Key("F14", 0x7d, False, win32con.VK_F14),
+    "f15": Key("F15", 0x7e, False, win32con.VK_F15),
+    "f16": Key("F16", 0x7f, False, win32con.VK_F16),
+    "f17": Key("F17", 0x80, False, win32con.VK_F17),
+    "f18": Key("F18", 0x81, False, win32con.VK_F18),
+    "f19": Key("F19", 0x82, False, win32con.VK_F19),
+    "f20": Key("F20", 0x83, False, win32con.VK_F20),
+    "f21": Key("F21", 0x84, False, win32con.VK_F21),
+    "f22": Key("F22", 0x85, False, win32con.VK_F22),
+    "f23": Key("F23", 0x86, False, win32con.VK_F23),
+    "f24": Key("F24", 0x87, False, win32con.VK_F24),
 }
 
 
