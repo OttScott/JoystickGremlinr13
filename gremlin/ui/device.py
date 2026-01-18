@@ -737,7 +737,9 @@ class VJoyDevices(QtCore.QObject):
         # Force a refresh of internal state.
         self.inputModel
         self._current_input_index = 0
-        self._current_input_type = self._input_data[0][0]
+        self._current_input_type = InputType.JoystickButton
+        if self._input_data:
+            self._current_input_type = self._input_data[0][0]
 
         self._is_initialized = False
 
@@ -772,6 +774,10 @@ class VJoyDevices(QtCore.QObject):
             input_id: id of the input item
             input_type: type of input being selected by the input_id
         """
+        # If no vJoy devices are present, do not perform any action.
+        if not self._devices:
+            return
+
         # Find vjoy_index corresponding to the provided id.
         vjoy_index = -1
         for i, dev in enumerate(self._devices):
@@ -807,6 +813,9 @@ class VJoyDevices(QtCore.QObject):
             InputType.JoystickHat: lambda x: x.hat_count
         }
 
+        if not self._devices:
+            return []
+
         self._input_items = []
         self._input_data = []
         device = self._devices[self._current_vjoy_index]
@@ -830,6 +839,12 @@ class VJoyDevices(QtCore.QObject):
 
     def _set_valid_types(self, valid_types: List[str]) -> None:
         type_list = [InputType.to_enum(entry) for entry in sorted(valid_types)]
+        if not self._devices:
+            self._current_vjoy_index = 0
+            self._current_input_index = 0
+            self._current_input_type = InputType.JoystickButton
+            return
+
         if type_list != self._valid_types:
             self._valid_types = type_list
 
@@ -915,6 +930,9 @@ class VJoyDevices(QtCore.QObject):
     def _get_input_type(self) -> str:
         return InputType.to_string(self._current_input_type)
 
+    def _has_valid_vjoy_devices(self) -> bool:
+        return len(self._devices) > 0
+
     validTypes = Property(
         "QVariantList",
         fget=_get_valid_types,
@@ -952,6 +970,12 @@ class VJoyDevices(QtCore.QObject):
         str,
         fget=_get_input_type,
         notify=inputTypeChanged
+    )
+
+    hasValidVJoyDevices = Property(
+        bool,
+        fget=_has_valid_vjoy_devices,
+        notify=deviceModelChanged
     )
 
 

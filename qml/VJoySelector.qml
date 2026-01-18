@@ -19,7 +19,7 @@ Item {
     implicitHeight: _content.height
     implicitWidth: _content.implicitWidth
 
-    // React to the validTypes value being changed from an external source
+    // React to the validTypes value being changed from an external source.
     onValidTypesChanged: () => { _vjoy.validTypes = validTypes }
 
     VJoyDevices {
@@ -70,6 +70,15 @@ Item {
             currentIndex: _vjoy.inputIndex
 
             onActivated: (index) =>  { _vjoy.inputIndex = index }
+        }
+
+        HorizontalDivider {}
+
+        Label {
+            visible: !_vjoy.hasValidVJoyDevices
+
+            text: "No vJoy devices available."
+            color: Style.error
         }
     }
 }
