@@ -732,7 +732,7 @@ class VJoyDevices(QtCore.QObject):
         # Force a refresh of internal state.
         self.inputModel
         self._current_input_index = 0
-        self._current_input_type = InputType.JoystickButton
+        self._current_input_type = None
         if self._input_data:
             self._current_input_type = self._input_data[0][0]
 
@@ -770,7 +770,7 @@ class VJoyDevices(QtCore.QObject):
             input_type: type of input being selected by the input_id
         """
         # If no vJoy devices are present, do not perform any action.
-        if not self._devices:
+        if not self._devices or input_id == 0:
             return
 
         # Find vjoy_index corresponding to the provided id.
@@ -866,7 +866,10 @@ class VJoyDevices(QtCore.QObject):
             else:
                 self._current_vjoy_index = 0
                 self._current_input_index = 0
-                self._current_input_type = self._input_data[0][0]
+                if self._input_data:
+                    self._current_input_type = self._input_data[0][0]
+                else:
+                    self._current_input_type = None
 
             # Prevent sending change of input indices and thus changing the
             # model if the model hadn't been initialized yet.
@@ -879,16 +882,18 @@ class VJoyDevices(QtCore.QObject):
 
     def _get_vjoy_id(self) -> int:
         if not self._is_state_valid():
-            raise GremlinError(
+            logging.getLogger("system").debug(
                 "Attempted to read from invalid VJoyDevices instance."
             )
+            return 0
         return self._devices[self._current_vjoy_index].vjoy_id
 
     def _get_vjoy_index(self) -> int:
         if not self._is_state_valid():
-            raise GremlinError(
+            logging.getLogger("system").debug(
                 "Attempted to read from invalid VJoyDevices instance."
             )
+            return 0
         return self._current_vjoy_index
 
     def _set_vjoy_index(self, index: int) -> None:
@@ -904,16 +909,18 @@ class VJoyDevices(QtCore.QObject):
 
     def _get_input_id(self) -> int:
         if not self._is_state_valid():
-            raise GremlinError(
+            logging.getLogger("system").debug(
                 "Attempted to read from invalid VJoyDevices instance."
             )
+            return 0
         return self._input_data[self._current_input_index][1]
 
     def _get_input_index(self) -> int:
         if not self._is_state_valid():
-            raise GremlinError(
+            logging.getLogger("system").debug(
                 "Attempted to read from invalid VJoyDevices instance."
             )
+            return 0
         return self._current_input_index
 
     def _set_input_index(self, index: int) -> None:
