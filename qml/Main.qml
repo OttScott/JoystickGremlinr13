@@ -323,6 +323,8 @@ ApplicationWindow {
 
     DeviceListModel {
         id: _deviceListModel
+
+        deviceType: "input"
     }
 
     Device {
