@@ -106,7 +106,9 @@ class InputIdentifier(QtCore.QObject):
 
 @QtQml.QmlElement
 class DeviceListModel(QtCore.QAbstractListModel):
+
     """Model containing basic information about all connected devices."""
+
     selectedIndexChanged = QtCore.Signal()
 
     roles = {
@@ -138,6 +140,8 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
         self._selected_index = -1
         self._devices = device_initialization.input_devices()
+        self._device_types = "all"
+        self._reload_devices()
 
         event_handler.EventListener().device_change_event.connect(
             self.update_model
@@ -146,9 +150,7 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
     def update_model(self) -> None:
         """Updates the model if the connected devices change."""
-        self.beginResetModel()
-        self._devices = device_initialization.input_devices()
-        self.endResetModel()
+        self._reload_devices()
 
     def rowCount(self, parent: ta.MI = QtCore.QModelIndex()) -> int:
         return len(self._devices)
@@ -181,6 +183,18 @@ class DeviceListModel(QtCore.QAbstractListModel):
 
         return str(self._devices[index].device_guid.uuid)
 
+    def _reload_devices(self) -> None:
+        self.beginResetModel()
+        if self._device_types == "physical":
+            self._devices = device_initialization.physical_devices()
+        elif self._device_types == "virtual":
+            self._devices = device_initialization.vjoy_devices()
+        elif self._device_types == "input":
+            self._devices = device_initialization.input_devices()
+        elif self._device_types == "all":
+            self._devices = device_initialization.joystick_devices()
+        self.endResetModel()
+
     def _change_device_type(self, types: str) -> None:
         """Sets which device types are going to be used.
 
@@ -193,16 +207,8 @@ class DeviceListModel(QtCore.QAbstractListModel):
         Args:
             types: the type of devices to list
         """
-        self.beginResetModel()
-        if types == "physical":
-            self._devices = device_initialization.physical_devices()
-        elif types == "virtual":
-            self._devices = device_initialization.vjoy_devices()
-        elif types == "input":
-            self._devices = device_initialization.input_devices()
-        elif types == "all":
-            self._devices = device_initialization.joystick_devices()
-        self.endResetModel()
+        self._device_types = types
+        self._reload_devices()
 
     @QtCore.Property(int, notify=selectedIndexChanged)
     def selectedIndex(self) -> int:
