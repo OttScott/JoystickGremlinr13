@@ -359,15 +359,10 @@ class Device(QtCore.QAbstractListModel):
         return identifier
 
     def _name(self, identifier: Tuple[InputType, int]) -> str:
-        input_name = "{} {:d}".format(
-            InputType.to_string(identifier[0]).capitalize(),
-            identifier[1]
-        )
-
         if self._device_mapping is not None:
-            return self._device_mapping.input_name(input_name)
+            return self._device_mapping.input_name(identifier)
         else:
-            return input_name
+            return common.input_to_ui_string(*identifier)
 
     def _convert_index(self, index: int) -> Tuple[InputType, int]:
         assert self._device is not None
@@ -1496,10 +1491,10 @@ Configuration().register(
     "input-names",
     "display-mode",
     PropertyType.Selection,
-    "Numerical & Label",
+    "Numerical and Label",
     "Defines how input name is displayed.",
     {
-        "valid_options": ["Numerical", "Numerical & Label", "Label"]
+        "valid_options": ["Numerical", "Numerical and Label", "Label"]
     },
     True
 )

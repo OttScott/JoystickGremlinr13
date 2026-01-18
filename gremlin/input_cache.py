@@ -7,15 +7,29 @@ from __future__ import annotations
 import json
 import jsonschema
 import logging
-from typing import Any, Dict, List
+from typing import (
+    Any,
+    Dict,
+    List,
+    Tuple,
+)
 import uuid
 
-
-from dill import DeviceSummary, DILL, GUID, UUID_LogicalDevice
-from gremlin.common import SingletonMetaclass
+from dill import (
+    DeviceSummary,
+    DILL,
+    GUID,
+    UUID_LogicalDevice
+)
+from gremlin import (
+    common,
+    error,
+    keyboard,
+    logical_device,
+    types,
+    util,
+)
 from gremlin.config import Configuration
-from gremlin import error, keyboard, logical_device, types, util
-
 
 
 _device_database_schema = {
@@ -62,10 +76,13 @@ _device_database_schema = {
 
 class DeviceMapping:
 
-    def __init__(self, input_map: Dict[str, Any]) -> None:
+    def __init__(
+        self,
+        input_map: Dict[Tuple[types.InputType, int], Any]
+    ) -> None:
         self._input_map = input_map
 
-    def input_name(self, input_name: str) -> str:
+    def input_name(self, identifier: Tuple[types.InputType, int]) -> str:
         """Returns the label of an input formatted based on user preferences.
 
         Name formatting is based on the global configuration option and the
@@ -75,7 +92,7 @@ class DeviceMapping:
         are not defined, input_name() returns the base input name.
 
         Args:
-            input_name: Base name of the input to format.
+            identifier: Containes input type and index of the input.
 
         Returns:
             Formatted input name based on user settings.
@@ -83,25 +100,22 @@ class DeviceMapping:
         input_name_display_mode = Configuration().value(
             "global", "input-names", "display-mode"
         )
-
-        if input_name_display_mode == "Numerical" or \
-                input_name not in self._input_map:
-            return input_name
+        ui_input_name = common.input_to_ui_string(*identifier)
 
         # Return base input name if it is not present in the database, otherwise
         # apply the desired formatting.
-        db_input_name = self._input_map[input_name].strip()
-        if len(db_input_name) == 0:
-            return input_name
-        elif input_name_display_mode == "Numerical + Label":
-            return f"{input_name} - {db_input_name}"
+        db_input_name = self._input_map.get(identifier, "").strip()
+        if len(db_input_name) == 0 or input_name_display_mode == "Numerical":
+            return ui_input_name
+        elif input_name_display_mode == "Numerical and Label":
+            return f"{ui_input_name} - {db_input_name}"
         elif input_name_display_mode == "Label":
             return db_input_name
         else:
-            return input_name
+            return ui_input_name
 
 
-class DeviceDatabase(metaclass=SingletonMetaclass):
+class DeviceDatabase(metaclass=common.SingletonMetaclass):
 
     """Provides device specific names of axis, buttons, and hats if available
     for a given device.
@@ -118,12 +132,45 @@ class DeviceDatabase(metaclass=SingletonMetaclass):
 
         self._device_db = {"revision": 0, "devices": [], "mapping": {}}
         try:
-            self._device_db = json.load(open(db_file))
-            jsonschema.validate(self._device_db, _device_database_schema)
+            json_data = json.load(open(db_file))
+            jsonschema.validate(json_data, _device_database_schema)
+            self._device_db = self._parse_database(json_data)
         except (json.decoder.JSONDecodeError, jsonschema.ValidationError) as e:
             logging.getLogger("system").error(
                 f"There was an error loading device database {db_file}: {e}"
             )
+
+    def _parse_database(self, json_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Processes the raw JSON data for internal usage.
+
+        Converts string based input identifiers into tuples of
+        (InputType, index).
+
+        Args:
+            json_data: Raw JSON data loaded from the device database file.
+
+        Returns:
+            Processed JSON data with tuple based input identifiers.
+        """
+        processed_data = {
+            "revision": json_data["revision"],
+            "devices": json_data["devices"],
+            "mapping": {}
+        }
+
+        # Split string identifier into its constituent parts and build the
+        # corresponding identifier.
+        for device_name in json_data["mapping"]:
+            processed_data["mapping"][device_name] = {}
+            for key, value in json_data["mapping"][device_name].items():
+                type_string, index_string = key.split(" ")
+                identifier = (
+                    types.InputType.to_enum(type_string.lower()),
+                    int(index_string)
+                )
+                processed_data["mapping"][device_name][identifier] = value
+
+        return processed_data
 
     def _device_matches(
         self,
@@ -164,16 +211,11 @@ class DeviceDatabase(metaclass=SingletonMetaclass):
             if self._device_matches(dev, device):
                 if dev["mapping"] not in self._device_db["mapping"]:
                     logging.getLogger("system").warning(
-                        f"Unable to find device mapping for pid: "
-                        f"{device.product_id} vid: {device.vendor_id}"
+                        f"Device database lacks a mapping for device with pid: "
+                        f"{device.product_id} and vid: {device.vendor_id}."
                     )
                     return None
                 return DeviceMapping(self._device_db["mapping"][dev["mapping"]])
-
-        logging.getLogger("system").warning(
-            f"Unsupported device pid: {device.product_id} "
-            f"vid: {device.vendor_id}"
-        )
         return None
 
 
@@ -429,7 +471,7 @@ class JoystickWrapper:
         return hats
 
 
-class Joystick(metaclass=SingletonMetaclass):
+class Joystick(metaclass=common.SingletonMetaclass):
 
     """Allows read access to joystick state information."""
 
@@ -468,7 +510,7 @@ class Joystick(metaclass=SingletonMetaclass):
         return self.devices[device_guid]
 
 
-class Keyboard(metaclass=SingletonMetaclass):
+class Keyboard(metaclass=common.SingletonMetaclass):
 
     """Provides access to the keyboard state."""
 

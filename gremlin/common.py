@@ -38,9 +38,12 @@ class SingletonMetaclass(type):
 def input_to_ui_string(input_type: InputType, input_id: int) -> str:
     """Returns a string for UI usage of an input.
 
-    :param input_type the InputType being shown
-    :param input_id the corresponding id
-    :return string for UI usage of the given data
+    Args:
+        input_type: Type of the input
+        input_id: Index of the input
+
+    Returns:
+        String for UI usage of the given data.
     """
     if input_type == InputType.JoystickAxis:
         try:
