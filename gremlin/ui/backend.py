@@ -268,12 +268,13 @@ class Backend(QtCore.QObject):
             return
 
         profile_path = config.get_profile_with_regex(path)
-        # Foudn a valid profile to load.
+        # Found a valid profile to load.
         if profile_path:
             if self.profile.fpath != profile_path:
                 self.activate_gremlin(False)
                 self.loadProfile(profile_path)
-            self.activate_gremlin(True)
+            if not self.gremlinActive:
+                self.activate_gremlin(True)
         # No valid profile specified for the new execuable.
         else:
             if not cfg.value(
