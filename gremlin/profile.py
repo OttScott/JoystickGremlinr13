@@ -617,6 +617,13 @@ class Profile:
         tree = ElementTree.parse(fpath)
         root = tree.getroot()
 
+        version = int(root.get("version", "0"))
+        if version != Profile.current_version:
+            raise error.ProfileError(
+                f"Attempting to load an unsupported profile. Profile is of "
+                f"version {version} but only version 14 and up is supported."
+            )
+
         # Create library entries and modes.
         self.settings.from_xml(root)
         self._logical_devices_from_xml(root)
