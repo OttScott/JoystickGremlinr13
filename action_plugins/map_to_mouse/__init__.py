@@ -6,20 +6,37 @@ from __future__ import annotations
 
 import enum
 import math
-from typing import Any, List, Optional, TYPE_CHECKING, override
+from typing import (
+    override,
+    Any,
+    List,
+    Optional,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
 
 from gremlin import event_handler, sendinput, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.error import GremlinError
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, InputType, MouseButton, PropertyType, DataCreationMode
+from gremlin.types import (
+    ActionProperty,
+    HatDirection,
+    InputType,
+    MouseButton,
+    PropertyType,
+)
 
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.action_model import (
+    SequenceIndex,
+    ActionModel
+)
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
@@ -37,13 +54,15 @@ class MapToMouseMode(enum.Enum):
                 return MapToMouseMode.Button
             case "Motion":
                 return MapToMouseMode.Motion
+            case _:
+                raise GremlinError(f"Unknown MapToMouseMode: {value}")
 
 
 class MapToMouseFunctor(AbstractFunctor):
 
     """Implements the function implementing MapToMouse behavior at runtime."""
 
-    def __init__(self, action: MapToMouseData):
+    def __init__(self, action: MapToMouseData) -> None:
         super().__init__(action)
 
         self.mouse_controller = sendinput.MouseController()
@@ -51,7 +70,7 @@ class MapToMouseFunctor(AbstractFunctor):
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
             properties: list[ActionProperty]=[]
     ) -> None:
@@ -90,7 +109,11 @@ class MapToMouseFunctor(AbstractFunctor):
             else:
                 sendinput.mouse_release(self.data.button)
 
-    def _perform_axis_motion(self, event, value):
+    def _perform_axis_motion(
+        self,
+        event: event_handler.Event,
+        value: Value
+    ) -> None:
         """Processes axis-controlled motion.
 
         Args:
@@ -106,7 +129,11 @@ class MapToMouseFunctor(AbstractFunctor):
         dy = delta_motion if self.data.direction == 0  else None
         self.mouse_controller.set_absolute_motion(dx, dy)
 
-    def _perform_button_motion(self, event, value):
+    def _perform_button_motion(
+        self,
+        event: event_handler.Event,
+        value: Value
+    ) -> None:
         """Processes button-controlled motion.
 
         Args:
@@ -124,20 +151,33 @@ class MapToMouseFunctor(AbstractFunctor):
         else:
             self.mouse_controller.remove_accelerated_motion(event)
 
-    def _perform_hat_motion(self, event, value):
+    def _perform_hat_motion(
+        self,
+        event: event_handler.Event,
+        value: Value
+    ) -> None:
         """Processes hat-controlled motion.
 
         Args:
             event: input event to process
             value: potentially modified input value
         """
-        if value.current == (0, 0):
+        direction_lut = {
+            HatDirection.North: 0.0,
+            HatDirection.NorthEast: 45.0,
+            HatDirection.East: 90.0,
+            HatDirection.SouthEast: 135.0,
+            HatDirection.South: 180.0,
+            HatDirection.SouthWest: 225.0,
+            HatDirection.West: 270.0,
+            HatDirection.NorthWest: 315.0,
+        }
+
+        if value.current == HatDirection.Center:
             self.mouse_controller.set_absolute_motion(0, 0)
         else:
             self.mouse_controller.add_accelerated_motion(
-                util.rad2deg(
-                    math.atan2(-value.current[1], value.current[0])
-                ) + 90.0,
+                direction_lut[value.current],
                 self.data.min_speed,
                 self.data.max_speed,
                 self.data.time_to_max_speed,
@@ -148,7 +188,7 @@ class MapToMouseFunctor(AbstractFunctor):
 class MapToMouseModel(ActionModel):
 
     # Signal emitted when the description variable's content changes
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(
             self,
@@ -157,7 +197,7 @@ class MapToMouseModel(ActionModel):
             action_index: SequenceIndex,
             parent_index: SequenceIndex,
             parent: QtCore.QObject
-    ):
+    ) -> None:
         super().__init__(data, binding_model, action_index, parent_index, parent)
 
     def _qml_path_impl(self) -> str:
@@ -211,11 +251,11 @@ class MapToMouseModel(ActionModel):
             self._data.time_to_max_speed = value
             self.changed.emit()
 
-    @Property(str, notify=changed)
+    @QtCore.Property(str, notify=changed)
     def button(self) -> str:
         return MouseButton.to_string(self._data.button)
 
-    @Slot(list)
+    @QtCore.Slot(list)
     def updateInputs(self, data: List[event_handler.Event]) -> None:
         """Receives the events corresponding to mouse button presses.
 
@@ -228,35 +268,35 @@ class MapToMouseModel(ActionModel):
         self._data.button = data[0].identifier
         self.changed.emit()
 
-    mode = Property(
+    mode = QtCore.Property(
         str,
         fget=_get_mode,
         fset=_set_mode,
         notify=changed
     )
 
-    direction = Property(
+    direction = QtCore.Property(
         int,
         fget=_get_direction,
         fset=_set_direction,
         notify=changed
     )
 
-    minSpeed = Property(
+    minSpeed = QtCore.Property(
         int,
         fget=_get_min_speed,
         fset=_set_min_speed,
         notify=changed
     )
 
-    maxSpeed = Property(
+    maxSpeed = QtCore.Property(
         int,
         fget=_get_max_speed,
         fset=_set_max_speed,
         notify=changed
     )
 
-    timeToMaxSpeed = Property(
+    timeToMaxSpeed = QtCore.Property(
         float,
         fget=_get_time_to_max_speed,
         fset=_set_time_to_max_speed,
@@ -276,20 +316,20 @@ class MapToMouseData(AbstractActionData):
     functor = MapToMouseFunctor
     model = MapToMouseModel
 
-    properties = [
-        ActionProperty.ActivateOnBoth
-    ]
-    input_types = [
+    properties = (
+        ActionProperty.ActivateOnBoth,
+    )
+    input_types = (
         InputType.JoystickAxis,
         InputType.JoystickButton,
         InputType.JoystickHat,
         InputType.Keyboard
-    ]
+    )
 
     def __init__(
             self,
             behavior_type: InputType=InputType.JoystickButton
-    ):
+    ) -> None:
         super().__init__(behavior_type)
 
         # Model variables
@@ -298,8 +338,8 @@ class MapToMouseData(AbstractActionData):
             self.mode = MapToMouseMode.Motion
         self.button = MouseButton.Left
         self.direction = 0
-        self.min_speed = 5
-        self.max_speed = 15
+        self.min_speed = 50
+        self.max_speed = 250
         self.time_to_max_speed = 1.0
 
     @override
