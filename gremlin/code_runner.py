@@ -2,7 +2,12 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-from abc import ABCMeta, abstractmethod
+from __future__ import annotations
+
+from abc import (
+    ABCMeta,
+    abstractmethod,
+)
 import os
 import sys
 import time
@@ -12,10 +17,26 @@ import dill
 from vjoy.vjoy import VJoyProxy
 
 from gremlin.base_classes import Value
-from gremlin import audio_player, device_helpers, error, event_handler, fsm, \
-    macro, mode_manager, profile, sendinput, user_script, util
-from gremlin.types import ActionProperty, AxisButtonDirection, HatDirection, \
-    InputType
+from gremlin import (
+    audio_player,
+    device_helpers,
+    error,
+    event_handler,
+    fsm,
+    macro,
+    mode_manager,
+    profile,
+    sendinput,
+    signal,
+    user_script,
+    util,
+)
+from gremlin.types import (
+    ActionProperty,
+    AxisButtonDirection,
+    HatDirection,
+    InputType,
+)
 
 
 class VirtualButton(metaclass=ABCMeta):
@@ -398,9 +419,9 @@ class CodeRunner:
 
             sendinput.MouseController().start()
         except ImportError as e:
-            util.display_error(
-                "Unable to launch due to missing user plugin: {}"
-                .format(str(e))
+            signal.display_error(
+                "Unable to launch due to a missing user plugin.",
+                str(e)
             )
 
     def stop(self) -> None:

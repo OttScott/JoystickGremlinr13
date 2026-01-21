@@ -40,7 +40,10 @@ from gremlin import (
     shared_state,
 )
 from gremlin.logical_device import LogicalDevice
-from gremlin.signal import signal
+from gremlin.signal import (
+    display_error,
+    signal,
+)
 
 from gremlin.ui.device import (
     InputIdentifier,
@@ -180,7 +183,6 @@ class Backend(QtCore.QObject):
     windowTitleChanged = Signal()
     profileChanged = Signal()
     recentProfilesChanged = Signal()
-    lastErrorChanged = Signal()
     inputConfigurationChanged = Signal()
     activityChanged = Signal()
     propertyChanged = Signal()
@@ -478,10 +480,10 @@ class Backend(QtCore.QObject):
         Returns:
             File path of the current profile
         """
-        return self.profile.fpath
+        return str(self.profile.fpath)
 
     @Slot(str)
-    def loadProfile(self, fpath):
+    def loadProfile(self, fpath: str) -> None:
         """Loads a profile from the specified path.
 
         Args:
@@ -507,51 +509,27 @@ class Backend(QtCore.QObject):
             String to use as window title
         """
         if self.profile and self.profile.fpath:
-            return self.profile.fpath
+            return str(self.profile.fpath)
         else:
             return ""
 
-    @Property(str, notify=lastErrorChanged)
-    def lastError(self) -> str:
-        """Returns the last error that occurred.
-
-        Returns:
-            Last error to occurr
-        """
-        return self._last_error
-
-    def display_error(self, msg: str) -> None:
-        """Forces the display of a specific error message.
-
-        Args:
-            msg: The error message to display
-        """
-        self._last_error = msg
-        self.lastErrorChanged.emit()
-
-    def _load_profile(self, fpath):
+    def _load_profile(self, fpath: str) -> None:
         """Attempts to load the profile at the provided path.
 
         Args:
             fpath: The file path from which to load the profile
         """
-        # Check if there exists a file with this path
+        # Check if there exists a file with this path.
         if not os.path.isfile(fpath):
-            self.display_error(
-                f"Unable to load profile '{fpath}', no such file."
-            )
+            display_error(f"Unable to load profile '{fpath}', no such file.")
             return
 
         # Disable the program if it is running when we're loading a
-        # new profile
-        # TODO: implement this for QML
-        #self.ui.actionActivate.setChecked(False)
-        #self.activate(False)
+        # new profile.
+        self.activate_gremlin(False)
 
-        # Attempt to load the new profile
+        # Attempt to load the new profile.
         try:
-            # self.profile = profile.Profile()
-            # self.profile.from_xml(fpath)
             LogicalDevice().reset()
             new_profile = profile.Profile()
             profile_was_converted = new_profile.from_xml(fpath)
@@ -561,10 +539,7 @@ class Backend(QtCore.QObject):
                 sys.path = list(set(sys.path))
                 sys.path.insert(0, profile_folder)
 
-            # self._sanitize_profile(new_profile)
             self.profile = new_profile
-            # self._profile_fname = fname
-            # self._update_window_title()
 
             # Save the profile at this point if it was converted from a prior
             # profile version, as otherwise the change detection logic will
@@ -572,8 +547,8 @@ class Backend(QtCore.QObject):
             if profile_was_converted:
                 self.profile.to_xml(fpath)
         except (KeyError, TypeError) as e:
-            # An error occurred while parsing an existing profile,
-            # creating an empty profile instead.
+            # An error occurred while parsing an existing profile, creating
+            # an empty profile instead.
             logging.getLogger("system").exception(
                 "Invalid profile content:\n{}".format(e)
             )
@@ -582,6 +557,4 @@ class Backend(QtCore.QObject):
             # Parsing the profile went wrong, stop loading and start with an
             # empty profile.
             self.newProfile()
-            self.display_error(
-                f"Failed to load the profile {fpath} due to:\n\n{e}"
-            )
+            display_error(f"Failed to load the profile {fpath}.", str(e))

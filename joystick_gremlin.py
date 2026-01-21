@@ -85,10 +85,9 @@ def exception_hook(exception_type, value, trace) -> None:
         value: content of the exception
         trace: the stack trace which produced the exception
     """
-    msg = "Uncaught exception:\n"
-    msg += " ".join(traceback.format_exception(exception_type, value, trace))
-    logging.getLogger("system").error(msg)
-    gremlin.util.display_error(msg)
+    msg = " ".join(traceback.format_exception(exception_type, value, trace))
+    logging.getLogger("system").error(f"Unhandled exception: {msg}")
+    gremlin.signal.display_error("An unhandled exception occured.", msg)
 
 
 def shutdown_cleanup() -> None:
@@ -242,6 +241,7 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         executable_name = os.path.split(sys.executable)[-1]
         if executable_name == "joystick_gremlin.exe":
             sys.excepthook = exception_hook
+        sys.excepthook = exception_hook
 
         # Initialize joystick device handling.
         self.syslog.info("Initializing joystick devices")
@@ -249,7 +249,9 @@ class JoystickGremlinApp(QtWidgets.QApplication):
         try:
             gremlin.device_initialization.joystick_devices_initialization()
         except gremlin.error.GremlinError as e:
-            gremlin.util.display_error(f"Device initialization failed: {e}")
+            gremlin.signal.display_error(
+                "Device initialization failed.", str(e)
+            )
             sys.exit(0)
 
         self.initialize_qt()

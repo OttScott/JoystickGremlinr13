@@ -16,12 +16,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 import uuid
 from xml.etree import ElementTree
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore
 
 import dill
 from dill import GUID
 
-from gremlin import error
+from gremlin import (
+    error,
+    signal,
+)
 from gremlin.types import AxisButtonDirection, AxisMode, HatDirection, \
     InputType, Point2D, PropertyType, ActionActivationMode, ScriptVariableType
 
@@ -890,21 +893,6 @@ def resource_path(relative_path: str) -> str:
         gremlin_root = Path(sys._MEIPASS).resolve()
 
     return str(gremlin_root / relative_path)
-
-
-def display_error(msg: str) -> None:
-    """Displays the provided error message to the user.
-
-    Args:
-        msg: the error message to display
-    """
-    box = QtWidgets.QMessageBox(
-        QtWidgets.QMessageBox.Critical,
-        "Error",
-        msg,
-        QtWidgets.QMessageBox.Ok
-    )
-    box.exec()
 
 
 def log(msg: str) -> None:

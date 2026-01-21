@@ -8,17 +8,39 @@ import functools
 import inspect
 import logging
 import time
-from threading import Thread, Timer
-from typing import Any, Callable, List, TYPE_CHECKING
+from threading import (
+    Thread,
+    Timer,
+)
+from typing import (
+    Any,
+    Callable,
+    List,
+    TYPE_CHECKING
+)
 import uuid
 
 from PySide6 import QtCore
 
 import dill
 
-from gremlin import common, config, device_initialization, error, keyboard, \
-    mode_manager, util, shared_state, tree, windows_event_hook
-from gremlin.input_cache import Joystick, Keyboard
+from gremlin import (
+    common,
+    config,
+    device_initialization,
+    error,
+    keyboard,
+    mode_manager,
+    util,
+    shared_state,
+    signal,
+    tree,
+    windows_event_hook,
+)
+from gremlin.input_cache import (
+    Joystick,
+    Keyboard,
+)
 from gremlin.types import InputType
 
 
@@ -536,7 +558,7 @@ class EventHandler(QtCore.QObject):
             try:
                 cb(event)
             except error.VJoyError as e:
-                util.display_error(str(e))
+                signal.display_error("Error encountered with vJoy.", str(e))
                 logging.getLogger("system").exception(f"VJoy error: '{e}'")
                 self.pause()
 

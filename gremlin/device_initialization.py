@@ -12,6 +12,7 @@ from gremlin import (
     error,
     shared_state,
     util,
+    signal,
 )
 from vjoy.vjoy import VJoyProxy
 from vjoy import vjoy
@@ -119,7 +120,7 @@ def joystick_devices_initialization() -> None:
             error_string = f"vJoy id {i}: Hats are set to discrete but have " \
                            f"to be set as continuous."
             syslog.debug(error_string)
-            util.display_error(error_string)
+            signal.display_error(error_string)
 
         # As we are ensured that no duplicate vJoy devices exist from
         # the previous step we can directly link the Direct Input and

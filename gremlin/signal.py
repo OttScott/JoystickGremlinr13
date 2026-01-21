@@ -7,6 +7,15 @@ from PySide6 import QtCore
 from gremlin import common
 
 
+def display_error(message: str, details: str = "") -> None:
+    """Display an error message in the UI.
+
+    Args:
+        message (str): The error message to display.
+    """
+    signal.showError.emit(message, details)
+
+
 @common.SingletonDecorator
 class Signal(QtCore.QObject):
 
@@ -23,6 +32,8 @@ class Signal(QtCore.QObject):
     logicalDeviceModified = QtCore.Signal()
 
     configChanged = QtCore.Signal()
+
+    showError = QtCore.Signal(str, str)
 
 
 signal = Signal()

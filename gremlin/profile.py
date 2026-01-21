@@ -37,6 +37,7 @@ from gremlin import (
     device_initialization,
     error,
     plugin_manager,
+    signal,
 )
 from gremlin.logical_device import LogicalDevice
 from gremlin.tree import TreeNode
@@ -613,18 +614,19 @@ class Profile:
             fpath: path to the XML file to parse
         """
         # Parse file into an XML document.
-        self.fpath = fpath
         tree = ElementTree.parse(fpath)
         root = tree.getroot()
 
         version = int(root.get("version", "0"))
         if version != Profile.current_version:
-            raise error.ProfileError(
+            signal.display_error(
                 f"Attempting to load an unsupported profile. Profile is of "
                 f"version {version} but only version 14 and up is supported."
             )
+            return
 
         # Create library entries and modes.
+        self.fpath = fpath
         self.settings.from_xml(root)
         self._logical_devices_from_xml(root)
         self.library.from_xml(root)

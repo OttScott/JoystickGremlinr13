@@ -34,12 +34,8 @@ ApplicationWindow {
 
     MessageDialog {
         id: _errorDialog
-        title: "An error occurred"
-        buttons: MessageDialog.Ok
 
-        text: backend.lastError
-
-        onTextChanged: () => { visible = true }
+        title: "Error"
     }
 
     FileDialog {
@@ -353,6 +349,15 @@ ApplicationWindow {
         function onProfileChanged() {
             _logicalDeviceList.device =
                 backend.getLogicalDeviceManagementModel()
+        }
+    }
+    Connections {
+        target: signal
+
+        function onShowError(message, details) {
+            _errorDialog.text = message
+            _errorDialog.detailedText = details
+            _errorDialog.open()
         }
     }
 
