@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import logging
+import logging.handlers
 import os
 import sys
 import time
@@ -65,7 +66,11 @@ def configure_logger(config: Dict[str, Any]) -> None:
     """
     logger = logging.getLogger(config["name"])
     logger.setLevel(config["level"])
-    handler = logging.FileHandler(config["logfile"])
+    handler = logging.handlers.RotatingFileHandler(
+        config["logfile"],
+        maxBytes=1 * 1024 * 1024,
+        backupCount=1
+    )
     handler.setLevel(config["level"])
     formatter = logging.Formatter(config["format"], "%Y-%m-%d %H:%M:%S")
     handler.setFormatter(formatter)
