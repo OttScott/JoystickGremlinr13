@@ -153,10 +153,13 @@ class PluginManager(metaclass=SingletonMetaclass):
             is_core: Whether the folder is part of the core Gremlin or user
                 specified.
         """
-        logging.getLogger("system").info(f"Discovering plugins in {path}.")
+        # Only process absolute paths for non core plugins.
+        if not is_core and not path.is_absolute():
+            return
         if not is_core:
             sys.path.insert(0, str(path))
 
+        logging.getLogger("system").info(f"Discovering plugins in {path}.")
         for fpath in path.glob("**/__init__.py"):
             try:
                 # Ignore root folder of the action plugins.
@@ -173,7 +176,7 @@ class PluginManager(metaclass=SingletonMetaclass):
                 except (ModuleNotFoundError, ImportError) as e:
                     logging.getLogger("system").error(
                         f"Failed to load plugin '{plugin_module_name}' "
-                        f"with error: '{e}"
+                        f"with error: '{e}."
                     )
                     continue
 
