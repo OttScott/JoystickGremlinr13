@@ -16,13 +16,14 @@ from typing import List
 import dill
 from vjoy.vjoy import VJoyProxy
 
-from gremlin.base_classes import Value
 from gremlin import (
     audio_player,
     device_helpers,
+    device_initialization,
     error,
     event_handler,
     fsm,
+    input_cache,
     macro,
     mode_manager,
     profile,
@@ -31,6 +32,8 @@ from gremlin import (
     user_script,
     util,
 )
+from gremlin.base_classes import Value
+from gremlin.config import Configuration
 from gremlin.types import (
     ActionProperty,
     AxisButtonDirection,
@@ -311,6 +314,31 @@ class CallbackObject:
         return [value]
 
 
+class RefreshPhysicalInputs:
+
+    """Emits input events using cached device information to trigger Gremlin
+    action execution."""
+
+    @classmethod
+    def refresh_axes(cls) -> None:
+        """Refreshes input axes using cached values."""
+        cache = input_cache.Joystick()
+        devices = device_initialization.input_devices()
+        macro_manager = macro.MacroManager()
+        for dev in devices:
+            joy = cache[dev.device_guid.uuid]
+            for index in range(joy.axis_count):
+                axis_id = dev.axis_map[index].axis_index
+                action = macro.Macro()
+                action.add_action(macro.JoystickAction(
+                    dev.device_guid.uuid,
+                    InputType.JoystickAxis,
+                    axis_id,
+                    joy.axis(axis_id).value
+                ))
+                macro_manager.queue_macro(action)
+
+
 class CodeRunner:
 
     """Runs the actual profile code."""
@@ -418,6 +446,12 @@ class CodeRunner:
             self._running = True
 
             sendinput.MouseController().start()
+
+            # Refresh physical input states.
+            if Configuration().value(
+                "global", "general", "refresh-axis-on-activation"
+            ):
+                RefreshPhysicalInputs.refresh_axes()
         except ImportError as e:
             signal.display_error(
                 "Unable to launch due to a missing user plugin.",

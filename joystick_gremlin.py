@@ -150,6 +150,12 @@ def register_config_options() -> None:
         "Use the dark mode UI (requires restart).", {}, True
     )
     cfg.register(
+        "global", "general", "refresh-axis-on-activation",
+        PropertyType.Bool, True,
+        "Use known physical device state to perform actions using these values "
+        "upon profile activation.", {}, True
+    )
+    cfg.register(
         "profile", "automation", "enable-auto-loading",
         PropertyType.Bool, False,
         "Enable the automatic loading and activation of profiles based on the "
