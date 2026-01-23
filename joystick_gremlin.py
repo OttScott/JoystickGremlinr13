@@ -156,6 +156,12 @@ def register_config_options() -> None:
         "upon profile activation.", {}, True
     )
     cfg.register(
+        "global", "general", "refresh-axis-on-mode-change",
+        PropertyType.Bool, True,
+        "Force an update of all axes by emitting axis events upon a mode change.",
+        {}, True
+    )
+    cfg.register(
         "profile", "automation", "enable-auto-loading",
         PropertyType.Bool, False,
         "Enable the automatic loading and activation of profiles based on the "

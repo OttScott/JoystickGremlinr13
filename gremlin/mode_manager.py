@@ -111,7 +111,8 @@ class ModeManager(QtCore.QObject):
     def _update_mode(self) -> None:
         self._config.set("global", "internal", "last-mode", self.current.name)
         self.mode_changed.emit(self.current.name)
-        RefreshPhysicalInputs.refresh_axes()
+        if self._config.value("global", "general", "refresh-axis-on-mode-change"):
+            RefreshPhysicalInputs.refresh_axes()
 
     def cycle(self, sequence: ModeSequence) -> None:
         self.switch_to(Mode(sequence.next(), self.current.name))
