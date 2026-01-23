@@ -11,7 +11,6 @@ import dill
 from gremlin import (
     error,
     shared_state,
-    util,
     signal,
 )
 from vjoy.vjoy import VJoyProxy

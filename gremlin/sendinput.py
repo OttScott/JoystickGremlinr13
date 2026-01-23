@@ -10,10 +10,13 @@ import enum
 import math
 import threading
 import time
+from typing import TYPE_CHECKING
 
 from gremlin.common import SingletonDecorator
-from gremlin.event_handler import Event
 from gremlin.types import MouseButton
+
+if TYPE_CHECKING:
+    from gremlin.event_handler import Event
 
 
 """Defines flags used when specifying MOUSEINPUT structures.

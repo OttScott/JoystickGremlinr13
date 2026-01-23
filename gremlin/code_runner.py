@@ -19,21 +19,19 @@ from vjoy.vjoy import VJoyProxy
 from gremlin import (
     audio_player,
     device_helpers,
-    device_initialization,
     error,
     event_handler,
     fsm,
-    input_cache,
     macro,
     mode_manager,
     profile,
     sendinput,
     signal,
     user_script,
-    util,
 )
 from gremlin.base_classes import Value
 from gremlin.config import Configuration
+from gremlin.input_refresh import RefreshPhysicalInputs
 from gremlin.types import (
     ActionProperty,
     AxisButtonDirection,
@@ -312,31 +310,6 @@ class CallbackObject:
             raise error.GremlinError("Invalid event type")
 
         return [value]
-
-
-class RefreshPhysicalInputs:
-
-    """Emits input events using cached device information to trigger Gremlin
-    action execution."""
-
-    @classmethod
-    def refresh_axes(cls) -> None:
-        """Refreshes input axes using cached values."""
-        cache = input_cache.Joystick()
-        devices = device_initialization.input_devices()
-        macro_manager = macro.MacroManager()
-        for dev in devices:
-            joy = cache[dev.device_guid.uuid]
-            for index in range(joy.axis_count):
-                axis_id = dev.axis_map[index].axis_index
-                action = macro.Macro()
-                action.add_action(macro.JoystickAction(
-                    dev.device_guid.uuid,
-                    InputType.JoystickAxis,
-                    axis_id,
-                    joy.axis(axis_id).value
-                ))
-                macro_manager.queue_macro(action)
 
 
 class CodeRunner:
