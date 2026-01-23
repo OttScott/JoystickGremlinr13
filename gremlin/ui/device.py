@@ -1411,16 +1411,11 @@ class AxisCalibration(QtCore.QAbstractListModel):
             key = (self._device_uuid, self._device.axis_map[i].axis_index)
             self._config.init_calibration(*key)
 
-            axis_name = "{} {:d}".format(
-                InputType.to_string(InputType.JoystickAxis).capitalize(),
-                key[1]
-            )
-            if self._device_mapping:
-                axis_name = self._device_mapping.input_name(axis_name)
-
             calibration_data = self._config.get_calibration(*key)
             self._state.append({
-                "identifier": axis_name,
+                "identifier": common.input_to_ui_string(
+                    InputType.JoystickAxis, key[1]
+                ),
                 "rawValue": 0,
                 "calibratedValue": 0,
                 "low": calibration_data[0],
