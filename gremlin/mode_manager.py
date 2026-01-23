@@ -9,7 +9,7 @@ from PySide6 import QtCore
 from gremlin import shared_state
 from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
-from gremlin.error import GremlinError
+from gremlin.input_refresh import RefreshPhysicalInputs
 from gremlin.types import PropertyType
 
 
@@ -111,6 +111,7 @@ class ModeManager(QtCore.QObject):
     def _update_mode(self) -> None:
         self._config.set("global", "internal", "last-mode", self.current.name)
         self.mode_changed.emit(self.current.name)
+        RefreshPhysicalInputs.refresh_axes()
 
     def cycle(self, sequence: ModeSequence) -> None:
         self.switch_to(Mode(sequence.next(), self.current.name))
