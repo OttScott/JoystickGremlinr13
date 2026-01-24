@@ -80,7 +80,7 @@ class MapToVjoyFunctor(AbstractFunctor):
                 .button(self.data.vjoy_input_id).is_pressed = is_pressed
 
             if is_pressed and ActionProperty.DisableAutoRelease not in properties:
-                device_helpers.ButtonReleaseActions().register_button_release(
+                device_helpers.ButtonReleaseActions().register_vjoy_button_release(
                     (self.data.vjoy_device_id, self.data.vjoy_input_id),
                     event,
                     self.data.button_inverted

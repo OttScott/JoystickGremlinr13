@@ -2,26 +2,79 @@
 
 # SPDX-License-Identifier: GPL-3.0-only
 
-import collections
+from __future__ import annotations
+
 from collections.abc import Callable
-import functools
+from dataclasses import dataclass
+from enum import Enum
 import logging
 import time
+from typing import Tuple
 import uuid
 
 from PySide6 import QtCore
 
-import gremlin.common
-import gremlin.keyboard
-
-from gremlin import common, event_handler, mode_manager
+from gremlin import (
+    common,
+    event_handler,
+    logical_device,
+    mode_manager,
+)
 from gremlin.types import InputType
 from vjoy.vjoy import VJoyProxy
 
 
-ButtonReleaseEntry = collections.namedtuple(
-    "Entry", ["callback", "event", "mode"]
-)
+class ModeMatch(Enum):
+
+    """Defines how mode matching is performed for button release actions."""
+
+    IgnoreMode = 1
+    DifferentMode = 2
+    MatchMode = 3
+
+
+class ReleaseMode(Enum):
+
+    """Defines how button release actions are triggered."""
+
+    OnPress = 1
+    OnRelease = 2
+
+
+@dataclass
+class ButtonReleaseEntry:
+
+    callback : Callable[[], None]
+    registration_mode : str
+    mode_match : ModeMatch
+    release_mode : ReleaseMode
+
+
+@dataclass
+class RegistryKey:
+
+    device_uuid : uuid.UUID
+    input_type: InputType
+    input_id : int
+
+    @classmethod
+    def from_event(cls, event: event_handler.Event) -> RegistryKey:
+        """Creates a RegistryKey from an event.
+
+        Args:
+            event: the event from which to create the key
+
+        Returns:
+            The corresponding RegistryKey instance
+        """
+        return cls(
+            event.device_guid,
+            event.event_type,
+            event.identifier
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.device_uuid, self.input_type, self.input_id))
 
 
 @common.SingletonDecorator
@@ -29,16 +82,17 @@ class ButtonReleaseActions(QtCore.QObject):
 
     """Ensures a desired action is run when a button is released."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the instance."""
         QtCore.QObject.__init__(self)
 
         self._registry = {}
-        self._ignore_registry = {}
+
         el = event_handler.EventListener()
         el.joystick_event.connect(self._input_event_cb)
         el.keyboard_event.connect(self._input_event_cb)
         el.virtual_event.connect(self._input_event_cb)
+
         mm = mode_manager.ModeManager()
         self._current_mode = mm.current.name
         mm.mode_changed.connect(self._mode_changed_cb)
@@ -55,22 +109,25 @@ class ButtonReleaseActions(QtCore.QObject):
                 released
             physical_event: the physical event of the button being pressed
         """
-        release_evt = physical_event.clone()
-        release_evt.is_pressed = False
-
-        if release_evt not in self._registry:
-            self._registry[release_evt] = []
-        # Do not record the mode since we may want to run the release action
-        # independent of a mode
-        self._registry[release_evt].append(
-            ButtonReleaseEntry(callback, release_evt, None)
+        key = RegistryKey.from_event(physical_event)
+        if key not in self._registry:
+            self._registry[key] = []
+        # The release callback should run in any mode whenever the button is
+        # released.
+        self._registry[key].append(
+            ButtonReleaseEntry(
+                callback,
+                physical_event.mode,
+                ModeMatch.IgnoreMode,
+                ReleaseMode.OnRelease
+            )
         )
 
-    def register_button_release(
+    def register_vjoy_button_release(
         self,
-        vjoy_input: tuple[int, int],
+        vjoy_input: Tuple[int, int],
         physical_event: event_handler.Event,
-        activate_on: bool
+        activate_on_press: bool
     ) -> None:
         """Registers a physical and vjoy button pair for tracking.
 
@@ -87,50 +144,49 @@ class ButtonReleaseActions(QtCore.QObject):
             activate_on: button state on which to trigger the automatic
                 release
         """
-        if (physical_event, vjoy_input) in self._ignore_registry:
-            logging.getLogger("system").warning(
-                f"Not registering button release event for "
-                f"{physical_event} to {vjoy_input}"
+        key = RegistryKey.from_event(physical_event)
+        if key not in self._registry:
+            self._registry[key] = []
+
+        # Only run the release callback if we're in a different mode to avoid
+        # sending double release events.
+        self._registry[key].append(
+            ButtonReleaseEntry(
+                lambda: self._release_vjoy_callback_prototype(vjoy_input),
+                physical_event.mode,
+                ModeMatch.DifferentMode,
+                ReleaseMode.OnPress if activate_on_press else ReleaseMode.OnRelease
             )
-            return
+        )
 
-        release_evt = physical_event.clone()
-        release_evt.is_pressed = activate_on
-
-        if release_evt not in self._ignore_registry:
-            self._ignore_registry[release_evt] = []
-        # Record current mode so we only release if we've changed mode
-        self._ignore_registry[release_evt].append(ButtonReleaseEntry(
-            lambda: self._release_callback_prototype(vjoy_input),
-            release_evt,
-            self._current_mode
-        ))
-
-    def ignore_button_release(
-            self,
-            vjoy_input: tuple[int, int],
-            physical_event: event_handler.Event
+    def register_logical_button_release(
+        self,
+        logical_button_id: int,
+        physical_event: event_handler.Event,
+        activate_on_press: bool
     ) -> None:
-        """Ignores physical and vjoy button pair tracking requests.
+        key = RegistryKey.from_event(physical_event)
+        if key not in self._registry:
+            self._registry[key] = []
 
-        This prevents calls to register_button_callback from being honored
-        in cases where some action wants to disable this feature.
-
-        Args:
-            vjoy_input: the vjoy button to release, represented as
-                (vjoy_device_id, vjoy_button_id)
-            physical_event: the button event when release should
-                trigger the release of the vjoy button
-        """
-        key = (physical_event, vjoy_input)
-        self._ignore_registry[key] = True
+        # Only run the release callback if we're in a different mode to avoid
+        # sending double release events.
+        self._registry[key].append(
+            ButtonReleaseEntry(
+                lambda: self._release_logical_device_callback_prototype(
+                    logical_button_id
+                ),
+                physical_event.mode,
+                ModeMatch.DifferentMode,
+                ReleaseMode.OnPress if activate_on_press else ReleaseMode.OnRelease
+            )
+        )
 
     def reset(self) -> None:
         """Wipes the registry database."""
         self._registry = {}
-        self._ignore_registry = {}
 
-    def _release_callback_prototype(self, vjoy_input: tuple[int, int]) -> None:
+    def _release_vjoy_callback_prototype(self, vjoy_input: Tuple[int, int]) -> None:
         """Prototype of a button release callback, used with lambdas.
 
         Args:
@@ -138,12 +194,29 @@ class ButtonReleaseActions(QtCore.QObject):
         """
         vjoy = VJoyProxy()
         # Check if the button is valid otherwise we cause Gremlin to crash
-        if vjoy[vjoy_input[0]].is_button_valid(vjoy_input[1]):
+        if vjoy_input[0] in vjoy.vjoy_devices \
+                and vjoy[vjoy_input[0]].is_button_valid(vjoy_input[1]):
             vjoy[vjoy_input[0]].button(vjoy_input[1]).is_pressed = False
         else:
             logging.getLogger("system").warning(
                 f"Attempted to use non existent button: " +
                 f"vJoy {vjoy_input[0]:d} button {vjoy_input[1]:d}"
+            )
+
+    def _release_logical_device_callback_prototype(self, input_id: int) -> None:
+        """Prototype of a button release callback, used with lambdas.
+
+        Args:
+            vjoy_input: the vjoy input data to use in the release
+        """
+        ld = logical_device.LogicalDevice()
+        identifier = ld.Input.Identifier(InputType.JoystickButton, input_id)
+        if ld.exists(identifier):
+            ld[identifier].update(False)
+        else:
+            logging.getLogger("system").warning(
+                f"Attempted to use non existent button: " +
+                f"Logical Device button {input_id}."
             )
 
     def _input_event_cb(self, event: event_handler.Event) -> None:
@@ -152,15 +225,28 @@ class ButtonReleaseActions(QtCore.QObject):
         Args:
             event: the event to process
         """
-        #if evt in [e for e in self._registry if e.is_pressed != evt.is_pressed]:
-        if event in self._registry:
-            new_list = []
-            for entry in self._registry[event]:
-                if entry.event.is_pressed == event.is_pressed:
-                    entry.callback()
-                else:
-                    new_list.append(entry)
-            self._registry[event] = new_list
+        key = RegistryKey.from_event(event)
+        if key not in self._registry:
+            return
+
+        new_list = []
+        for entry in self._registry.get(key, []):
+            run_callback = True
+            match entry.mode_match:
+                case ModeMatch.IgnoreMode:
+                    run_callback = True
+                case ModeMatch.DifferentMode:
+                    run_callback = self._current_mode != entry.registration_mode
+                case ModeMatch.MatchMode:
+                    run_callback = self._current_mode == entry.registration_mode
+
+            if not run_callback:
+                pass
+            elif event.is_pressed == (entry.release_mode == ReleaseMode.OnPress):
+                entry.callback()
+            else:
+                new_list.append(entry)
+        self._registry[event] = new_list
 
     def _mode_changed_cb(self, mode: str) -> None:
         """Updates the current mode variable.
