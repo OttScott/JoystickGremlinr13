@@ -16,6 +16,7 @@ from PySide6 import QtWidgets
 import pytest
 
 import dill
+import gremlin.config
 import gremlin.device_initialization
 import gremlin.error
 import gremlin.event_handler
@@ -189,6 +190,9 @@ def tear_down() -> Iterator[None]:
 @pytest.fixture
 def tester(qapp: joystick_gremlin.JoystickGremlinApp) -> Generator[app_tester.GremlinAppTester]:
     gremlin_app = app_tester.GremlinAppTester(qapp)
+    cfg = gremlin.config.Configuration()
+    cfg.set("global", "general", "refresh-axis-on-mode-change", False)
+    cfg.set("global", "general", "refresh-axis-on-activation", False)
     yield gremlin_app
     gremlin.event_handler.EventListener().terminate()
     backend = gremlin.ui.backend.Backend()

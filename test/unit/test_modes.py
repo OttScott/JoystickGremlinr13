@@ -27,7 +27,7 @@ _PROFILE_REALISTIC = "profile_realistic.xml"
 
 class TestModeHierarchy:
 
-    def test_ctor(self):
+    def test_ctor(self) -> None:
         p = Profile()
         mh = ModeHierarchy(p)
 
@@ -39,7 +39,7 @@ class TestModeHierarchy:
         with pytest.raises(GremlinError):
             mh.find_mode("not there")
 
-    def test_add(self):
+    def test_add(self) -> None:
         p = Profile()
         mh = ModeHierarchy(p)
 
@@ -56,7 +56,7 @@ class TestModeHierarchy:
         assert mh.mode_exists("Second") == True
         assert mh.mode_exists("Other") == False
 
-    def test_delete(self):
+    def test_delete(self) -> None:
         p = Profile()
         mh = ModeHierarchy(p)
 
@@ -70,7 +70,7 @@ class TestModeHierarchy:
         mh.add_mode("Second")
         assert set(mh.mode_names()) == set(["Default", "Second", "Third"])
 
-    def test_rename(self):
+    def test_rename(self) -> None:
         p = Profile()
         mh = ModeHierarchy(p)
 
@@ -82,7 +82,7 @@ class TestModeHierarchy:
         assert set(mh.mode_names()) == set(["Zeta", "Second", "Third"])
         assert mh.first_mode == "Zeta"
 
-    def test_parent(self):
+    def test_parent(self) -> None:
         p = Profile()
         mh = ModeHierarchy(p)
 
@@ -95,7 +95,7 @@ class TestModeHierarchy:
         assert mh.find_mode("Default").parent.value == "Second"
         assert mh.find_mode("Default").parent == mh.find_mode("Second")
 
-    def test_complex_modifications(self, xml_dir: pathlib.Path):
+    def test_complex_modifications(self, xml_dir: pathlib.Path) -> None:
         p = Profile()
         p.from_xml(str(xml_dir / _PROFILE_REALISTIC))
         mh = p.modes
@@ -116,13 +116,14 @@ class TestModeHierarchy:
 
 class TestModeManager:
 
-    def test_cycling(self):
+    def test_cycling(self) -> None:
         p = Profile()
         gremlin.shared_state.current_profile = p
 
         mm = ModeManager()
         cfg = Configuration()
         cfg.set("action", "change-mode", "resolution-mode", "Oldest")
+        cfg.set("global", "general", "refresh-axis-on-mode-change", False)
         mm.reset()
         del mm._mode_stack[0]
         mm.switch_to(Mode("A", None))
@@ -149,16 +150,16 @@ class TestModeManager:
         assert ml[1].name == "A"
         assert ml[2].name == "B"
 
-    def test_temporaries(self):
+    def test_temporaries(self) -> None:
         p = Profile()
         gremlin.shared_state.current_profile = p
 
         mm = ModeManager()
 
         # Simple case with oldest mode retainment
-        cfg = Configuration().set(
-            "action", "change-mode", "resolution-mode", "Oldest"
-        )
+        cfg = Configuration()
+        cfg.set("action", "change-mode", "resolution-mode", "Oldest")
+        cfg.set("global", "general", "refresh-axis-on-mode-change", False)
         mm.reset()
         del mm._mode_stack[0]
         mm.switch_to(Mode("A", None))
@@ -179,9 +180,7 @@ class TestModeManager:
         assert ml[3].is_temporary
 
         # Newest mode retainment with requirement to keep some older modes
-        cfg = Configuration().set(
-            "action", "change-mode", "resolution-mode", "Newest"
-        )
+        cfg.set("action", "change-mode", "resolution-mode", "Newest")
         mm.reset()
         del mm._mode_stack[0]
         mm.switch_to(Mode("A", None))
