@@ -18,7 +18,6 @@ import dill
 from vjoy.vjoy import VJoyProxy
 
 from gremlin import event_handler, mode_manager, util
-from gremlin.base_classes import AbstractActionData
 from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
 from gremlin.keyboard import send_key_down, send_key_up, key_from_code, \
@@ -263,7 +262,7 @@ class Macro:
         return self._id
 
     @property
-    def sequence(self) -> list[AbstractActionData]:
+    def sequence(self) -> list[AbstractAction]:
         """Returns the action sequence of this macro.
 
         Returns:
@@ -271,7 +270,7 @@ class Macro:
         """
         return self._sequence
 
-    def add_action(self, action: AbstractActionData) -> None:
+    def add_action(self, action: AbstractAction) -> None:
         """Adds an action to the list of actions to perform.
 
         Args:
