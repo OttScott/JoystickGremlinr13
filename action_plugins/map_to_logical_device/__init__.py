@@ -4,23 +4,40 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, override
-import uuid
+from typing import (
+    override,
+    List,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal
 
-from gremlin import input_cache, mode_manager, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
+from gremlin import (
+    device_helpers,
+    event_handler,
+    mode_manager,
+    util,
+)
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.error import GremlinError
-from gremlin.event_handler import Event, EventListener
 from gremlin.logical_device import LogicalDevice
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType
+from gremlin.types import (
+    ActionProperty,
+    AxisMode,
+    InputType,
+    PropertyType,
+)
 
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.action_model import (
+    ActionModel,
+    SequenceIndex,
+)
 from gremlin.ui.device import InputIdentifier
 
 
@@ -33,14 +50,14 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
     def __init__(self, instance: MapToLogicalDeviceData) -> None:
         super().__init__(instance)
         self._logical = LogicalDevice()
-        self._event_listener = EventListener()
+        self._event_listener = event_handler.EventListener()
 
     @override
     def __call__(
             self,
-            event: Event,
+            event: event_handler.Event,
             value: Value,
-            properties: list[ActionProperty] = []
+            properties: List[ActionProperty] = []
     ) -> None:
         if not self._should_execute(value):
             return
@@ -62,6 +79,15 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
                 if self.data.button_inverted:
                     is_pressed = not is_pressed
                 input.update(is_pressed)
+
+                if is_pressed \
+                        and ActionProperty.DisableAutoRelease not in properties:
+                    device_helpers.ButtonReleaseActions() \
+                        .register_logical_button_release(
+                            input.id,
+                            event,
+                            self.data.button_inverted
+                        )
             case InputType.JoystickHat:
                 input_value = value.current
                 input.update(input_value)
@@ -69,7 +95,7 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
         # Emit an event with the LogicalDevice guid and the rest of the
         # system will then take care of executing it.
         self._event_listener.joystick_event.emit(
-            Event(
+            event_handler.Event(
                 event_type=input.type,
                 identifier=input.id,
                 device_guid=self._logical.device_guid,
@@ -83,11 +109,11 @@ class MapToLogicalDeviceFunctor(AbstractFunctor):
 
 class MapToLogicalDeviceModel(ActionModel):
 
-    logicalInputIdentifierChanged = Signal()
-    logicalInputTypeChanged = Signal()
-    axisModeChanged = Signal()
-    axisScalingChanged = Signal()
-    buttonInvertedChanged = Signal()
+    logicalInputIdentifierChanged = QtCore.Signal()
+    logicalInputTypeChanged = QtCore.Signal()
+    axisModeChanged = QtCore.Signal()
+    axisScalingChanged = QtCore.Signal()
+    buttonInvertedChanged = QtCore.Signal()
 
     def __init__(
             self,
@@ -160,30 +186,30 @@ class MapToLogicalDeviceModel(ActionModel):
         self._data.button_inverted = button_inverted
         self.buttonInvertedChanged.emit()
 
-    logicalInputIdentifier = Property(
+    logicalInputIdentifier = QtCore.Property(
         InputIdentifier,
         fget=_get_logical_input_identifier,
         fset=_set_logical_input_identifier,
         notify=logicalInputIdentifierChanged
     )
-    logicalInputType = Property(
+    logicalInputType = QtCore.Property(
         str,
         fget=_get_logical_input_type,
         notify=logicalInputIdentifierChanged
     )
-    axisMode = Property(
+    axisMode = QtCore.Property(
         str,
         fget=_get_axis_mode,
         fset=_set_axis_mode,
         notify=axisModeChanged
     )
-    axisScaling = Property(
+    axisScaling = QtCore.Property(
         float,
         fget=_get_axis_scaling,
         fset=_set_axis_scaling,
         notify=axisScalingChanged
     )
-    buttonInverted = Property(
+    buttonInverted = QtCore.Property(
         bool,
         fget=_get_button_inverted,
         fset=_set_button_inverted,
