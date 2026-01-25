@@ -942,7 +942,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
     """
     if min_val > max_val:
         min_val, max_val = max_val, min_val
-    return min(max_val, max(min_val, value))
+    return min_val if value < min_val else max_val if value > max_val else value
 
 
 def clamp_analog_axis(value: float) -> float:

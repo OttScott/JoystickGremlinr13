@@ -332,6 +332,8 @@ class CubicSpline(AbstractCurve):
         Returns:
             function value at the provided position
         """
+        x = util.clamp(x, -1.0, 1.0)
+
         n = len(self.points)
         i = 0
         for i in range(n-1):
@@ -344,7 +346,13 @@ class CubicSpline(AbstractCurve):
         tmp = -(h/6.0) * (self.z[i+1] + 2 * self.z[i]) + \
             (self.points[i+1].y - self.points[i].y) / h + (x - self.points[i].x) * tmp
 
-        return self.points[i].y + (x - self.points[i].x) * tmp
+        # User generic clamp to avoid function call overhead in this call which
+        # is time sensitive.
+        return util.clamp(
+            self.points[i].y + (x - self.points[i].x) * tmp,
+            -1.0,
+            1.0
+        )
 
 
 class CubicBezierSpline(AbstractCurve):
@@ -554,4 +562,10 @@ class CubicBezierSpline(AbstractCurve):
         low = self._lookup[index][interval[0]][1]
         high = self._lookup[index][interval[1]][1]
 
-        return low.y + (x - low.x) * ((high.y - low.y) / (high.x - low.x))
+        # User generic clamp to avoid function call overhead in this call which
+        # is time sensitive.
+        return util.clamp(
+            low.y + (x - low.x) * ((high.y - low.y) / (high.x - low.x)),
+            -1.0,
+            1.0
+        )
