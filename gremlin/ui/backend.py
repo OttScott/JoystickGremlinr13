@@ -471,6 +471,7 @@ class Backend(QtCore.QObject):
         """
         self.profile.fpath = fpath
         self.profile.to_xml(self.profile.fpath)
+        config.Configuration().set("global", "internal", "last-profile", fpath)
         self.windowTitleChanged.emit()
 
     @Slot(result=str)
