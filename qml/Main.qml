@@ -38,9 +38,43 @@ ApplicationWindow {
         title: "Error"
     }
 
+    MessageDialog {
+        id: _saveBeforeQuitDialog
+
+        title: "Save Changes?"
+        modality: Qt.ApplicationModal
+        buttons: MessageDialog.Save | MessageDialog.Discard | MessageDialog.Cancel
+
+        text: "There are unsaved changes in the current profile, do you want " +
+              "to save them before quitting?"
+
+        onButtonClicked: (button, role) => {
+            switch (button) {
+                case MessageDialog.Save:
+                    var fpath = backend.profilePath()
+                    if(fpath === "") {
+                        console.log("Saving to " + fpath)
+                        _saveProfileFileDialog.quitAfterSave = true
+                        _saveProfileFileDialog.open()
+                    } else {
+                        backend.saveProfile(fpath)
+                        Qt.quit()
+                    }
+                    break
+                case MessageDialog.Discard:
+                    Qt.quit()
+                    break
+                case MessageDialog.Cancel:
+                    break
+            }
+        }
+    }
+
     FileDialog {
         id: _saveProfileFileDialog
         title: "Please choose a file"
+
+        property bool quitAfterSave: false
 
         acceptLabel: "Save"
         defaultSuffix: "xml"
@@ -49,6 +83,9 @@ ApplicationWindow {
 
         onAccepted: () => {
             backend.saveProfile(Helpers.pythonizePath(currentFile))
+            if (quitAfterSave) {
+                Qt.quit()
+            }
         }
     }
 
@@ -108,7 +145,13 @@ ApplicationWindow {
             }
             MenuItem {
                 text: qsTr("Exit")
-                onTriggered: () => { Qt.quit(); }
+                onTriggered: () => {
+                    if (backend.profileContainsUnsavedChanges) {
+                        _saveBeforeQuitDialog.open()
+                    } else {
+                        Qt.quit()
+                    }
+                }
             }
         }
 
@@ -358,6 +401,13 @@ ApplicationWindow {
             _errorDialog.text = message
             _errorDialog.detailedText = details
             _errorDialog.open()
+        }
+    }
+
+    onClosing: (close) => {
+        if (backend.profileContainsUnsavedChanges) {
+            _saveBeforeQuitDialog.open()
+            close.accepted = false
         }
     }
 

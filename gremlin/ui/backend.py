@@ -307,7 +307,7 @@ class Backend(QtCore.QObject):
         return self.runner.is_running()
 
     @Slot()
-    def toggleActiveState(self):
+    def toggleActiveState(self) -> None:
         """Toggles Gremlin between active and inactive."""
         self.activate_gremlin(not self.runner.is_running())
 
@@ -480,7 +480,8 @@ class Backend(QtCore.QObject):
         Returns:
             File path of the current profile
         """
-        return str(self.profile.fpath)
+        path = self.profile.fpath
+        return "" if path is None else str(path)
 
     @Slot(str)
     def loadProfile(self, fpath: str) -> None:
@@ -492,6 +493,16 @@ class Backend(QtCore.QObject):
         self._load_profile(fpath)
         config.Configuration().set("global", "internal", "last-profile", fpath)
         self.profileChanged.emit()
+
+    @Property(bool, notify=propertyChanged)
+    def profileContainsUnsavedChanges(self) -> bool:
+        """Returns whether or not the current profile contains unsaved changes.
+
+        Returns:
+            True if the current profile contains unsaved changes, False
+            otherwise
+        """
+        return self.profile.has_unsaved_changes()
 
     @Property(type=ScriptListModel, notify=profileChanged)
     def scriptListModel(self) -> ScriptListModel:

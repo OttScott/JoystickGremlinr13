@@ -11,7 +11,9 @@ from abc import (
 )
 import codecs
 import dataclasses
+import hashlib
 import logging
+import os
 from pathlib import Path
 from typing import (
     Callable,
@@ -782,6 +784,26 @@ class Profile:
         # Remove the action and its children from the library if they are
         # unused
         self.library.remove_unused(action, recursive=True)
+
+    def has_unsaved_changes(self) -> bool:
+        """Checks if the profile has unsaved changes.
+
+        Returns:
+            True if there are unsaved changes, False otherwise
+        """
+        if self.fpath is None:
+            return True
+        else:
+            tmp_path = os.path.join(os.getenv("temp"), "gremlin.xml")
+            self.to_xml(tmp_path)
+            current_sha = hashlib.sha256(
+                open(tmp_path).read().encode("utf-8")
+            ).hexdigest()
+            profile_sha = hashlib.sha256(
+                open(self.fpath).read().encode("utf-8")
+            ).hexdigest()
+
+            return current_sha != profile_sha
 
     def _process_input(self, node: ElementTree.Element) -> None:
         """Processes an InputItem XML node and stores it.
