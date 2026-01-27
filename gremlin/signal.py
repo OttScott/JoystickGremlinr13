@@ -25,6 +25,8 @@ class Signal(QtCore.QObject):
 
     inputItemChanged = QtCore.Signal(int)
 
+    setInputIndex = QtCore.Signal(int)
+
     modesChanged = QtCore.Signal()
 
     profileChanged = QtCore.Signal()

@@ -20,7 +20,10 @@ from gremlin import (
     logical_device,
     mode_manager,
 )
-from gremlin.types import InputType
+from gremlin.types import (
+    HatDirection,
+    InputType,
+)
 from vjoy.vjoy import VJoyProxy
 
 
@@ -257,12 +260,11 @@ class ButtonReleaseActions(QtCore.QObject):
         self._current_mode = mode
 
 
-@common.SingletonDecorator
-class JoystickInputSignificant:
+class JoystickInputSignificant(metaclass=common.SingletonMetaclass):
 
     """Checks whether or not joystick inputs are significant."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the instance."""
         self._event_registry = {}
         self._mre_registry = {}
@@ -280,17 +282,18 @@ class JoystickInputSignificant:
         """
         self._mre_registry[event] = event
 
-        if event.event_type == InputType.JoystickAxis:
-            return self._process_axis(event)
-        elif event.event_type == InputType.JoystickButton:
-            return self._process_button(event)
-        elif event.event_type == InputType.JoystickHat:
-            return self._process_hat(event)
-        else:
-            logging.getLogger("system").warning(
-                "Event with unknown type received"
-            )
-            return False
+        match event.event_type:
+            case InputType.JoystickAxis:
+                return self._process_axis(event)
+            case InputType.JoystickButton:
+                return self._process_button(event)
+            case InputType.JoystickHat:
+                return self._process_hat(event)
+            case _:
+                logging.getLogger("system").warning(
+                    "Event with unknown type received"
+                )
+                return False
 
     def last_event(self, event: event_handler.Event) -> event_handler.Event:
         """Returns the most recent event of this type.
@@ -319,15 +322,15 @@ class JoystickInputSignificant:
             True if it should be processed, False otherwise
         """
         if event in self._event_registry:
-            # Reset everything if we have no recent data
+            # Reset everything if we have no recent data.
             if self._time_registry[event] + 5.0 < time.time():
                 self._event_registry[event] = event
                 self._time_registry[event] = time.time()
                 return False
-            # Update state
+            # Update state.
             else:
                 self._time_registry[event] = time.time()
-                if abs(self._event_registry[event].value - event.value) > 0.25:
+                if abs(self._event_registry[event].value - event.value) > 0.33:
                     self._event_registry[event] = event
                     self._time_registry[event] = time.time()
                     return True
@@ -358,4 +361,4 @@ class JoystickInputSignificant:
         Returns:
             True if it should be processed, False otherwise
         """
-        return event.value != (0, 0)
+        return event.value != HatDirection.Center

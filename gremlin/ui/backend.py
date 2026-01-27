@@ -31,6 +31,7 @@ from gremlin import (
     code_runner,
     common,
     config,
+    device_helpers,
     device_initialization,
     error,
     event_handler,
@@ -78,6 +79,7 @@ class UIState(QtCore.QObject):
     inputChanged = Signal()
     modeChanged = Signal()
     tabChanged = Signal()
+    selectIndex = Signal(int)
 
     def __init__(self, parent: ta.OQO=None) -> None:
         super().__init__(parent)
@@ -110,7 +112,6 @@ class UIState(QtCore.QObject):
             else:
                 self.setCurrentDevice(str(dill.UUID_Invalid))
                 self.setCurrentTab("logical")
-
 
     @Slot(str)
     def setCurrentDevice(self, device_name: str) -> None:
@@ -205,6 +206,8 @@ class Backend(QtCore.QObject):
         self.process_monitor = process_monitor.ProcessMonitor()
         self.process_monitor.start()
 
+        self.joystick_change_monitor = device_helpers.JoystickInputSignificant()
+
         # Hookup various mode change related callbacks
         mm = mode_manager.ModeManager()
         mm.mode_changed.connect(self._emit_change)
@@ -223,8 +226,24 @@ class Backend(QtCore.QObject):
         event_handler.EventListener().device_change_event.connect(
             self._device_change
         )
+        event_handler.EventListener().joystick_event.connect(
+            self._highlight_input
+        )
 
         self.profileChanged.emit()
+
+    def _highlight_input(self, event: event_handler.Event) -> None:
+        current_input = self.ui_state.currentInput
+        if self.ui_state.currentTab == "physical" \
+                and current_input.device_guid == event.device_guid \
+                and self.joystick_change_monitor.should_process(event):
+            new_input = InputIdentifier(
+                event.device_guid,
+                event.event_type,
+                event.identifier
+            )
+            if current_input.linear_index != new_input.linear_index:
+                signal.setInputIndex.emit(new_input.linear_index)
 
     def _profile_change_handler(self) -> None:
         # Update shared state before any other parts update.

@@ -98,6 +98,36 @@ class InputIdentifier(QtCore.QObject):
             and self.input_type is not None \
             and self.input_id is not None
 
+    @property
+    def linear_index(self) -> int:
+        """Returns the linear index of the input item.
+
+        The linear index is computed based on the device information and
+        the input type and id.
+
+        Returns:
+            The linear index of the input item
+        """
+        if not self.isValid:
+            raise GremlinError("Cannot compute linear index of invalid input")
+
+        device_info = dill.DILL.get_device_information_by_guid(
+            dill.GUID.from_uuid(self.device_guid)
+        )
+        match self.input_type:
+            case InputType.JoystickAxis:
+                for i, axis in enumerate(device_info.axis_map):
+                    if axis.axis_index == self.input_id:
+                        return i
+                raise GremlinError("Invalid axis id for device")
+            case InputType.JoystickButton:
+                return device_info.axis_count + (self.input_id - 1)
+            case InputType.JoystickHat:
+                return device_info.axis_count + \
+                    device_info.button_count + (self.input_id - 1)
+            case _:
+                raise GremlinError("Invalid input type for device")
+
     def __eq__(self, other: InputIdentifier) -> bool:
         return self.device_guid == other.device_guid and \
             self.input_type == other.input_type and \

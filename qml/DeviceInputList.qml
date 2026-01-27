@@ -30,6 +30,14 @@ Item {
         }
     }
 
+    Connections {
+        target: signal
+
+        function onSetInputIndex(index) {
+            _inputList.currentIndex = index
+        }
+    }
+
     // List of all the inputs available on the device
     JGListView {
         id: _inputList
