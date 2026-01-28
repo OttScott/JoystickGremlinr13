@@ -162,6 +162,13 @@ def register_config_options() -> None:
         {}, True
     )
     cfg.register(
+        "global", "general", "input-highlighting",
+        PropertyType.Bool, True,
+        "Select the input in the UI by using an input on the physical device. "
+        "Selects only inputs if the active tab matches the device.",
+        {}, True
+    )
+    cfg.register(
         "profile", "automation", "enable-auto-loading",
         PropertyType.Bool, False,
         "Enable the automatic loading and activation of profiles based on the "

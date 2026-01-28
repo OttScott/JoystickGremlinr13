@@ -233,6 +233,11 @@ class Backend(QtCore.QObject):
         self.profileChanged.emit()
 
     def _highlight_input(self, event: event_handler.Event) -> None:
+        if not config.Configuration().value(
+            "global", "general", "input-highlighting"
+        ):
+            return
+
         current_input = self.ui_state.currentInput
         if self.ui_state.currentTab == "physical" \
                 and current_input.device_guid == event.device_guid \
