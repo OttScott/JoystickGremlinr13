@@ -52,11 +52,14 @@ class VirtualButton(metaclass=ABCMeta):
         """Initializes the state of the button FSM."""
         states = ["up", "down"]
         actions = ["press", "release"]
+        noop = lambda: False
+        press = lambda: True
+        release = lambda: True
         transitions = {
-            ("up", "press"): fsm.Transition([self._press], "down"),
-            ("up", "release"): fsm.Transition([self._noop], "up"),
-            ("down", "release"): fsm.Transition([self._release], "up"),
-            ("down", "press"): fsm.Transition([self._noop], "down")
+            ("up", "press"): fsm.Transition([press], "down"),
+            ("up", "release"): fsm.Transition([noop], "up"),
+            ("down", "release"): fsm.Transition([release], "up"),
+            ("down", "press"): fsm.Transition([noop], "down")
         }
         return fsm.FiniteStateMachine("up", states, actions, transitions)
 
@@ -71,18 +74,6 @@ class VirtualButton(metaclass=ABCMeta):
             List of states to process
         """
         pass
-
-    def _press(self) -> bool:
-        """Executes the "press" action."""
-        return True
-
-    def _release(self) -> bool:
-        """Executes the "release" action."""
-        return True
-
-    def _noop(self) -> bool:
-        """Performs "noop" action."""
-        return False
 
 
 class VirtualAxisButton(VirtualButton):
@@ -99,7 +90,8 @@ class VirtualAxisButton(VirtualButton):
         self._direction = direction
         self._last_value = None
 
-    def __call__(self, event: event_handler.Event) -> List[bool]:
+    def __call__(self, event: event_handler.Event) -> list[bool]:
+        value = event.value if event.value is not None else 0.0
         forced_activation = False
         direction = AxisButtonDirection.Anywhere
         if self._last_value is None:
@@ -107,15 +99,13 @@ class VirtualAxisButton(VirtualButton):
         else:
             # Check if we moved over the activation region between two
             # consecutive measurements
-            if self._last_value < self._lower_limit and \
-                    event.value > self._upper_limit:
+            if self._last_value < self._lower_limit and value > self._upper_limit:
                 forced_activation = True
-            elif self._last_value > self._upper_limit and \
-                    event.value < self._lower_limit:
+            elif self._last_value > self._upper_limit and value < self._lower_limit:
                 forced_activation = True
 
             # Determine direction in which the axis is moving
-            if self._last_value < event.value:
+            if self._last_value < value:
                 direction = AxisButtonDirection.Below
             elif self._last_value > event.value:
                 direction = AxisButtonDirection.Above
@@ -129,13 +119,13 @@ class VirtualAxisButton(VirtualButton):
             self._fsm.perform("press")
             self._fsm.perform("release")
             states = [True, False]
-        inside_range = self._lower_limit <= event.value <= self._upper_limit
+        inside_range = self._lower_limit <= value <= self._upper_limit
         valid_direction = direction == self._direction or \
             self._direction == AxisButtonDirection.Anywhere
         if inside_range and valid_direction:
-            states = [True] if self._fsm.perform("press") else []
+            states = [True] if self._fsm.perform("press")[0] else []
         else:
-            states = [False] if self._fsm.perform("release") else []
+            states = [False] if self._fsm.perform("release")[0] else []
 
         return states
 
@@ -151,7 +141,7 @@ class VirtualHatButton(VirtualButton):
     def __call__(self, event: event_handler.Event) -> List[bool]:
         is_pressed = event.value in self._directions
         action = "press" if is_pressed else "release"
-        has_changed = self._fsm.perform(action)
+        has_changed = self._fsm.perform(action)[0]
         return [is_pressed] if has_changed else []
 
 
