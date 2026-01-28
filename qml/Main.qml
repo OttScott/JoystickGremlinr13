@@ -31,11 +31,10 @@ ApplicationWindow {
     Universal.theme: Style.theme
     color: Style.background
 
-
-    MessageDialog {
+    ErrorDialog {
         id: _errorDialog
 
-        title: "Error"
+        title: "A fatal error ocurred"
     }
 
     MessageDialog {
