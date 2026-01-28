@@ -240,6 +240,7 @@ class ResponseCurveModel(ActionModel):
 
         self.widget_size = 400
         self._selected_point = 0
+        self._set_is_symmetric(True)
 
     def _qml_path_impl(self) -> str:
         return "file:///" + QtCore.QFile(
@@ -277,9 +278,8 @@ class ResponseCurveModel(ActionModel):
     @Slot(int)
     def removeControlPoint(self, idx: int) -> None:
         self._data.curve.remove_control_point(idx)
-        self.controlPointChanged.emit()
-        self.curveChanged.emit()
-        self.selectedPointChanged.emit()
+        self._set_selected_point(0)
+        self.redrawElements()
 
     @Slot(float, float, int, bool)
     def setControlPoint(
@@ -461,9 +461,9 @@ class ResponseCurveModel(ActionModel):
         curve_type = lookup[value]
         if curve_type != type(self._data.curve):
             self._data.curve = curve_type()
+            self._set_selected_point(0)
             self.curveChanged.emit()
             self.controlPointChanged.emit()
-            self.selectedPointChanged.emit()
 
     def _get_selected_point(self) -> int:
         return self._selected_point
