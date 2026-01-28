@@ -4,7 +4,6 @@
 
 """Implementation of a very simple finite state machine."""
 
-
 from collections.abc import Callable
 import logging
 from typing import Any, Dict, List, Tuple
@@ -18,7 +17,7 @@ class Transition:
             self,
             callbacks: List[Callable[..., Any]],
             new_state: str
-    ):
+    ) -> None:
         """Creates a new Transition object.
 
         Args:
@@ -42,7 +41,7 @@ class FiniteStateMachine:
             transitions: Dict[Tuple[str, str], Transition],
             debug: bool=False,
             identifier: str="FSM"
-    ):
+    ) -> None:
         """Creates a new finite state machine object.
 
         Args:
@@ -62,18 +61,18 @@ class FiniteStateMachine:
         self.debug = debug
         self.identifier = identifier
 
-    def perform(self, action: str, *args) -> List[Any]:
+    def perform(self, action: str, *args: List[Any]) -> list[Any]:
         """Performs a state transition on the FSM.
 
         Args:
             action: name of the action to execute
 
         Returns:
-            Result of executing the state transition callback
+            Result of executing the state transition callback(s).
         """
         key = (self.current_state, action)
 
-        # Ensure the validity of the transition
+        # Ensure the validity of the transition.
         assert(action in self.actions)
         if key not in self.transitions:
             logging.getLogger("system").exception(
