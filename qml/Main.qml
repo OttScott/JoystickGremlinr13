@@ -38,6 +38,13 @@ ApplicationWindow {
     }
 
     MessageDialog {
+        id: _notificationDialog
+
+        modality: Qt.ApplicationModal
+        buttons: MessageDialog.Ok
+    }
+
+    MessageDialog {
         id: _saveBeforeQuitDialog
 
         title: "Save Changes?"
@@ -407,6 +414,12 @@ ApplicationWindow {
             _errorDialog.text = message
             _errorDialog.detailedText = details
             _errorDialog.open()
+        }
+
+        function onShowNotification(title, message) {
+            _notificationDialog.title = title
+            _notificationDialog.text = message
+            _notificationDialog.open()
         }
     }
 

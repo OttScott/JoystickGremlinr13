@@ -37,5 +37,7 @@ class Signal(QtCore.QObject):
 
     showError = QtCore.Signal(str, str)
 
+    showNotification = QtCore.Signal(str, str)
+
 
 signal = Signal()

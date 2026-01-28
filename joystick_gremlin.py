@@ -129,6 +129,16 @@ def register_config_options() -> None:
         "List of recently opened profiles", {}
     )
     cfg.register(
+        "global", "internal", "last-known-version",
+        PropertyType.String, "0.0.0",
+        "Last known version of Gremlin.", {}
+    )
+    cfg.register(
+        "global", "general", "check-for-updates",
+        PropertyType.Bool, True,
+        "Check for new Gremlin versions online upon start.", {}, True
+    )
+    cfg.register(
         "global", "general", "plugin-directory",
         PropertyType.Path, "",
         "Directory containing additional action plugins", {"is_folder": True}, True
@@ -303,6 +313,7 @@ class JoystickGremlinApp(QtWidgets.QApplication):
             sys.exit(-1)
 
         self.process_cmd_args(cmd_args)
+        self.backend.check_for_updates()
 
         # Run UI.
         self.syslog.info("Gremlin UI launching")

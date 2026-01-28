@@ -4,6 +4,7 @@
 
 import ctypes
 import importlib
+import json
 import logging
 import math
 import os
@@ -13,6 +14,7 @@ import sys
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
+import urllib.request
 import uuid
 from xml.etree import ElementTree
 
@@ -1040,3 +1042,21 @@ def file_exists_and_is_accessible(filename: str) -> bool:
         os.path.isfile(filename) and
         os.access(filename, os.R_OK)
         )
+
+def latest_gremlin_version() -> Optional[str]:
+    """Returns the latest Gremlin version available online.
+
+    Returns:
+        Latest Gremlin version as string if available, None otherwise
+    """
+    try:
+        with urllib.request.urlopen(
+            "https://raw.githubusercontent.com/WhiteMagic/JoystickGremlin/"
+            "refs/heads/develop/version.json",
+            timeout=5
+        ) as response:
+            data = response.read()
+            json_data = json.loads(data)
+            return json_data.get("version", None)
+    except Exception:
+        return None
