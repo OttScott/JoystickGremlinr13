@@ -23,7 +23,6 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
-from pkg_resources import parse_version
 
 import dill
 
@@ -47,17 +46,12 @@ from gremlin.signal import (
     display_error,
     signal,
 )
-
 from gremlin.ui.device import (
     InputIdentifier,
     LogicalDeviceManagementModel,
 )
-from gremlin.ui.profile import (
-    InputItemModel,
-    ModeHierarchyModel,
-)
+from gremlin.ui.profile import InputItemModel
 from gremlin.ui.script import ScriptListModel
-from gremlin.audio_player import AudioPlayer
 
 
 if TYPE_CHECKING:
@@ -237,7 +231,7 @@ class Backend(QtCore.QObject):
     def _highlight_input(self, event: event_handler.Event) -> None:
         if not config.Configuration().value(
             "global", "general", "input-highlighting"
-        ):
+        ) or shared_state.suspend_input_highlighting:
             return
 
         current_input = self.ui_state.currentInput
@@ -375,6 +369,7 @@ class Backend(QtCore.QObject):
         if activate:
             # Generate the code for the profile and run it
             # self._profile_auto_activated = False
+            shared_state.suspend_input_highlighting = True
             self.runner.start(
                 self.profile,
                 self.profile.modes.first_mode
@@ -383,6 +378,10 @@ class Backend(QtCore.QObject):
         else:
             # Stop running the code
             self.runner.stop()
+            if config.Configuration().value(
+                "global", "general", "input-highlighting"
+            ):
+                shared_state.suspend_input_highlighting = False
             # self._update_statusbar_active(False)
             # self._profile_auto_activated = False
             # current_tab = self.ui.devices.currentWidget()
