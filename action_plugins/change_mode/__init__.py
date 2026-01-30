@@ -90,7 +90,7 @@ class ChangeModeFunctor(AbstractFunctor):
             value: Value,
             properties: List[ActionProperty] = []
     ) -> None:
-        if not value.current and self.data.change_type != ChangeType.Temporary:
+        if not self._should_execute(value) and self.data.change_type != ChangeType.Temporary:
             return
 
         mm = mode_manager.ModeManager()
