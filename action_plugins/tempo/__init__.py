@@ -8,21 +8,44 @@ import copy
 import logging
 import threading
 import time
-from typing import Any, List, Optional, TYPE_CHECKING, override
+from typing import (
+    override,
+    List,
+    Optional,
+    TYPE_CHECKING,
+)
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
 
-from gremlin import event_handler, fsm, util
-from gremlin.error import GremlinError, ProfileError
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, Value
+from gremlin import (
+    event_handler,
+    fsm,
+    util,
+)
+from gremlin.error import (
+    GremlinError,
+    ProfileError,
+)
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
 from gremlin.config import Configuration
+from gremlin.device_helpers import ButtonReleaseActions, ModeMatch
+from gremlin.mode_manager import ModeManager
 from gremlin.profile import Library
-from gremlin.tree import TreeNode
-from gremlin.types import ActionProperty, InputType, PropertyType, DataCreationMode
-
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.types import (
+    ActionProperty,
+    InputType,
+    PropertyType,
+    DataCreationMode,
+)
+from gremlin.ui.action_model import (
+    ActionModel,
+    SequenceIndex,
+)
 
 if TYPE_CHECKING:
     from gremlin.ui.profile import InputItemBindingModel
@@ -30,13 +53,13 @@ if TYPE_CHECKING:
 
 class TempoFunctor(AbstractFunctor):
 
-    def __init__(self, action: TempoData):
+    def __init__(self, action: TempoData) -> None:
         super().__init__(action)
 
         # self.start_time = 0
         self.timer = None
         self.value_press : Value = Value(None)
-        self.event_press : event_handler.Event = None
+        self.event_press : event_handler.Event | None = None
         self.fsm = self._create_fsm()
 
     @override
@@ -58,12 +81,24 @@ class TempoFunctor(AbstractFunctor):
             self.value_press = copy.deepcopy(value)
             self.event_press = event.clone()
 
+            # Register a button release event to reset the FSM should the
+            # input be released in a different mode.
+            ButtonReleaseActions().register_callback(
+                lambda: self._reset_fsm_if_required(event.mode),
+                event,
+                ModeMatch.IgnoreMode
+            )
+
         self.fsm.perform(
             "press" if value.current else "release",
             event,
             value,
             properties
         )
+
+    def _reset_fsm_if_required(self, activating_mode: str) -> None:
+        if ModeManager().current.name != activating_mode:
+            self.fsm.reset()
 
     def _create_fsm(self) -> fsm.FiniteStateMachine:
         T = fsm.Transition
@@ -95,9 +130,10 @@ class TempoFunctor(AbstractFunctor):
             transitions = {
                 ("wait", "press"): T([self._start_timer], "short"),
                 ("wait", "timeout"): T([short_pulse], "wait"),
+                ("wait", "release"): T([noop], "wait"),
                 ("short", "release"): T([short_pulse], "wait"),
                 ("short", "timeout"): T([long_press], "long"),
-                ("long", "release"): T([long_release], "wait")
+                ("long", "release"): T([long_release], "wait"),
             }
         elif self.data.activate_on == "press":
             transitions = {
@@ -105,9 +141,10 @@ class TempoFunctor(AbstractFunctor):
                     [self._start_timer, short_press], "short"
                 ),
                 ("wait", "timeout"): T([noop], "wait"),
+                ("wait", "release"): T([noop], "wait"),
                 ("short", "release"): T([short_release], "wait"),
                 ("short", "timeout"): T([long_press], "long"),
-                ("long", "release"): T([long_release, short_release], "wait")
+                ("long", "release"): T([long_release, short_release], "wait"),
             }
 
         return fsm.FiniteStateMachine("wait", states, actions, transitions)
@@ -134,9 +171,9 @@ class TempoFunctor(AbstractFunctor):
 
 class TempoModel(ActionModel):
 
-    actionsChanged = Signal()
-    activateOnChanged = Signal()
-    thresholdChanged = Signal()
+    actionsChanged = QtCore.Signal()
+    activateOnChanged = QtCore.Signal()
+    thresholdChanged = QtCore.Signal()
 
     def __init__(
             self,
@@ -163,7 +200,7 @@ class TempoModel(ActionModel):
             self._data.threshold = value
             self.thresholdChanged.emit()
 
-    @Property(float, fset=_set_threshold, notify=thresholdChanged)
+    @QtCore.Property(float, fset=_set_threshold, notify=thresholdChanged)
     def threshold(self) -> float:
         return self._data.threshold
 
@@ -175,7 +212,7 @@ class TempoModel(ActionModel):
             self._data.activate_on = value
             self.activateOnChanged.emit()
 
-    @Property(str, fset=_set_activate_on, notify=activateOnChanged)
+    @QtCore.Property(str, fset=_set_activate_on, notify=activateOnChanged)
     def activateOn(self) -> str:
         return self._data.activate_on
 

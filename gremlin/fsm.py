@@ -54,12 +54,17 @@ class FiniteStateMachine:
         """
         assert(start_state in states)
 
+        self.start_state = start_state
         self.states = states
         self.actions = actions
         self.transitions = transitions
         self.current_state = start_state
         self.debug = debug
         self.identifier = identifier
+
+    def reset(self) -> None:
+        """Resets the FSM to its initial start state."""
+        self.current_state = self.start_state
 
     def perform(self, action: str, *args: List[Any]) -> list[Any]:
         """Performs a state transition on the FSM.
@@ -76,7 +81,7 @@ class FiniteStateMachine:
         assert(action in self.actions)
         if key not in self.transitions:
             logging.getLogger("system").exception(
-                f"Missing transition: {key}: {self.transitions}"
+                f"Missing transition: {key}: {self.transitions.keys()}"
             )
         assert(key in self.transitions)
         assert(self.transitions[key].new_state in self.states)

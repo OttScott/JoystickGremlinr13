@@ -103,7 +103,8 @@ class ButtonReleaseActions(QtCore.QObject):
     def register_callback(
         self,
         callback: Callable[[], None],
-        physical_event: event_handler.Event
+        physical_event: event_handler.Event,
+        mode_match: ModeMatch=ModeMatch.IgnoreMode
     ) -> None:
         """Registers a callback with the system.
 
@@ -111,17 +112,18 @@ class ButtonReleaseActions(QtCore.QObject):
             callback: the function to run when the corresponding button is
                 released
             physical_event: the physical event of the button being pressed
+            mode_match: defines how mode matching is performed for this entry
         """
         key = RegistryKey.from_event(physical_event)
         if key not in self._registry:
             self._registry[key] = []
-        # The release callback should run in any mode whenever the button is
-        # released.
+        # When the release callback is executed can be controlled via the
+        # mode_match argument.
         self._registry[key].append(
             ButtonReleaseEntry(
                 callback,
                 physical_event.mode,
-                ModeMatch.IgnoreMode,
+                mode_match,
                 ReleaseMode.OnRelease
             )
         )
@@ -249,7 +251,7 @@ class ButtonReleaseActions(QtCore.QObject):
                 entry.callback()
             else:
                 new_list.append(entry)
-        self._registry[event] = new_list
+        self._registry[key] = new_list
 
     def _mode_changed_cb(self, mode: str) -> None:
         """Updates the current mode variable.
