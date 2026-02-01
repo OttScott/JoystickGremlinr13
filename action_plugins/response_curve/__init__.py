@@ -240,7 +240,9 @@ class ResponseCurveModel(ActionModel):
 
         self.widget_size = 400
         self._selected_point = 0
-        self._set_is_symmetric(True)
+        # TODO: Find a better way, likely have the data class store symmetry
+        #   mode information.
+        # self._set_is_symmetric(True)
 
     def _qml_path_impl(self) -> str:
         return "file:///" + QtCore.QFile(
