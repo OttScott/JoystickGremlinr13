@@ -193,6 +193,7 @@ class Backend(QtCore.QObject):
         super().__init__(parent)
 
         self.engine = engine
+        self.config = config.Configuration()
         self.profile = profile.Profile()
         shared_state.current_profile = self.profile
         self._last_error = ""
@@ -229,9 +230,8 @@ class Backend(QtCore.QObject):
         self.profileChanged.emit()
 
     def _highlight_input(self, event: event_handler.Event) -> None:
-        if not config.Configuration().value(
-            "global", "general", "input-highlighting"
-        ) or shared_state.suspend_input_highlighting:
+        if not self.config.value("global", "general", "input-highlighting") \
+                or shared_state.suspend_input_highlighting():
             return
 
         current_input = self.ui_state.currentInput
@@ -256,7 +256,7 @@ class Backend(QtCore.QObject):
         signal.profileChanged.emit()
 
     def _device_change(self) -> None:
-        behavior = config.Configuration().value(
+        behavior = self.config.value(
             "global", "general", "device-change-behavior"
         )
         match behavior:
@@ -280,8 +280,7 @@ class Backend(QtCore.QObject):
 
     def check_for_updates(self) -> None:
         parse_version = lambda v: [int(x) for x in v.split(".")]
-        cfg = config.Configuration()
-        if cfg.value("global", "general", "check-for-updates"):
+        if self.config.value("global", "general", "check-for-updates"):
             # Attempt to retrieve the latest version information, if this fails
             # silently abort.
             version_string = util.latest_gremlin_version()
@@ -293,7 +292,7 @@ class Backend(QtCore.QObject):
             # version so the user is only ever notified once.
             version = parse_version(version_string)
             last_version = parse_version(
-                cfg.value("global", "internal", "last-known-version")
+                self.config.value("global", "internal", "last-known-version")
             )
             if last_version < version:
                 version_string = ".".join(str(x) for x in version)
@@ -302,7 +301,7 @@ class Backend(QtCore.QObject):
                     f"A newer version of Joystick Gremlin, {version_string} "
                     f"is available."
                 )
-                cfg.set(
+                self.config.set(
                     "global", "internal", "last-known-version", version_string
                 )
 
@@ -313,8 +312,7 @@ class Backend(QtCore.QObject):
         Otherwise the profile associated with the newly active process is
         loaded and then activated. Should
         """
-        cfg = config.Configuration()
-        if not cfg.value( "profile", "automation", "enable-auto-loading"):
+        if not self.config.value( "profile", "automation", "enable-auto-loading"):
             return
 
         profile_path = config.get_profile_with_regex(path)
@@ -327,7 +325,7 @@ class Backend(QtCore.QObject):
                 self.activate_gremlin(True)
         # No valid profile specified for the new execuable.
         else:
-            if not cfg.value(
+            if not self.config.value(
                 "profile", "automation", "remain-active-on-focus-loss"
             ):
                 self.activate_gremlin(False)
@@ -369,7 +367,7 @@ class Backend(QtCore.QObject):
         if activate:
             # Generate the code for the profile and run it
             # self._profile_auto_activated = False
-            shared_state.suspend_input_highlighting = True
+            shared_state.set_suspend_input_highlighting(True)
             self.runner.start(
                 self.profile,
                 self.profile.modes.first_mode
@@ -378,10 +376,8 @@ class Backend(QtCore.QObject):
         else:
             # Stop running the code
             self.runner.stop()
-            if config.Configuration().value(
-                "global", "general", "input-highlighting"
-            ):
-                shared_state.suspend_input_highlighting = False
+            if self.config.value("global", "general", "input-highlighting"):
+                shared_state.set_suspend_input_highlighting(False)
             # self._update_statusbar_active(False)
             # self._profile_auto_activated = False
             # current_tab = self.ui.devices.currentWidget()
@@ -493,9 +489,7 @@ class Backend(QtCore.QObject):
         Returns:
             True if dark mode is enabled, False otherwise
         """
-        return config.Configuration().value(
-            "global", "general", "dark-mode"
-        )
+        return self.config.value("global", "general", "dark-mode")
 
     @Property(type=list, notify=recentProfilesChanged)
     def recentProfiles(self) -> List[str]:
@@ -504,7 +498,7 @@ class Backend(QtCore.QObject):
         Returns:
             List of recently used profiles
         """
-        return config.Configuration().value("global", "internal", "recent-profiles")
+        return self.config.value("global", "internal", "recent-profiles")
 
     @Slot()
     def newProfile(self) -> None:
@@ -524,7 +518,7 @@ class Backend(QtCore.QObject):
         """
         self.profile.fpath = fpath
         self.profile.to_xml(self.profile.fpath)
-        config.Configuration().set("global", "internal", "last-profile", fpath)
+        self.config.set("global", "internal", "last-profile", fpath)
         self.windowTitleChanged.emit()
 
     @Slot(result=str)
@@ -545,7 +539,7 @@ class Backend(QtCore.QObject):
             fpath: Path to the file containing the profile to load
         """
         self._load_profile(fpath)
-        config.Configuration().set("global", "internal", "last-profile", fpath)
+        self.config.set("global", "internal", "last-profile", fpath)
         self.profileChanged.emit()
 
     @Property(bool, notify=propertyChanged)

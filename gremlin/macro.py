@@ -4,27 +4,52 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import (
+    ABC,
+    abstractmethod,
+)
 import collections
 import functools
 import logging
 import time
-from threading import Event, Lock, Thread
-from typing import override, Tuple
+from threading import (
+    Event,
+    Lock,
+    Thread,
+)
+from typing import (
+    override,
+    Tuple,
+)
 import uuid
 from xml.etree import ElementTree
 
 import dill
 from vjoy.vjoy import VJoyProxy
 
-from gremlin import event_handler, mode_manager, sendinput, util
+from gremlin import (
+    error,
+    event_handler,
+    mode_manager,
+    sendinput,
+    util,
+)
 from gremlin.common import SingletonDecorator
 from gremlin.config import Configuration
-from gremlin.keyboard import send_key_down, send_key_up, key_from_code, \
-    key_from_name, Key
+from gremlin.keyboard import (
+    send_key_down,
+    send_key_up,
+    key_from_code,
+    key_from_name,
+    Key,
+)
 from gremlin.logical_device import LogicalDevice
-from gremlin.sendinput import MouseMotion
-from gremlin.types import AxisMode, InputType, MouseButton, PropertyType
+from gremlin.types import (
+    AxisMode,
+    InputType,
+    MouseButton,
+    PropertyType,
+)
 
 MacroEntry = collections.namedtuple(
     "MacroEntry",
@@ -324,7 +349,7 @@ class Macro:
         elif isinstance(key, Key):
             pass
         else:
-            raise gremlin.error.KeyboardError("Invalid key specified")
+            raise error.KeyboardError("Invalid key specified")
 
         self._sequence.append(KeyAction(key, is_pressed))
 
@@ -349,6 +374,10 @@ class AbstractAction(ABC):
 
     @abstractmethod
     def from_xml(self, node: ElementTree.Element) -> None:
+        pass
+
+    @abstractmethod
+    def is_valid() -> bool:
         pass
 
     def _create_node(self, type_name: str) -> ElementTree.Element:
@@ -485,6 +514,9 @@ class JoystickAction(AbstractAction):
                 node, "value", PropertyType.HatDirection
             )
 
+    def is_valid(self) -> bool:
+        return self.device_guid != dill.UUID_Invalid
+
     @override
     def swap_uuid(self, old_uuid: uuid.UUID, new_uuid: uuid.UUID) -> bool:
         if self.device_guid == old_uuid:
@@ -499,24 +531,27 @@ class KeyAction(AbstractAction):
 
     tag = "key"
 
-    def __init__(self, key: Key, is_pressed: bool) -> None:
+    def __init__(self, key: Key | None, is_pressed: bool) -> None:
         """Creates a new KeyAction object for use in a macro.
 
         Args:
             key: the key to use in the action
             is_pressed: True if the key should be pressed, False otherwise
         """
-        if not isinstance(key, Key):
-            raise gremlin.error.KeyboardError("Invalid Key instance provided")
+        if not (isinstance(key, Key) or key is None):
+            raise error.KeyboardError("Invalid Key instance provided")
 
         self.key = key
         self.is_pressed = is_pressed
 
     @classmethod
     def create(cls) -> KeyAction:
-        return KeyAction(key_from_name("noname"), False)
+        return KeyAction(None, False)
 
     def __call__(self) -> None:
+        if self.key is None:
+            return
+
         if self.is_pressed:
             send_key_down(self.key)
         else:
@@ -542,6 +577,9 @@ class KeyAction(AbstractAction):
         self.is_pressed = util.read_property(
             node, "is-pressed", PropertyType.Bool
         )
+
+    def is_valid(self) -> bool:
+        return self.key is not None
 
 
 class LogicalDeviceAction(AbstractAction):
@@ -655,6 +693,9 @@ class LogicalDeviceAction(AbstractAction):
                 node, "value", PropertyType.HatDirection
             )
 
+    def is_valid(self) -> bool:
+        return True
+
 
 class MouseButtonAction(AbstractAction):
 
@@ -662,7 +703,7 @@ class MouseButtonAction(AbstractAction):
 
     tag = "mouse-button"
 
-    def __init__(self, button: MouseButton, is_pressed: bool):
+    def __init__(self, button: MouseButton, is_pressed: bool) -> None:
         """Creates a new MouseButtonAction object for use in a macro.
 
         Args:
@@ -670,7 +711,7 @@ class MouseButtonAction(AbstractAction):
             is_pressed: True if the button should be pressed, False otherwise
         """
         if not isinstance(button, MouseButton):
-            raise gremlin.error.MouseError("Invalid mouse button provided")
+            raise error.MouseError("Invalid mouse button provided")
 
         self.button = button
         self.is_pressed = is_pressed
@@ -708,6 +749,9 @@ class MouseButtonAction(AbstractAction):
         self.is_pressed = util.read_property(
             node, "is-pressed", PropertyType.Bool
         )
+
+    def is_valid(self) -> bool:
+        return self.button is not None
 
 
 class MouseMotionAction(AbstractAction):
@@ -748,6 +792,9 @@ class MouseMotionAction(AbstractAction):
         self.dx = util.read_property(node, "dx", PropertyType.Int)
         self.dy = util.read_property(node, "dy", PropertyType.Int)
 
+    def is_valid(self) -> bool:
+        return True
+
 
 class PauseAction(AbstractAction):
 
@@ -781,6 +828,9 @@ class PauseAction(AbstractAction):
         self.duration = util.read_property(
             node, "duration", PropertyType.Float
         )
+
+    def is_valid(self) -> bool:
+        return True
 
 
 class VJoyAction(AbstractAction):
@@ -876,6 +926,9 @@ class VJoyAction(AbstractAction):
             self.value = util.read_property(
                 node, "value", PropertyType.HatDirection
             )
+
+    def is_valid(self) -> bool:
+        return True
 
 
 class AbstractRepeat(ABC):

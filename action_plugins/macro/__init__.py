@@ -5,27 +5,51 @@
 from __future__ import annotations
 
 import enum
-from itertools import count
-from typing import Any, List, override, TYPE_CHECKING
-from unittest import case
+from typing import (
+    override,
+    List,
+    TYPE_CHECKING,
+)
+import uuid
 from xml.etree import ElementTree
 
 from PySide6 import QtCore
-from PySide6.QtCore import Property, Signal, Slot
 
 from action_plugins import common
+import dill
 
-from gremlin import device_helpers, event_handler, keyboard, macro, util
-from gremlin.base_classes import AbstractActionData, AbstractFunctor, \
-    Value
-from gremlin.error import GremlinError, MissingImplementationError, ProfileError
+from gremlin import (
+    device_helpers,
+    event_handler,
+    keyboard,
+    macro,
+    util,
+)
+from gremlin.base_classes import (
+    AbstractActionData,
+    AbstractFunctor,
+    Value,
+)
+from gremlin.error import (
+    GremlinError,
+    MissingImplementationError,
+    ProfileError,
+)
 from gremlin.logical_device import LogicalDevice
-from gremlin.macro import KeyAction
 from gremlin.profile import Library
-from gremlin.types import ActionProperty, AxisMode, InputType, PropertyType, \
-    MouseButton, HatDirection, DataCreationMode
+from gremlin.types import (
+    ActionProperty,
+    AxisMode,
+    HatDirection,
+    InputType,
+    MouseButton,
+    PropertyType,
+)
 
-from gremlin.ui.action_model import SequenceIndex, ActionModel
+from gremlin.ui.action_model import (
+    ActionModel,
+    SequenceIndex,
+)
 from gremlin.ui.device import InputIdentifier
 
 if TYPE_CHECKING:
@@ -43,7 +67,7 @@ class AbstractActionModel(QtCore.QObject):
         super().__init__(parent)
         self._action = action
 
-    @Property(str, constant=True)
+    @QtCore.Property(str, constant=True)
     def actionType(self) -> str:
         return self._action_type()
 
@@ -55,7 +79,7 @@ class AbstractActionModel(QtCore.QObject):
 
 class JoystickActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(
         self,
@@ -67,19 +91,22 @@ class JoystickActionModel(AbstractActionModel):
     def _action_type(self) -> str:
         return "joystick"
 
-    @Property(str, notify=changed)
+    @QtCore.Property(str, notify=changed)
     def inputType(self) -> str:
         return InputType.to_string(self._action.input_type)
 
-    @Property(str, notify=changed)
+    @QtCore.Property(str, notify=changed)
     def label(self) -> str:
-        return common.joystick_label(
-            self._action.device_guid,
-            self._action.input_type,
-            self._action.input_id
-        )
+        if self._action.device_guid == dill.UUID_Invalid:
+            return ""
+        else:
+            return common.joystick_label(
+                self._action.device_guid,
+                self._action.input_type,
+                self._action.input_id
+            )
 
-    @Slot(list)
+    @QtCore.Slot(list)
     def updateJoystick(self, data: List[event_handler.Event]) -> None:
         """Receives the events corresponding to joystick events.
 
@@ -89,16 +116,22 @@ class JoystickActionModel(AbstractActionModel):
         Args:
             data: list of joystick events
         """
-        # Extract information about first input
-        self._action.device_guid = data[0].device_guid
-        self._action.input_type = data[0].event_type
-        self._action.input_id = data[0].identifier
-        if data[0].event_type == InputType.JoystickAxis:
-            self._action.value = 0.0
-        elif data[0].event_type == InputType.JoystickButton:
+        if not data:
+            self._action.device_guid = dill.UUID_Invalid
+            self._action.input_type = InputType.JoystickButton
+            self._action.input_id = 1
             self._action.value = False
-        elif data[0].event_type == InputType.JoystickHat:
-            self._action.value = HatDirection.Center
+        else:
+            # Extract information about first input
+            self._action.device_guid = data[0].device_guid
+            self._action.input_type = data[0].event_type
+            self._action.input_id = data[0].identifier
+            if data[0].event_type == InputType.JoystickAxis:
+                self._action.value = 0.0
+            elif data[0].event_type == InputType.JoystickButton:
+                self._action.value = False
+            elif data[0].event_type == InputType.JoystickHat:
+                self._action.value = HatDirection.Center
         self.changed.emit()
 
     def _get_is_pressed(self) -> bool:
@@ -132,21 +165,21 @@ class JoystickActionModel(AbstractActionModel):
             self._action.value = direction
             self.changed.emit()
 
-    isPressed = Property(
+    isPressed = QtCore.Property(
         bool,
         fget=_get_is_pressed,
         fset=_set_is_pressed,
         notify=changed
     )
 
-    axisValue = Property(
+    axisValue = QtCore.Property(
         float,
         fget=_get_axis_value,
         fset=_set_axis_value,
         notify=changed
     )
 
-    hatDirection = Property(
+    hatDirection = QtCore.Property(
         str,
         fget=_get_hat_direction,
         fset=_set_hat_direction,
@@ -156,7 +189,7 @@ class JoystickActionModel(AbstractActionModel):
 
 class KeyActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(self, action: macro.KeyAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
@@ -173,9 +206,9 @@ class KeyActionModel(AbstractActionModel):
             self.changed.emit()
 
     def _get_key(self) -> str:
-        return self._action.key.name
+        return "" if self._action.key is None else self._action.key.name
 
-    @Slot(list)
+    @QtCore.Slot(list)
     def updateKey(self, data: List[event_handler.Event]) -> None:
         """Receives the events corresponding to mouse button presses.
 
@@ -186,22 +219,23 @@ class KeyActionModel(AbstractActionModel):
             data: list of mouse button presses to store
         """
         # Sort keys such that modifiers are first
-        self._action.key = keyboard.key_from_code(*data[0].identifier)
+        self._action.key = None if not data else \
+            keyboard.key_from_code(*data[0].identifier)
         self.changed.emit()
 
-    isPressed = Property(
+    isPressed = QtCore.Property(
         bool,
         fget=_get_is_pressed,
         fset=_set_is_pressed,
         notify=changed
     )
 
-    key = Property(str, fget=_get_key, notify=changed)
+    key = QtCore.Property(str, fget=_get_key, notify=changed)
 
 
 class LogicalDeviceActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(
         self,
@@ -252,6 +286,7 @@ class LogicalDeviceActionModel(AbstractActionModel):
     def _get_axis_value(self) -> float:
         if self._action.input_type == InputType.JoystickAxis:
             return self._action.value
+        return 0.0
 
     def _set_axis_value(self, value: float) -> None:
         if self._action.input_type != InputType.JoystickAxis:
@@ -272,6 +307,7 @@ class LogicalDeviceActionModel(AbstractActionModel):
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
             return HatDirection.to_string(self._action.value)
+        return ""
 
     def _set_hat_direction(self, value: str) -> None:
         if self._action.input_type != InputType.JoystickHat:
@@ -281,37 +317,37 @@ class LogicalDeviceActionModel(AbstractActionModel):
             self._action.value = direction
             self.changed.emit()
 
-    logicalInputIdentifier = Property(
+    logicalInputIdentifier = QtCore.Property(
         InputIdentifier,
         fget=_get_logical_input_identifier,
         fset=_set_logical_input_identifier,
         notify=changed
     )
 
-    inputType = Property(str, fget=_get_input_type, notify=changed)
+    inputType = QtCore.Property(str, fget=_get_input_type, notify=changed)
 
-    isPressed = Property(
+    isPressed = QtCore.Property(
         bool,
         fget=_get_is_pressed,
         fset=_set_is_pressed,
         notify=changed
     )
 
-    axisValue = Property(
+    axisValue = QtCore.Property(
         float,
         fget=_get_axis_value,
         fset=_set_axis_value,
         notify=changed
     )
 
-    axisMode = Property(
+    axisMode = QtCore.Property(
         str,
         fget=_get_axis_mode,
         fset=_set_axis_mode,
         notify=changed
     )
 
-    hatDirection = Property(
+    hatDirection = QtCore.Property(
         str,
         fget=_get_hat_direction,
         fset=_set_hat_direction,
@@ -321,7 +357,7 @@ class LogicalDeviceActionModel(AbstractActionModel):
 
 class MouseButtonActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(
         self,
@@ -342,9 +378,10 @@ class MouseButtonActionModel(AbstractActionModel):
             self.changed.emit()
 
     def _get_button(self) -> str:
-        return MouseButton.to_string(self._action.button)
+        return "" if self._action.button is None else \
+            MouseButton.to_string(self._action.button)
 
-    @Slot(list)
+    @QtCore.Slot(list)
     def updateButton(self, data: List[event_handler.Event]) -> None:
         """Receives the events corresponding to mouse button presses.
 
@@ -354,23 +391,22 @@ class MouseButtonActionModel(AbstractActionModel):
         Args:
             data: list of mouse button presses to store
         """
-        # Sort keys such that modifiers are first
-        self._action.button = data[0].identifier
+        self._action.button = None if not data else data[0].identifier
         self.changed.emit()
 
-    isPressed = Property(
+    isPressed = QtCore.Property(
         bool,
         fget=_get_is_pressed,
         fset=_set_is_pressed,
         notify=changed
     )
 
-    button = Property(str, fget=_get_button, notify=changed)
+    button = QtCore.Property(str, fget=_get_button, notify=changed)
 
 
 class MouseMotionActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(
         self,
@@ -398,13 +434,13 @@ class MouseMotionActionModel(AbstractActionModel):
             self._action.dy = value
             self.changed.emit()
 
-    dx = Property(int, fget=_get_dx, fset=_set_dx, notify=changed)
-    dy = Property(int, fget=_get_dy, fset=_set_dy, notify=changed)
+    dx = QtCore.Property(int, fget=_get_dx, fset=_set_dx, notify=changed)
+    dy = QtCore.Property(int, fget=_get_dy, fset=_set_dy, notify=changed)
 
 
 class PauseActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(self, action: macro.PauseAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
@@ -420,7 +456,7 @@ class PauseActionModel(AbstractActionModel):
             self._action.duration = value
             self.changed.emit()
 
-    duration = Property(
+    duration = QtCore.Property(
         float,
         fget=_get_duration,
         fset=_set_duration,
@@ -430,7 +466,7 @@ class PauseActionModel(AbstractActionModel):
 
 class VJoyActionModel(AbstractActionModel):
 
-    changed = Signal()
+    changed = QtCore.Signal()
 
     def __init__(self, action: macro.VJoyAction, parent: ta.OQO=None) -> None:
         super().__init__(action, parent)
@@ -472,6 +508,7 @@ class VJoyActionModel(AbstractActionModel):
     def _get_is_pressed(self) -> bool:
         if self._action.input_type == InputType.JoystickButton:
             return self._action.value
+        return False
 
     def _set_is_pressed(self, value: bool) -> None:
         if self._action.input_type != InputType.JoystickButton:
@@ -483,6 +520,7 @@ class VJoyActionModel(AbstractActionModel):
     def _get_axis_value(self) -> float:
         if self._action.input_type == InputType.JoystickAxis:
             return self._action.value
+        return 0.0
 
     def _set_axis_value(self, value: float) -> None:
         if self._action.input_type != InputType.JoystickAxis:
@@ -503,6 +541,7 @@ class VJoyActionModel(AbstractActionModel):
     def _get_hat_direction(self) -> str:
         if self._action.input_type == InputType.JoystickHat:
             return HatDirection.to_string(self._action.value)
+        return ""
 
     def _set_hat_direction(self, value: str) -> None:
         if self._action.input_type != InputType.JoystickHat:
@@ -512,49 +551,49 @@ class VJoyActionModel(AbstractActionModel):
             self._action.value = direction
             self.changed.emit()
 
-    inputType = Property(
+    inputType = QtCore.Property(
         str,
         fget=_get_input_type,
         fset=_set_input_type,
         notify=changed
     )
 
-    inputId = Property(
+    inputId = QtCore.Property(
         int,
         fget=_get_input_id,
         fset=_set_input_id,
         notify=changed
     )
 
-    vjoyId = Property(
+    vjoyId = QtCore.Property(
         int,
         fget=_get_vjoy_id,
         fset=_set_vjoy_id,
         notify=changed
     )
 
-    isPressed = Property(
+    isPressed = QtCore.Property(
         bool,
         fget=_get_is_pressed,
         fset=_set_is_pressed,
         notify=changed
     )
 
-    axisValue = Property(
+    axisValue = QtCore.Property(
         float,
         fget=_get_axis_value,
         fset=_set_axis_value,
         notify=changed
     )
 
-    axisMode = Property(
+    axisMode = QtCore.Property(
         str,
         fget=_get_axis_mode,
         fset=_set_axis_mode,
         notify=changed
     )
 
-    hatDirection = Property(
+    hatDirection = QtCore.Property(
         str,
         fget=_get_hat_direction,
         fset=_set_hat_direction,
@@ -636,7 +675,7 @@ class MacroFunctor(AbstractFunctor):
 class MacroModel(ActionModel):
 
     # Signal emitted when the description variable's content changes
-    changed = Signal()
+    changed = QtCore.Signal()
 
     action_lookup = {
         "joystick": macro.JoystickAction.create,
@@ -678,7 +717,7 @@ class MacroModel(ActionModel):
             self._parent_sequence_index.index
         ).actionBehavior
 
-    @Property(list, notify=changed)
+    @QtCore.Property(list, notify=changed)
     def actions(self) -> List[AbstractActionModel]:
         model_instances = [
             self.model_lookup[action.tag](action, self)
@@ -686,18 +725,18 @@ class MacroModel(ActionModel):
         ]
         return model_instances
 
-    @Slot(str)
+    @QtCore.Slot(str)
     def addAction(self, name: str) -> None:
         self._data.actions.append(self.action_lookup[name]())
         self.changed.emit()
 
-    @Slot(int)
+    @QtCore.Slot(int)
     def removeAction(self, index: int) -> None:
         if index < len(self._data.actions):
             del self._data.actions[index]
             self.changed.emit()
 
-    @Slot(int, int, str)
+    @QtCore.Slot(int, int, str)
     def dropCallback(
         self,
         target_index: int,
@@ -762,28 +801,28 @@ class MacroModel(ActionModel):
             self._data.is_exclusive = state
             self.changed.emit()
 
-    repeatCount = Property(
+    repeatCount = QtCore.Property(
         int,
         fget=_get_repeat_count,
         fset=_set_repeat_count,
         notify=changed
     )
 
-    repeatDelay = Property(
+    repeatDelay = QtCore.Property(
         float,
         fget=_get_repeat_delay,
         fset=_set_repeat_delay,
         notify=changed
     )
 
-    repeatMode = Property(
+    repeatMode = QtCore.Property(
         str,
         fget=_get_repeat_mode,
         fset=_set_repeat_mode,
         notify=changed
     )
 
-    isExclusive = Property(
+    isExclusive = QtCore.Property(
         bool,
         fget=_get_is_exclusive,
         fset=_set_is_exclusive,
@@ -874,7 +913,8 @@ class MacroData(AbstractActionData):
             ]
         )
         for entry in self.actions:
-            node.append(entry.to_xml())
+            if entry.is_valid():
+                node.append(entry.to_xml())
         return node
 
     @override

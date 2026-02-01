@@ -49,7 +49,7 @@ def set_suspend_input_highlighting(value: bool) -> None:
     _suspend_input_highlighting = value
 
 
-def delayed_input_highlighting_suspension() -> None:
+def set_suspend_input_highlighting_delayed() -> None:
     """Disables input highlighting with a delay."""
     global _suspend_timer
     if _suspend_timer is not None:

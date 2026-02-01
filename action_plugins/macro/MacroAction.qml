@@ -58,7 +58,7 @@ Item {
             Button {
                 text: "Add Action"
 
-                onClicked: function() {
+                onClicked: () => {
                     _root.action.addAction(_macroAction.currentValue)
                 }
             }
@@ -75,13 +75,11 @@ Item {
                 textRole: "text"
                 valueRole: "value"
 
-                Component.onCompleted: function () {
+                Component.onCompleted: () => {
                     currentIndex = indexOfValue(_root.action.repeatMode)
                 }
 
-                onActivated: function () {
-                    _root.action.repeatMode = currentValue
-                }
+                onActivated: () => { _root.action.repeatMode = currentValue }
 
                 model: [
                     {value: "single", text: "Single"},
@@ -110,9 +108,7 @@ Item {
                 from: 1
                 to: 100
 
-                onValueModified: function () {
-                    _root.action.repeatCount = value
-                }
+                onValueModified: () => { _root.action.repeatCount = value }
             }
 
             LayoutHorizontalSpacer {}
@@ -121,7 +117,7 @@ Item {
                 text: "Exclusive"
 
                 checked: _root.action.isExclusive
-                onClicked: () => _root.action.isExclusive = checked
+                onClicked: () => { _root.action.isExclusive = checked }
             }
 
         }
@@ -159,7 +155,9 @@ Item {
 
                 actionItem: RowLayout {
                     InputListener {
-                        buttonLabel: modelData.label
+                        buttonLabel: Helpers.safeText(
+                            modelData.label, "Record Input"
+                        )
                         callback: (inputs) => {
                             modelData.updateJoystick(inputs)
                         }
@@ -174,7 +172,7 @@ Item {
                         visible: modelData.inputType === "button"
 
                         checked: modelData.isPressed
-                        onCheckedChanged: function () {
+                        onCheckedChanged: () => {
                             modelData.isPressed = checked
                         }
                     }
@@ -207,7 +205,7 @@ Item {
                             {value: "north-west", text: "North West"}
                         ]
 
-                        Component.onCompleted: function () {
+                        Component.onCompleted: () => {
                             currentIndex = Qt.binding(
                                 () => indexOfValue(modelData.hatDirection)
                             )
@@ -231,7 +229,9 @@ Item {
 
                 actionItem: RowLayout {
                     InputListener {
-                        buttonLabel: modelData.key
+                        buttonLabel: Helpers.safeText(
+                            modelData.key, "Record Input"
+                        )
                         callback: (inputs) => { modelData.updateKey(inputs) }
                         multipleInputs: false
                         eventTypes: ["key"]
@@ -241,7 +241,7 @@ Item {
 
                     PressOrRelease {
                         checked: modelData.isPressed
-                        onCheckedChanged: function () {
+                        onCheckedChanged: () => {
                             modelData.isPressed = checked
                         }
                     }
@@ -349,7 +349,9 @@ Item {
 
                 actionItem: RowLayout {
                     InputListener {
-                        buttonLabel: modelData.button
+                        buttonLabel: Helpers.safeText(
+                            modelData.button, "Record Input"
+                        )
                         callback: (inputs) => { modelData.updateButton(inputs) }
                         multipleInputs: false
                         eventTypes: ["mouse"]
@@ -359,7 +361,7 @@ Item {
 
                     PressOrRelease {
                         checked: modelData.isPressed
-                        onCheckedChanged: function () {
+                        onCheckedChanged: () => {
                             modelData.isPressed = checked
                         }
                     }
@@ -377,14 +379,14 @@ Item {
 
                 actionItem: RowLayout {
                     Label {
+                        Layout.leftMargin: 5
+
                         text: "X-Axis"
                     }
                     JGSpinBox {
                         value: modelData.dx
 
-                        onValueModified: function () {
-                            modelData.dx = value
-                        }
+                        onValueModified: () => { modelData.dx = value }
                     }
 
                     Label {
@@ -395,9 +397,7 @@ Item {
                     JGSpinBox {
                         value: modelData.dy
 
-                        onValueModified: function () {
-                            modelData.dy = value
-                        }
+                        onValueModified: () => { modelData.dy = value }
                     }
 
                     LayoutHorizontalSpacer {}
@@ -447,7 +447,7 @@ Item {
                         onVjoyDeviceIdChanged: { modelData.vjoyId = vjoyDeviceId }
                         onVjoyInputTypeChanged: { modelData.inputType = vjoyInputType }
 
-                        Component.onCompleted: {
+                        Component.onCompleted: () => {
                             vjoyInputType = modelData.inputType
                             vjoyInputId = modelData.inputId
                             vjoyDeviceId = modelData.vjoyId
@@ -530,7 +530,7 @@ Item {
         text: bsi.icons.remove
         font.pixelSize: 16
 
-        onClicked: () => _root.action.removeAction(index)
+        onClicked: () => { _root.action.removeAction(index) }
     }
 
     // Switch with press/release labels for button action indication
@@ -573,7 +573,7 @@ Item {
             drag.axis: Drag.YAxis
 
             // Create a visualization of the dragged item
-            onPressed: function() {
+            onPressed: () => {
                 parent.parent.grabToImage(function(result) {
                     target.Drag.imageSource = result.url
                 })
@@ -589,16 +589,16 @@ Item {
 
         Layout.fillWidth: true
 
-        onDropped: function(drop) {
+        onDropped: (drop) => {
             drop.accept()
             _marker.opacity = 0.0
             _root.action.dropCallback(targetIndex, drop.text, insertionMode)
         }
 
-        onEntered: function() {
+        onEntered: () => {
             _marker.opacity = 1.0
         }
-        onExited: function() {
+        onExited: () => {
             _marker.opacity = 0.0
         }
 

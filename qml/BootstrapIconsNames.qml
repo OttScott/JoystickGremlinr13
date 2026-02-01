@@ -29,7 +29,7 @@ QtObject {
     readonly property string help: "\uF50B"
 
     // Macro action types.
-    readonly property string icon_mouse: "\uF49D"
+    readonly property string icon_mouse: "\uF49B"
     readonly property string icon_keyboard: "\uF451"
     readonly property string icon_pause: "\uF4C3"
     readonly property string icon_joystick: "\uF448"

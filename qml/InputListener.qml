@@ -91,7 +91,6 @@ Item {
             id: _hoverHandler
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         }
-
     }
 
     Popup {
@@ -113,7 +112,7 @@ Item {
 
             RowLayout {
                 Label {
-                    text: "Waiting for user input"
+                    text: "Waiting for user input. Hold ESC to abort."
                 }
                 Label {
                     text: _listener.currentInput
