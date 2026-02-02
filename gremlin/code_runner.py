@@ -93,8 +93,11 @@ class VirtualAxisButton(VirtualButton):
     def __call__(self, event: event_handler.Event) -> list[bool]:
         value = event.value if event.value is not None else 0.0
         forced_activation = False
+        newly_initialized = False
         direction = AxisButtonDirection.Anywhere
+
         if self._last_value is None:
+            newly_initialized = True
             self._last_value = event.value
         else:
             # Check if we moved over the activation region between two
@@ -123,7 +126,10 @@ class VirtualAxisButton(VirtualButton):
         valid_direction = direction == self._direction or \
             self._direction == AxisButtonDirection.Anywhere
         if inside_range and valid_direction:
-            states = [True] if self._fsm.perform("press")[0] else []
+            if newly_initialized:
+                self._fsm.set_state("down")
+            else:
+                states = [True] if self._fsm.perform("press")[0] else []
         else:
             states = [False] if self._fsm.perform("release")[0] else []
 
@@ -134,7 +140,7 @@ class VirtualHatButton(VirtualButton):
 
     """Treats directional hat events as a button."""
 
-    def __init__(self, directions) -> None:
+    def __init__(self, directions: List[HatDirection]) -> None:
         super().__init__()
         self._directions = directions
 

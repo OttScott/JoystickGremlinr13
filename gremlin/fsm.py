@@ -66,6 +66,15 @@ class FiniteStateMachine:
         """Resets the FSM to its initial start state."""
         self.current_state = self.start_state
 
+    def set_state(self, state: str) -> None:
+        """Sets the current state without performing a transition.
+
+        Args:
+            state: the state to put the FSM into
+        """
+        if state in self.states:
+            self.current_state = state
+
     def perform(self, action: str, *args: List[Any]) -> list[Any]:
         """Performs a state transition on the FSM.
 
