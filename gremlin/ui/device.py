@@ -1468,6 +1468,9 @@ class AxisCalibration(QtCore.QAbstractListModel):
             return
 
         if event.event_type == InputType.JoystickAxis:
+            if event.raw_value is None:
+                return
+
             index = self._device.axis_lookup[event.identifier] - 1
             state = self._state[index]
 

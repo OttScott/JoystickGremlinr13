@@ -481,7 +481,7 @@ class EventHandler(QtCore.QObject):
             device_guid: uuid.UUID,
             mode: str,
             event: Event,
-            callback: CallbackObject|Callable[[Event, Value], None]
+            callback: CallbackObject|Callable[[Event], None]
     ) -> None:
         """Installs the provided callback for the given event.
 
@@ -565,7 +565,7 @@ class EventHandler(QtCore.QObject):
     def _matching_callbacks(
             self,
             event: Event
-    ) -> List[Callable[[Event, Value], None]]:
+    ) -> List[Callable[[Event], None]]:
         """Returns the list of callbacks to execute in response to
         the provided event.
 
@@ -592,8 +592,8 @@ class EventHandler(QtCore.QObject):
 
     def _install_plugins(
             self,
-            callback: CallbackObject|Callable[[Event, Value], None]
-    ) -> Callable[[Event, Value], None]:
+            callback: CallbackObject|Callable[[Event], None]
+    ) -> Callable[[Event], None]:
         """Installs the current plugins into the given callback.
 
         Args:

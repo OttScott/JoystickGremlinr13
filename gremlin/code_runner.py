@@ -217,7 +217,7 @@ class CallbackObject:
 
             # Pause between the execution of subsequent bindings
             if i < len(values)-1:
-                time.sleep(0.05)
+                time.sleep(0.01)
 
     def _physical_event_setup(self) -> None:
         """Configures the callback object for traditional physical events."""

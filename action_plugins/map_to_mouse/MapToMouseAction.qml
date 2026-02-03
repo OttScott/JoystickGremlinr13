@@ -19,7 +19,7 @@ Item {
     property MapToMouseModel action
 
     property int limitLow: 0
-    property int limitHigh: 1000
+    property int limitHigh: 100000
 
     implicitHeight: _content.height
 
@@ -141,7 +141,7 @@ Item {
 
             FloatSpinBox {
                 minValue: 0
-                maxValue: 30
+                maxValue: 60
                 value: _root.action.timeToMaxSpeed
                 stepSize: 1.0
                 decimals: 1
@@ -170,81 +170,66 @@ Item {
         }
 
         // Motion configuration for axis inputs
-        GridLayout {
+        ColumnLayout {
             visible: _mode_motion.checked && inputBinding.behavior === "axis"
 
-            columns: 4
+            RowLayout {
+                Label {
+                    text: "Control motion of"
+                }
 
-            Label {
-                Layout.fillWidth: true
+                RadioButton {
+                    text: "X Axis"
 
-                text: "Control"
-            }
+                    checked: _root.action.direction === 90
+                    onClicked: () => { _root.action.direction = 90 }
+                }
 
-            RadioButton {
-                Layout.fillWidth: true
+                RadioButton {
+                    text: "Y Axis"
 
-                text: "X Axis"
-
-                checked: _root.action.direction === 90
-                onClicked: function() {
-                    _root.action.direction = 90
+                    checked: _root.action.direction === 0
+                    onClicked: () => { _root.action.direction = 0 }
                 }
             }
 
-            RadioButton {
-                Layout.fillWidth: true
+            RowLayout {
 
-                text: "Y Axis"
+                Label {
+                    Layout.rightMargin: 10
 
-                checked: _root.action.direction === 0
-                onClicked: function() {
-                    _root.action.direction = 0
+                    text: "Minimum speed"
                 }
-            }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.horizontalStretchFactor: 1
-            }
+                JGSpinBox {
+                    id: _min_speed_axis
 
-            Label {
-                Layout.fillWidth: true
+                    Layout.preferredWidth: 150
 
-                text: "Minimum speed"
-            }
+                    value: _root.action.minSpeed
+                    from: limitLow
+                    to: _max_speed_axis.value
 
-            JGSpinBox {
-                id: _min_speed_axis
-
-                Layout.fillWidth: true
-
-                value: _root.action.minSpeed
-                from: limitLow
-                to: _max_speed_axis.value
-
-                onValueModified: function() {
-                    _root.action.minSpeed = value
+                    onValueModified: () => { _root.action.minSpeed = value }
                 }
-            }
 
-            Label {
-                Layout.fillWidth: true
+                Label {
+                    Layout.leftMargin: 50
+                    Layout.rightMargin: 10
 
-                text: "Maximum speed"
-            }
+                    text: "Maximum speed"
+                }
 
-            JGSpinBox {
-                id: _max_speed_axis
+                JGSpinBox {
+                    id: _max_speed_axis
 
-                Layout.fillWidth: true
+                    Layout.preferredWidth: 150
 
-                value: _root.action.maxSpeed
-                from: _min_speed_axis.value
-                to: limitHigh
+                    value: _root.action.maxSpeed
+                    from: _min_speed_axis.value
+                    to: limitHigh
 
-                onValueModified: function() {
-                    _root.action.maxSpeed = value
+                    onValueModified: () => { _root.action.maxSpeed = value }
                 }
             }
         }
